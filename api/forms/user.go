@@ -6,23 +6,35 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-//UserForm ...
 type UserForm struct{}
 
-//LoginForm ...
+// ForgotPasswordForm ...
+type ForgotPasswordForm struct {
+	Email string `form:"email" json:"email" binding:"required,email"`
+}
+
+// AssignRoleForm ...
+type AssignRoleForm struct {
+	UserID   int64  `form:"user_id" json:"user_id" binding:"required"`
+	RoleName string `form:"role_name" json:"role_name" binding:"required"`
+}
+
+// LoginForm ...
 type LoginForm struct {
-	Email    string `form:"email" json:"email" binding:"required,email"`
+	Email    string `form:"email" json:"email" binding:"omitempty,email"`
+	Username string `form:"username" json:"username" binding:"omitempty,min=3,max=20"`
 	Password string `form:"password" json:"password" binding:"required,min=3,max=50"`
 }
 
-//RegisterForm ...
+// RegisterForm ...
 type RegisterForm struct {
-	Name     string `form:"name" json:"name" binding:"required,min=3,max=20,fullName"` //fullName rule is in validator.go
+	Name     string `form:"name" json:"name" binding:"required,min=3,max=20,fullName"`
 	Email    string `form:"email" json:"email" binding:"required,email"`
+	Username string `form:"username" json:"username" binding:"required,min=3,max=20"`
 	Password string `form:"password" json:"password" binding:"required,min=3,max=50"`
 }
 
-//Name ...
+// Name ...
 func (f UserForm) Name(tag string, errMsg ...string) (message string) {
 	switch tag {
 	case "required":
@@ -39,7 +51,22 @@ func (f UserForm) Name(tag string, errMsg ...string) (message string) {
 	}
 }
 
-//Email ...
+// Username ...
+func (f UserForm) Username(tag string, errMsg ...string) (message string) {
+	switch tag {
+	case "required":
+		if len(errMsg) == 0 {
+			return "Please enter your username"
+		}
+		return errMsg[0]
+	case "min", "max":
+		return "Your username should be between 3 to 20 characters"
+	default:
+		return "Something went wrong, please try again later"
+	}
+}
+
+// Email ...
 func (f UserForm) Email(tag string, errMsg ...string) (message string) {
 	switch tag {
 	case "required":
@@ -54,7 +81,7 @@ func (f UserForm) Email(tag string, errMsg ...string) (message string) {
 	}
 }
 
-//Password ...
+// Password ...
 func (f UserForm) Password(tag string) (message string) {
 	switch tag {
 	case "required":
@@ -68,7 +95,7 @@ func (f UserForm) Password(tag string) (message string) {
 	}
 }
 
-//Signin ...
+// Signin ...
 func (f UserForm) Login(err error) string {
 	switch err.(type) {
 	case validator.ValidationErrors:
@@ -77,12 +104,15 @@ func (f UserForm) Login(err error) string {
 			return "Something went wrong, please try again later"
 		}
 
-		for _, err := range err.(validator.ValidationErrors) {
-			if err.Field() == "Email" {
-				return f.Email(err.Tag())
+		for _, e := range err.(validator.ValidationErrors) {
+			if e.Field() == "Email" {
+				return f.Email(e.Tag())
 			}
-			if err.Field() == "Password" {
-				return f.Password(err.Tag())
+			if e.Field() == "Username" {
+				return f.Username(e.Tag())
+			}
+			if e.Field() == "Password" {
+				return f.Password(e.Tag())
 			}
 		}
 
@@ -93,7 +123,7 @@ func (f UserForm) Login(err error) string {
 	return "Something went wrong, please try again later"
 }
 
-//Register ...
+// Register ...
 func (f UserForm) Register(err error) string {
 	switch err.(type) {
 	case validator.ValidationErrors:
@@ -102,17 +132,21 @@ func (f UserForm) Register(err error) string {
 			return "Something went wrong, please try again later"
 		}
 
-		for _, err := range err.(validator.ValidationErrors) {
-			if err.Field() == "Name" {
-				return f.Name(err.Tag())
+		for _, e := range err.(validator.ValidationErrors) {
+			if e.Field() == "Name" {
+				return f.Name(e.Tag())
 			}
 
-			if err.Field() == "Email" {
-				return f.Email(err.Tag())
+			if e.Field() == "Email" {
+				return f.Email(e.Tag())
 			}
 
-			if err.Field() == "Password" {
-				return f.Password(err.Tag())
+			if e.Field() == "Username" {
+				return f.Username(e.Tag())
+			}
+
+			if e.Field() == "Password" {
+				return f.Password(e.Tag())
 			}
 
 		}

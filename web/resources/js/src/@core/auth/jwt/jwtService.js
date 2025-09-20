@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import jwtDefaultConfig from './jwtDefaultConfig'
 
 export default class JwtService {
@@ -47,6 +48,11 @@ export default class JwtService {
                 const { config, response } = error
                 const originalRequest = config
 
+                // Skip refresh logic for refresh endpoint itself to avoid loops
+                if (config.url.endsWith('/token/refresh') && response && response.status === 401) {
+                    return Promise.reject(error)
+                }
+
                 // if (status === 401) {
                 if (response && response.status === 401) {
                     if (!this.isAlreadyFetchingAccessToken) {
@@ -63,6 +69,18 @@ export default class JwtService {
                             this.isAlreadyFetchingAccessToken = false
                             console.error('Token refresh failed:', error)
                             this.logout()
+                            // Show error message from response using toast
+                            const errorMsg = error.response?.data?.message || 'Session expired. Please log in again.'
+                            Vue.$toast({
+                                component: 'ToastificationContent',
+                                props: {
+                                    title: 'Session Error',
+                                    icon: 'AlertTriangleIcon',
+                                    variant: 'danger',
+                                    text: errorMsg,
+                                },
+                            })
+                            // Force redirect to login
                             window.location.href = '/login'
                         })
                     }

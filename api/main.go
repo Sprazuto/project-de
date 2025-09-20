@@ -18,13 +18,14 @@ import (
 	"github.com/joho/godotenv"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
+	"golang.org/x/crypto/bcrypt"
 )
 
 // CORSMiddleware ...
 // CORS (Cross-Origin Resource Sharing)
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
@@ -53,7 +54,7 @@ func RequestIDMiddleware() gin.HandlerFunc {
 var auth = new(controllers.AuthController)
 
 // TokenAuthMiddleware ...
-// JWT Authentication middleware attached to each request that needs to be authenitcated to validate the access_token in the header
+// JWT Authentication middleware attached to each request that needs to be authenticated to validate the access_token in the header
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth.TokenValid(c)
@@ -107,6 +108,51 @@ func main() {
 	//Example: db.GetDB() - More info in the models folder
 	db.Init()
 
+	// Seed admin user if not exists
+	getDb := db.GetDB()
+	adminCount, err := getDb.SelectInt(`SELECT count(id) FROM public."user" WHERE LOWER(username)=LOWER($1)`, "admin")
+	if err != nil {
+		log.Fatal("Failed to check admin user:", err)
+	}
+	if adminCount == 0 {
+		bytePassword := []byte("Admin777")
+		hashedPassword, hashErr := bcrypt.GenerateFromPassword(bytePassword, bcrypt.DefaultCost)
+		if hashErr != nil {
+			log.Fatal("Failed to hash admin password:", hashErr)
+		}
+
+		var userID int64
+		err = getDb.QueryRow(`INSERT INTO public."user" (email, username, password, name, failed_attempts, locked_until) VALUES ($1, $2, $3, $4, 0, 0) RETURNING id`, "admin@project.de", "admin", string(hashedPassword), "Administrator").Scan(&userID)
+		if err != nil {
+			log.Fatal("Failed to create admin user:", err)
+		}
+
+		// Get or create admin role
+		var roleID int64
+		roleCount, err := getDb.SelectInt(`SELECT count(id) FROM public.roles WHERE LOWER(name) = LOWER($1)`, "admin")
+		if err != nil {
+			log.Fatal("Failed to check admin role:", err)
+		}
+		if roleCount == 0 {
+			err = getDb.QueryRow("INSERT INTO public.roles (name) VALUES ($1) RETURNING id", "admin").Scan(&roleID)
+			if err != nil {
+				log.Fatal("Failed to create admin role:", err)
+			}
+		} else {
+			roleID, err = getDb.SelectInt(`SELECT id FROM public.roles WHERE LOWER(name) = LOWER($1) LIMIT 1`, "admin")
+			if err != nil {
+				log.Fatal("Failed to get admin role ID:", err)
+			}
+		}
+
+		// Assign role to user
+		_, assignErr := getDb.Exec(`INSERT INTO public.user_roles (user_id, role_id) VALUES ($1, $2)`, userID, roleID)
+		if assignErr != nil {
+			log.Fatal("Failed to assign admin role:", assignErr)
+		}
+
+	}
+
 	//Start Redis on database 1 - it's used to store the JWT but you can use it for anythig else
 	//Example: db.GetRedis().Set(KEY, VALUE, at.Sub(now)).Err()
 	db.InitRedis(1)
@@ -119,6 +165,9 @@ func main() {
 		v1.POST("/user/login", user.Login)
 		v1.POST("/user/register", user.Register)
 		v1.GET("/user/logout", user.Logout)
+		v1.GET("/user/profile", TokenAuthMiddleware(), user.GetProfile)
+		v1.POST("/user/forgot-password", user.ForgotPassword)
+		v1.POST("/user/assign-role", TokenAuthMiddleware(), auth.HasPermission("manage_users"), user.AssignRole)
 
 		/*** START AUTH ***/
 		auth := new(controllers.AuthController)
@@ -126,14 +175,17 @@ func main() {
 		//Refresh the token when needed to generate new access_token and refresh_token for the user
 		v1.POST("/token/refresh", auth.Refresh)
 
+		/*** START Permission ***/
+		v1.POST("/permission/create", TokenAuthMiddleware(), auth.HasPermission("manage_users"), user.CreatePermission)
+
 		/*** START Article ***/
 		article := new(controllers.ArticleController)
 
-		v1.POST("/article", TokenAuthMiddleware(), article.Create)
-		v1.GET("/articles", TokenAuthMiddleware(), article.All)
-		v1.GET("/article/:id", TokenAuthMiddleware(), article.One)
-		v1.PUT("/article/:id", TokenAuthMiddleware(), article.Update)
-		v1.DELETE("/article/:id", TokenAuthMiddleware(), article.Delete)
+		v1.POST("/article", TokenAuthMiddleware(), auth.HasPermission("write_article"), article.Create)
+		v1.GET("/articles", TokenAuthMiddleware(), auth.HasPermission("read_article"), article.All)
+		v1.GET("/article/:id", TokenAuthMiddleware(), auth.HasPermission("read_article"), article.One)
+		v1.PUT("/article/:id", TokenAuthMiddleware(), auth.HasPermission("write_article"), article.Update)
+		v1.DELETE("/article/:id", TokenAuthMiddleware(), auth.HasPermission("write_article"), article.Delete)
 	}
 
 	// Swagger docs
@@ -173,5 +225,4 @@ func main() {
 	} else {
 		r.Run(":" + port)
 	}
-
 }

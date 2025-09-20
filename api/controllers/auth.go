@@ -19,7 +19,6 @@ var authModel = new(models.AuthModel)
 
 // TokenValid ...
 func (ctl AuthController) TokenValid(c *gin.Context) {
-
 	tokenAuth, err := authModel.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		//Token either expired or not valid
@@ -34,8 +33,55 @@ func (ctl AuthController) TokenValid(c *gin.Context) {
 		return
 	}
 
-	//To be called from GetUserID()
+	// Fetch user and roles
+	user, err := userModel.One(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "User not found"})
+		return
+	}
+
+	roles, err := userModel.GetUserRoles(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Unable to fetch roles"})
+		return
+	}
+
 	c.Set("userID", userID)
+	c.Set("user", user)
+	c.Set("roles", roles)
+}
+
+// HasPermission ...
+func (ctl AuthController) HasPermission(permission string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctl.TokenValid(c)
+		if c.IsAborted() {
+			return
+		}
+
+		// Bypass permission check for admin role
+		rolesInterface, rolesOk := c.Get("roles")
+		if rolesOk {
+			roles, typeOk := rolesInterface.([]models.Role)
+			if typeOk {
+				for _, role := range roles {
+					if role.Name == "admin" {
+						c.Next()
+						return
+					}
+				}
+			}
+		}
+
+		userID := c.GetInt64("userID")
+		hasPerm, err := userModel.HasPermission(userID, permission)
+		if err != nil || !hasPerm {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "Insufficient permissions"})
+			return
+		}
+
+		c.Next()
+	}
 }
 
 // Refresh Token godoc

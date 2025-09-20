@@ -30,9 +30,9 @@
         <template #button-content>
           <div class="d-sm-flex d-none user-nav">
             <p class="user-name font-weight-bolder mb-0">
-              John Doe
+              {{ currentUser.name }}
             </p>
-            <span class="user-status">Admin</span>
+            <span class="user-status">{{ currentUser.role }}</span>
           </div>
           <b-avatar
             size="40"
@@ -82,7 +82,7 @@
 
         <b-dropdown-divider />
 
-        <b-dropdown-item link-class="d-flex align-items-center">
+        <b-dropdown-item link-class="d-flex align-items-center" @click="logout">
           <feather-icon
             size="16"
             icon="LogOutIcon"
@@ -100,6 +100,7 @@ import {
   BLink, BNavbarNav, BNavItemDropdown, BDropdownItem, BDropdownDivider, BAvatar,
 } from 'bootstrap-vue'
 import DarkToggler from '@core/layouts/components/app-navbar/components/DarkToggler.vue'
+import AuthService from '@/services/auth'
 
 export default {
   components: {
@@ -112,6 +113,17 @@ export default {
 
     // Navbar Components
     DarkToggler,
+  },
+  computed: {
+    currentUser() {
+      return AuthService.getCurrentUser() || { name: 'Guest', role: 'User' }
+    }
+  },
+  methods: {
+    logout() {
+      AuthService.logout()
+      this.$router.push('/login')
+    }
   },
   props: {
     toggleVerticalMenuActive: {
