@@ -30,117 +30,31 @@
             </b-col>
         </b-row>
 
-        <card-header title="Realisasi Perbulan Barjas" :icon="'LayersIcon'" />
+        <b-card title="Kick start your project 🚀">
+            <b-card-text>All the best for your new project.</b-card-text>
+            <b-card-text
+                >Please make sure to read our
+                <b-link
+                    href="https://pixinvent.com/demo/vuexy-vuejs-admin-dashboard-template/documentation/guide/development/installation.html"
+                    target="_blank"
+                >
+                    Template Documentation
+                </b-link>
+                to understand where to go from here and how to use our
+                template.</b-card-text
+            >
+        </b-card>
 
-        <b-row class="match-height">
-            <b-col lg="12">
-                <card-realisasi-perbulan
-                    :current-month="{ month: 'October', value: 85 }"
-                    :monthly-data="[
-                        { month: 'Jan', value: 75 },
-                        { month: 'Feb', value: 80 },
-                        { month: 'Mar', value: 70 },
-                        { month: 'Apr', value: 85 },
-                        { month: 'May', value: 90 },
-                        { month: 'Jun', value: 78 },
-                        { month: 'Jul', value: 82 },
-                        { month: 'Aug', value: 88 },
-                        { month: 'Sep', value: 92 },
-                        { month: 'Oct', value: 85 },
-                        { month: 'Nov', value: 0 },
-                        { month: 'Dec', value: 95 },
-                    ]"
-                />
-            </b-col>
-        </b-row>
-
-        <card-header title="Realisasi Perbulan Fisik" :icon="'MapPinIcon'" />
-
-        <b-row class="match-height">
-            <b-col lg="12">
-                <card-realisasi-perbulan
-                    :current-month="{ month: 'October', value: 20 }"
-                    :monthly-data="[
-                        { month: 'Jan', value: 15 },
-                        { month: 'Feb', value: 18 },
-                        { month: 'Mar', value: 12 },
-                        { month: 'Apr', value: 22 },
-                        { month: 'May', value: 25 },
-                        { month: 'Jun', value: 19 },
-                        { month: 'Jul', value: 21 },
-                        { month: 'Aug', value: 23 },
-                        { month: 'Sep', value: 26 },
-                        { month: 'Oct', value: 20 },
-                        { month: 'Nov', value: 0 },
-                        { month: 'Dec', value: 0 },
-                    ]"
-                />
-            </b-col>
-        </b-row>
-
-        <card-header
-            title="Realisasi Perbulan Anggaran"
-            :icon="'ShoppingBagIcon'"
-        />
-
-        <b-row class="match-height">
-            <b-col lg="12">
-                <card-realisasi-perbulan
-                    :current-month="{ month: 'October', value: 60 }"
-                    :monthly-data="[
-                        { month: 'Jan', value: 55 },
-                        { month: 'Feb', value: 58 },
-                        { month: 'Mar', value: 52 },
-                        { month: 'Apr', value: 62 },
-                        { month: 'May', value: 65 },
-                        { month: 'Jun', value: 0 },
-                        { month: 'Jul', value: 61 },
-                        { month: 'Aug', value: 63 },
-                        { month: 'Sep', value: 66 },
-                        { month: 'Oct', value: 60 },
-                        { month: 'Nov', value: 0 },
-                        { month: 'Dec', value: 0 },
-                    ]"
-                />
-            </b-col>
-        </b-row>
-
-        <card-header title="Realisasi Perbulan Kinerja" :icon="'SlidersIcon'" />
-
-        <b-row class="match-height">
-            <b-col lg="12">
-                <card-realisasi-perbulan
-                    :current-month="{ month: 'October', value: 35 }"
-                    :monthly-data="[
-                        { month: 'Jan', value: 30 },
-                        { month: 'Feb', value: 33 },
-                        { month: 'Mar', value: 27 },
-                        { month: 'Apr', value: 37 },
-                        { month: 'May', value: 40 },
-                        { month: 'Jun', value: 34 },
-                        { month: 'Jul', value: 36 },
-                        { month: 'Aug', value: 38 },
-                        { month: 'Sep', value: 41 },
-                        { month: 'Oct', value: 35 },
-                        { month: 'Nov', value: 0 },
-                        { month: 'Dec', value: 0 },
-                    ]"
-                />
-            </b-col>
-        </b-row>
-
-        <card-header
-            title="Peringkat Kinerja"
-            subtitle="Organisasi Perangkat Daerah"
-            :icon="'AwardIcon'"
-        />
-
-        <b-row class="match-height">
-            <b-col lg="12">
-                <card-rankings :rankings="rankings" />
-            </b-col>
-        </b-row>
-
+        <b-card title="Want to integrate with JWT? 🔒">
+            <b-card-text
+                >We carefully crafted JWT flow so you can implement JWT with
+                ease and with minimum efforts.</b-card-text
+            >
+            <b-card-text
+                >Please read our JWT Documentation to get more out of JWT
+                authentication.</b-card-text
+            >
+        </b-card>
         <b-card v-if="articles.length > 0" title="Articles from API">
             <b-list-group>
                 <b-list-group-item
@@ -167,9 +81,6 @@ import {
 } from "bootstrap-vue";
 import CardRealisasiBulan from "@/components/CardRealisasiBulan.vue";
 import CardRealisasiTahun from "@/components/CardRealisasiTahun.vue";
-import CardRealisasiPerbulan from "@/components/CardRealisasiPerbulan.vue";
-import CardHeader from "@/components/CardHeader.vue";
-import CardRankings from "@/components/CardRankings.vue";
 
 export default {
     components: {
@@ -182,9 +93,6 @@ export default {
         BCol,
         CardRealisasiBulan,
         CardRealisasiTahun,
-        CardRealisasiPerbulan,
-        CardHeader,
-        CardRankings,
     },
     data() {
         return {
@@ -386,161 +294,6 @@ export default {
                     ],
                     progress: 15,
                     color: "danger",
-                },
-            ];
-        },
-
-        rankings() {
-            return [
-                {
-                    name: "Kabupaten A",
-                    total_score: 85.75,
-                    categories: [
-                        {
-                            title: "Realisasi Barjas",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 85,
-                            icon: "LayersIcon",
-                        },
-                        {
-                            title: "Realisasi Fisik",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 78,
-                            icon: "MapPinIcon",
-                        },
-                        {
-                            title: "Realisasi Anggaran",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 92,
-                            icon: "ShoppingBagIcon",
-                        },
-                        {
-                            title: "Realisasi Kinerja",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 88,
-                            icon: "SlidersIcon",
-                        },
-                    ],
-                },
-                {
-                    name: "Kabupaten B",
-                    total_score: 82.75,
-                    categories: [
-                        {
-                            title: "Realisasi Barjas",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 82,
-                            icon: "LayersIcon",
-                        },
-                        {
-                            title: "Realisasi Fisik",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 75,
-                            icon: "MapPinIcon",
-                        },
-                        {
-                            title: "Realisasi Anggaran",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 89,
-                            icon: "ShoppingBagIcon",
-                        },
-                        {
-                            title: "Realisasi Kinerja",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 85,
-                            icon: "SlidersIcon",
-                        },
-                    ],
-                },
-                {
-                    name: "Kabupaten C",
-                    total_score: 79.75,
-                    categories: [
-                        {
-                            title: "Realisasi Barjas",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 79,
-                            icon: "LayersIcon",
-                        },
-                        {
-                            title: "Realisasi Fisik",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 72,
-                            icon: "MapPinIcon",
-                        },
-                        {
-                            title: "Realisasi Anggaran",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 86,
-                            icon: "ShoppingBagIcon",
-                        },
-                        {
-                            title: "Realisasi Kinerja",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 82,
-                            icon: "SlidersIcon",
-                        },
-                    ],
-                },
-                {
-                    name: "Kabupaten D",
-                    total_score: 76.75,
-                    categories: [
-                        {
-                            title: "Realisasi Barjas",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 76,
-                            icon: "LayersIcon",
-                        },
-                        {
-                            title: "Realisasi Fisik",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 69,
-                            icon: "MapPinIcon",
-                        },
-                        {
-                            title: "Realisasi Anggaran",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 83,
-                            icon: "ShoppingBagIcon",
-                        },
-                        {
-                            title: "Realisasi Kinerja",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 79,
-                            icon: "SlidersIcon",
-                        },
-                    ],
-                },
-                {
-                    name: "Kabupaten E",
-                    total_score: 73.75,
-                    categories: [
-                        {
-                            title: "Realisasi Barjas",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 73,
-                            icon: "LayersIcon",
-                        },
-                        {
-                            title: "Realisasi Fisik",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 66,
-                            icon: "MapPinIcon",
-                        },
-                        {
-                            title: "Realisasi Anggaran",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 80,
-                            icon: "ShoppingBagIcon",
-                        },
-                        {
-                            title: "Realisasi Kinerja",
-                            subtitle: "Capaian Tahunan",
-                            percentage: 76,
-                            icon: "SlidersIcon",
-                        },
-                    ],
                 },
             ];
         },

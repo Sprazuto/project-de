@@ -4,3 +4,19 @@ NOTE:
 ------
 PLACE HERE YOUR OWN SCSS CODES AND IF NEEDED, OVERRIDE THE STYLES FROM THE OTHER STYLESHEETS.
 WE WILL RELEASE FUTURE UPDATES SO IN ORDER TO NOT OVERWRITE YOUR STYLES IT'S BETTER LIKE THIS.  */
+
+// Custom color overrides
+$primary: #028c86;
+$secondary: #b1d663;
+// $danger: #dc3545;
+
+// Custom card styles
+.card-rounded-1rem {
+  border-radius: 1rem !important;
+  padding: 1rem;
+}
+
+.card-rounded-2rem {
+  border-radius: 2rem !important;
+  padding: 1rem;
+}

@@ -114,7 +114,7 @@ func (m UserModel) Login(form forms.LoginForm) (user User, token Token, err erro
 		// Increment failed attempts
 		failed := user.FailedAttempts + 1
 		if failed >= 5 {
-			lockUntil := time.Now().Add(2 * time.Minute).Unix()
+			lockUntil := time.Now().Add(1 * time.Minute).Unix()
 			_, updateErr := getDb.Exec(`UPDATE public."user" SET failed_attempts=$1, locked_until=$2 WHERE id=$3`, failed, lockUntil, user.ID)
 			if updateErr != nil {
 				return user, token, updateErr

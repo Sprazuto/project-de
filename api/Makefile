@@ -20,5 +20,5 @@ install_swag:
 ## GENERATE API DOCUMENTATION
 generate_docs: install_swag
 	@echo -e "📜 Generating API documentation using Swag..."
-	@swag init
+	@export PATH=$$PATH:$$(go env GOPATH)/bin && swag init
 	@echo -e "✅ API documentation generated successfully!"

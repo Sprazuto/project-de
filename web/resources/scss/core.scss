@@ -1,3 +1,6 @@
+// Custom Styles (must be first to override !default variables)
+@import '../assets/scss/style.scss';
+
 // Base Styles
 @import 'base/bootstrap';
 @import 'base/bootstrap-extended';

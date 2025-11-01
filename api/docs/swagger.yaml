@@ -7,6 +7,16 @@ definitions:
       message:
         type: string
     type: object
+  forms.AssignRoleForm:
+    properties:
+      role_name:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - role_name
+    - user_id
+    type: object
   forms.CreateArticleForm:
     properties:
       content:
@@ -21,6 +31,13 @@ definitions:
     - content
     - title
     type: object
+  forms.ForgotPasswordForm:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
   forms.LoginForm:
     properties:
       email:
@@ -29,8 +46,11 @@ definitions:
         maxLength: 50
         minLength: 3
         type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
     required:
-    - email
     - password
     type: object
   forms.RegisterForm:
@@ -38,7 +58,6 @@ definitions:
       email:
         type: string
       name:
-        description: fullName rule is in validator.go
         maxLength: 20
         minLength: 3
         type: string
@@ -46,10 +65,15 @@ definitions:
         maxLength: 50
         minLength: 3
         type: string
+      username:
+        maxLength: 20
+        minLength: 3
+        type: string
     required:
     - email
     - name
     - password
+    - username
     type: object
   forms.Token:
     properties:
@@ -111,6 +135,13 @@ definitions:
       meta:
         $ref: '#/definitions/models.Meta'
     type: object
+  models.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   models.User:
     properties:
       email:
@@ -119,13 +150,15 @@ definitions:
         type: integer
       name:
         type: string
+      username:
+        type: string
     type: object
   models.UserLoginResponse:
     properties:
       message:
         type: string
       token:
-        type: string
+        $ref: '#/definitions/models.Token'
       user:
         $ref: '#/definitions/models.User'
     type: object
@@ -267,6 +300,34 @@ paths:
       summary: Get All Articles example
       tags:
       - Article
+  /permission/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new permission
+      parameters:
+      - description: Permission Name
+        in: body
+        name: create
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Create Permission
+      tags:
+      - User
   /token/refresh:
     post:
       consumes:
@@ -293,6 +354,60 @@ paths:
       summary: Refresh Token example
       tags:
       - Auth
+  /user/assign-role:
+    post:
+      consumes:
+      - application/json
+      description: Assign a role to a user
+      parameters:
+      - description: User ID and Role Name
+        in: body
+        name: assign
+        required: true
+        schema:
+          $ref: '#/definitions/forms.AssignRoleForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Assign Role to User
+      tags:
+      - User
+  /user/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Send password reset link to email
+      parameters:
+      - description: Email
+        in: body
+        name: forgot
+        required: true
+        schema:
+          $ref: '#/definitions/forms.ForgotPasswordForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+      summary: Forgot Password
+      tags:
+      - User
   /user/login:
     post:
       consumes:
@@ -301,7 +416,7 @@ paths:
       parameters:
       - description: User
         in: body
-        name: article
+        name: login
         required: true
         schema:
           $ref: '#/definitions/forms.LoginForm'
@@ -335,7 +450,30 @@ paths:
           description: Not Acceptable
           schema:
             $ref: '#/definitions/models.MessageResponse'
+      security:
+      - BearerAuth: []
       summary: Logout User example
+      tags:
+      - User
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.MessageResponse'
+      security:
+      - BearerAuth: []
+      summary: Get User Profile
       tags:
       - User
   /user/register:
@@ -346,7 +484,7 @@ paths:
       parameters:
       - description: User
         in: body
-        name: article
+        name: register
         required: true
         schema:
           $ref: '#/definitions/forms.RegisterForm'

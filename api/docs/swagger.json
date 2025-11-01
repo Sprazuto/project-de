@@ -187,6 +187,51 @@
                 }
             }
         },
+        "/permission/create": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new permission",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Create Permission",
+                "parameters": [
+                    {
+                        "description": "Permission Name",
+                        "name": "create",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/token/refresh": {
             "post": {
                 "description": "Refresh Token example",
@@ -227,6 +272,91 @@
                 }
             }
         },
+        "/user/assign-role": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Assign a role to a user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Assign Role to User",
+                "parameters": [
+                    {
+                        "description": "User ID and Role Name",
+                        "name": "assign",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/forms.AssignRoleForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/forgot-password": {
+            "post": {
+                "description": "Send password reset link to email",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "Email",
+                        "name": "forgot",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/forms.ForgotPasswordForm"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/login": {
             "post": {
                 "description": "Login User example",
@@ -243,7 +373,7 @@
                 "parameters": [
                     {
                         "description": "User",
-                        "name": "article",
+                        "name": "login",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -269,6 +399,11 @@
         },
         "/user/logout": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Logout User example",
                 "consumes": [
                     "application/json"
@@ -296,6 +431,40 @@
                 }
             }
         },
+        "/user/profile": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get current user profile",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get User Profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.MessageResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/user/register": {
             "post": {
                 "description": "Register User example",
@@ -312,7 +481,7 @@
                 "parameters": [
                     {
                         "description": "User",
-                        "name": "article",
+                        "name": "register",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -349,6 +518,21 @@
                 }
             }
         },
+        "forms.AssignRoleForm": {
+            "type": "object",
+            "required": [
+                "role_name",
+                "user_id"
+            ],
+            "properties": {
+                "role_name": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "forms.CreateArticleForm": {
             "type": "object",
             "required": [
@@ -368,10 +552,20 @@
                 }
             }
         },
+        "forms.ForgotPasswordForm": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
         "forms.LoginForm": {
             "type": "object",
             "required": [
-                "email",
                 "password"
             ],
             "properties": {
@@ -381,6 +575,11 @@
                 "password": {
                     "type": "string",
                     "maxLength": 50,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
                     "minLength": 3
                 }
             }
@@ -390,14 +589,14 @@
             "required": [
                 "email",
                 "name",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
                 "name": {
-                    "description": "fullName rule is in validator.go",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 3
@@ -405,6 +604,11 @@
                 "password": {
                     "type": "string",
                     "maxLength": 50,
+                    "minLength": 3
+                },
+                "username": {
+                    "type": "string",
+                    "maxLength": 20,
                     "minLength": 3
                 }
             }
@@ -503,6 +707,17 @@
                 }
             }
         },
+        "models.Token": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
@@ -514,6 +729,9 @@
                 },
                 "name": {
                     "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -524,7 +742,7 @@
                     "type": "string"
                 },
                 "token": {
-                    "type": "string"
+                    "$ref": "#/definitions/models.Token"
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
