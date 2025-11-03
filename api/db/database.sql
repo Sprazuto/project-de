@@ -15,17 +15,17 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 --
--- Name: golang_gin_db; Type: DATABASE; Schema: -; Owner: postgres
+-- Name: project_de; Type: DATABASE; Schema: -; Owner: postgres
 --
-DROP DATABASE golang_gin_db;
+DROP DATABASE project_de;
 
-CREATE DATABASE golang_gin_db
+CREATE DATABASE project_de
 WITH
     TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
-ALTER DATABASE golang_gin_db OWNER TO postgres;
+ALTER DATABASE project_de OWNER TO postgres;
 
-\connect golang_gin_db
+\connect project_de
 
 SET statement_timeout = 0;
 
@@ -291,6 +291,7 @@ SET DEFAULT nextval('user_id_seq'::regclass);
 -- Data for Name: article; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+
 COPY article (id, user_id, title, content, updated_at, created_at) FROM stdin;
 \.
 
@@ -300,6 +301,7 @@ SELECT pg_catalog.setval ('article_id_seq', 1, false);
 -- Data for Name: login_attempts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+
 COPY login_attempts (id, user_id, success, attempt_time, updated_at, created_at) FROM stdin;
 \.
 
@@ -308,6 +310,7 @@ SELECT pg_catalog.setval ( 'login_attempts_id_seq', 1, false );
 --
 -- Data for Name: role_permissions; Type: TABLE DATA; Schema: public; Owner: postgres
 --
+
 
 COPY role_permissions (id, role_id, permission_id, updated_at, created_at) FROM stdin;
 \.
@@ -332,6 +335,7 @@ SELECT pg_catalog.setval ( 'permissions_id_seq', 1, false );
 -- Data for Name: user_roles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+
 COPY user_roles (id, user_id, role_id, updated_at, created_at) FROM stdin;
 \.
 
@@ -341,6 +345,7 @@ SELECT pg_catalog.setval ('user_roles_id_seq', 1, false);
 -- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
+
 COPY "user" (id, email, username, password, name, failed_attempts, locked_until, updated_at, created_at) FROM stdin;
 \.
 
@@ -349,8 +354,7 @@ SELECT pg_catalog.setval ('user_id_seq', 1, false);
 --
 -- Name: article article_id; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
-ALTER TABLE ONLY article
-ADD CONSTRAINT article_id PRIMARY KEY (id);
+ALTER TABLE ONLY article ADD CONSTRAINT article_id PRIMARY KEY (id);
 
 --
 -- Name: login_attempts login_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
@@ -367,8 +371,7 @@ ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (id);
 --
 -- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:
 --
-ALTER TABLE ONLY roles
-ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY roles ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
 
 --
 -- Name: permissions permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace:

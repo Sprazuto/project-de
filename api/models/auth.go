@@ -47,7 +47,7 @@ type AuthModel struct{}
 func (m AuthModel) CreateToken(userID int64) (*TokenDetails, error) {
 
 	td := &TokenDetails{}
-	td.AtExpires = time.Now().Add(time.Minute * 15).Unix()
+	td.AtExpires = time.Now().Add(time.Minute * 30).Unix()
 	td.AccessUUID = uuid.New().String()
 
 	td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
@@ -176,4 +176,15 @@ func (m AuthModel) DeleteAuth(givenUUID string) (int64, error) {
 		return 0, err
 	}
 	return deleted, nil
+}
+
+// RefreshAuth ...
+func (m AuthModel) RefreshAuth(accessUUID string) error {
+	// Extend the expiration by 30 minutes from now
+	newExpiration := time.Now().Add(time.Minute * 30)
+	err := db.GetRedis().Expire(accessUUID, newExpiration.Sub(time.Now())).Err()
+	if err != nil {
+		return err
+	}
+	return nil
 }

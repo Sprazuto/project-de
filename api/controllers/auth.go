@@ -33,6 +33,13 @@ func (ctl AuthController) TokenValid(c *gin.Context) {
 		return
 	}
 
+	// Refresh token expiration on every action (sliding expiration)
+	err = authModel.RefreshAuth(tokenAuth.AccessUUID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Please login first"})
+		return
+	}
+
 	// Fetch user and roles
 	user, err := userModel.One(userID)
 	if err != nil {
