@@ -51,7 +51,7 @@ func (ctrl UserController) Login(c *gin.Context) {
 
 	user, token, err := userModel.Login(loginForm)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{"message": err.Error()})
 		return
 	}
 

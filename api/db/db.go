@@ -28,7 +28,6 @@ func Init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 // ConnectDB ...
@@ -61,10 +60,15 @@ func InitRedis(selectDB ...int) {
 	var redisHost = os.Getenv("REDIS_HOST")
 	var redisPassword = os.Getenv("REDIS_PASSWORD")
 
+	dbIndex := 0
+	if len(selectDB) > 0 {
+		dbIndex = selectDB[0]
+	}
+
 	RedisClient = _redis.NewClient(&_redis.Options{
 		Addr:     redisHost,
 		Password: redisPassword,
-		DB:       selectDB[0],
+		DB:       dbIndex,
 		// DialTimeout:        10 * time.Second,
 		// ReadTimeout:        30 * time.Second,
 		// WriteTimeout:       30 * time.Second,

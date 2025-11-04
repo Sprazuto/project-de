@@ -11,6 +11,7 @@ import (
 	"github.com/Massad/gin-boilerplate/db"
 	_ "github.com/Massad/gin-boilerplate/docs"
 	"github.com/Massad/gin-boilerplate/forms"
+	"github.com/Massad/gin-boilerplate/models"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -107,6 +108,12 @@ func main() {
 	//Start PostgreSQL database
 	//Example: db.GetDB() - More info in the models folder
 	db.Init()
+
+	// Run migrations
+	err = models.RunMigrations()
+	if err != nil {
+		log.Fatal("Failed to run migrations:", err)
+	}
 
 	// Seed admin user if not exists
 	getDb := db.GetDB()
