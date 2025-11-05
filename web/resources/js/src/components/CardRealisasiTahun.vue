@@ -127,7 +127,7 @@ export default {
         },
         hintTitle: {
             type: String,
-            default: "Information",
+            default: "",
         },
         hintDescription: {
             type: String,
@@ -143,11 +143,11 @@ export default {
         },
         progress: {
             type: [Number, String],
-            default: 83,
+            default: 0,
         },
         color: {
             type: String,
-            default: "success",
+            default: "dark",
         },
     },
     computed: {

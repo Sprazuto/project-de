@@ -193,6 +193,12 @@ func main() {
 		v1.GET("/article/:id", TokenAuthMiddleware(), auth.HasPermission("read_article"), article.One)
 		v1.PUT("/article/:id", TokenAuthMiddleware(), auth.HasPermission("write_article"), article.Update)
 		v1.DELETE("/article/:id", TokenAuthMiddleware(), auth.HasPermission("write_article"), article.Delete)
+
+		/*** START Sijagur ***/
+		sijagur := new(controllers.SijagurController)
+
+		v1.GET("/realisasi-bulan", sijagur.GetRealisasiBulan)
+		v1.GET("/realisasi-tahun", sijagur.GetRealisasiTahun)
 	}
 
 	// Swagger docs

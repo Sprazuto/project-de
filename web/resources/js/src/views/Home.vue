@@ -1,34 +1,16 @@
 <template>
     <div>
-        <b-row class="match-height">
-            <b-col lg="3" v-for="(card, index) in realisasiBulan" :key="index">
-                <card-realisasi-bulan
-                    :title="card.title"
-                    :subtitle="card.subtitle"
-                    :hint-title="card.hintTitle"
-                    :hint-description="card.hintDescription"
-                    :items="card.items"
-                    :progress="card.progress"
-                    :color="card.color"
-                    :layout="card.layout || 'columns'"
-                />
-            </b-col>
-        </b-row>
+        <card-realisasi-bulan-section
+            :realisasi-bulan="realisasiBulan"
+            :loading="loading.bulan"
+            :error="error.bulan"
+        />
 
-        <b-row class="match-height">
-            <b-col lg="3" v-for="(card, index) in realisasiTahun" :key="index">
-                <card-realisasi-tahun
-                    :title="card.title"
-                    :subtitle="card.subtitle"
-                    :hint-title="card.hintTitle"
-                    :hint-description="card.hintDescription"
-                    :items="card.items"
-                    :progress="card.progress"
-                    :color="card.color"
-                    :layout="card.layout || 'columns'"
-                />
-            </b-col>
-        </b-row>
+        <card-realisasi-tahun-section
+            :realisasi-tahun="realisasiTahun"
+            :loading="loading.tahun"
+            :error="error.tahun"
+        />
 
         <card-header title="Realisasi Perbulan Barjas" :icon="'LayersIcon'" />
 
@@ -165,11 +147,15 @@ import {
     BRow,
     BCol,
 } from "bootstrap-vue";
-import CardRealisasiBulan from "@/components/CardRealisasiBulan.vue";
-import CardRealisasiTahun from "@/components/CardRealisasiTahun.vue";
+import CardRealisasiBulanSection from "@/components/CardRealisasiBulanSection.vue";
+import CardRealisasiTahunSection from "@/components/CardRealisasiTahunSection.vue";
 import CardRealisasiPerbulan from "@/components/CardRealisasiPerbulan.vue";
 import CardHeader from "@/components/CardHeader.vue";
 import CardRankings from "@/components/CardRankings.vue";
+import {
+    processRealisasiBulanData,
+    processRealisasiTahunData,
+} from "@/utils/realisasiDataProcessor";
 
 export default {
     components: {
@@ -180,8 +166,8 @@ export default {
         BListGroupItem,
         BRow,
         BCol,
-        CardRealisasiBulan,
-        CardRealisasiTahun,
+        CardRealisasiBulanSection,
+        CardRealisasiTahunSection,
         CardRealisasiPerbulan,
         CardHeader,
         CardRankings,
@@ -189,207 +175,19 @@ export default {
     data() {
         return {
             articles: [],
+            realisasiBulan: [],
+            realisasiTahun: [],
+            loading: {
+                bulan: false,
+                tahun: false,
+            },
+            error: {
+                bulan: null,
+                tahun: null,
+            },
         };
     },
     computed: {
-        realisasiBulan() {
-            return [
-                {
-                    title: "Persenstase Capaian Realisasi Barjas",
-                    subtitle: "Januari - Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        (() => {
-                            const completed = 90;
-                            const total = 100;
-                            const overdue = 5;
-                            return {
-                                completed,
-                                total,
-                                overdue,
-                                label: "Perencanaan",
-                                value: `${completed}<small>${
-                                    overdue > 0
-                                        ? `<sup><code class="text-danger bg-white p-0">-${overdue}</code></sup>`
-                                        : ""
-                                }/${total}</small>`,
-                                popoverTitle: `${completed} dari ${total} paket selesai.`,
-                                popoverContent:
-                                    overdue > 0
-                                        ? `<span class="text-danger p-0">${overdue} paket terlambat.</span>`
-                                        : null,
-                            };
-                        })(),
-                        (() => {
-                            const completed = 80;
-                            const total = 90;
-                            const overdue = 2;
-                            return {
-                                completed,
-                                total,
-                                overdue,
-                                label: "Pemilihan",
-                                value: `${completed}<small>${
-                                    overdue > 0
-                                        ? `<sup><code class="text-danger bg-white p-0">-${overdue}</code></sup>`
-                                        : ""
-                                }/${total}</small>`,
-                                popoverTitle: `${completed} dari ${total} paket selesai.`,
-                                popoverContent:
-                                    overdue > 0
-                                        ? `<span class="text-danger p-0">${overdue} paket terlambat.</span>`
-                                        : null,
-                            };
-                        })(),
-                        (() => {
-                            const completed = 65;
-                            const total = 80;
-                            const overdue = 10;
-                            return {
-                                completed,
-                                total,
-                                overdue,
-                                label: "Pengadaan",
-                                value: `${completed}<small>${
-                                    overdue > 0
-                                        ? `<sup><code class="text-danger bg-white p-0">-${overdue}</code></sup>`
-                                        : ""
-                                }/${total}</small>`,
-                                popoverTitle: `${completed} dari ${total} paket selesai.`,
-                                popoverContent:
-                                    overdue > 0
-                                        ? `<span class="text-danger p-0">${overdue} paket terlambat.</span>`
-                                        : null,
-                            };
-                        })(),
-                        (() => {
-                            const completed = 50;
-                            const total = 65;
-                            const overdue = 0;
-                            return {
-                                completed,
-                                total,
-                                overdue,
-                                label: "Penyerahan",
-                                value: `${completed}<small>${
-                                    overdue > 0
-                                        ? `<sup><code class="text-danger bg-white p-0">-${overdue}</code></sup>`
-                                        : ""
-                                }/${total}</small>`,
-                                popoverTitle: `${completed} dari ${total} paket selesai.`,
-                                popoverContent:
-                                    overdue > 0
-                                        ? `<span class="text-danger p-0">${overdue} paket terlambat.</span>`
-                                        : null,
-                            };
-                        })(),
-                    ],
-                    progress: 75,
-                    color: "primary",
-                },
-                {
-                    title: "Persenstase Capaian Realisasi Fisik",
-                    subtitle: "Januari - Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: 150 },
-                        { label: "Target", value: 850 },
-                    ],
-                    progress: 20,
-                    color: "dark",
-                },
-                {
-                    title: "Persenstase Capaian Realisasi Anggaran",
-                    subtitle: "Januari - Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: "Rp1.339.968.513.795,00" },
-                        { label: "Target", value: "Rp1.712.757.690.432,00" },
-                    ],
-                    progress: 60,
-                    color: "secondary",
-                    layout: "rows",
-                },
-                {
-                    title: "Persenstase Capaian Realisasi Kinerja",
-                    subtitle: "Januari - Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: 15 },
-                        { label: "Target", value: 50 },
-                    ],
-                    progress: 35,
-                    color: "danger",
-                },
-            ];
-        },
-
-        realisasiTahun() {
-            return [
-                {
-                    title: "Progres Tahunan Capaian Barjas",
-                    subtitle: "per-Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Target", value: 1500 },
-                        { label: "Realisasi", value: 850 },
-                    ],
-                    progress: 30,
-                    color: "primary",
-                },
-                {
-                    title: "Progres Tahunan Capaian Fisik",
-                    subtitle: "per-Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: 150 },
-                        { label: "Target", value: 850 },
-                    ],
-                    progress: 80,
-                    color: "dark",
-                },
-                {
-                    title: "Progres Tahunan Capaian Anggaran",
-                    subtitle: "per-Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: "Rp1.339.968.513.795,00" },
-                        { label: "Target", value: "Rp1.712.757.690.432,00" },
-                    ],
-                    progress: 60,
-                    color: "secondary",
-                    layout: "rows",
-                },
-                {
-                    title: "Progres Tahunan Capaian Kinerja",
-                    subtitle: "per-Oktober 2025",
-                    hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
-                    hintDescription:
-                        "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
-                    items: [
-                        { label: "Realisasi", value: 15 },
-                        { label: "Target", value: 50 },
-                    ],
-                    progress: 15,
-                    color: "danger",
-                },
-            ];
-        },
-
         rankings() {
             return [
                 {
@@ -546,20 +344,82 @@ export default {
         },
     },
     mounted() {
-        this.$http
-            .get("/articles")
-            .then((response) => {
-                this.articles =
-                    (response.data.results &&
-                        response.data.results[0] &&
-                        response.data.results[0].data) ||
-                    response.data.data ||
-                    response.data.articles ||
-                    [];
-            })
-            .catch((error) => {
-                console.error("Error fetching articles:", error);
-            });
+        this.fetchArticles();
+        this.fetchRealisasiBulan();
+        this.fetchRealisasiTahun();
+    },
+    methods: {
+        fetchArticles() {
+            this.$http
+                .get("/articles")
+                .then((response) => {
+                    this.articles =
+                        (response.data.results &&
+                            response.data.results[0] &&
+                            response.data.results[0].data) ||
+                        response.data.data ||
+                        response.data.articles ||
+                        [];
+                })
+                .catch((error) => {
+                    console.error("Error fetching articles:", error);
+                });
+        },
+        fetchRealisasiBulan(params = {}) {
+            this.loading.bulan = true;
+            this.error.bulan = null;
+            this.$http
+                .get("/realisasi-bulan", {
+                    params: {
+                        tahun: params.tahun,
+                        bulan: params.bulan,
+                        idsatker: params.idsatker || 0,
+                    },
+                })
+                .then((response) => {
+                    const processed = processRealisasiBulanData(response.data);
+                    this.realisasiBulan.splice(
+                        0,
+                        this.realisasiBulan.length,
+                        ...processed
+                    );
+                })
+                .catch((error) => {
+                    this.error.bulan =
+                        error.message || "Failed to fetch realisasi bulan data";
+                    console.error("Error fetching realisasi bulan:", error);
+                })
+                .finally(() => {
+                    this.loading.bulan = false;
+                });
+        },
+        fetchRealisasiTahun(params = {}) {
+            this.loading.tahun = true;
+            this.error.tahun = null;
+            this.$http
+                .get("/realisasi-tahun", {
+                    params: {
+                        tahun: params.tahun,
+                        idsatker: params.idsatker || 0,
+                    },
+                })
+                .then((response) => {
+                    const processed = processRealisasiTahunData(response.data);
+                    this.realisasiTahun.splice(
+                        0,
+                        this.realisasiTahun.length,
+                        ...processed
+                    );
+                })
+                .catch((error) => {
+                    this.error.tahun =
+                        error.message || "Failed to fetch realisasi tahun data";
+                    console.error("Error fetching realisasi tahun:", error);
+                })
+                .finally(() => {
+                    this.loading.tahun = false;
+                });
+        },
     },
 };
 </script>

@@ -125,7 +125,7 @@ export default {
         },
         hintTitle: {
             type: String,
-            default: "Information",
+            default: "",
         },
         hintDescription: {
             type: String,
@@ -141,11 +141,7 @@ export default {
         },
         progress: {
             type: [Number, String],
-            default: 83,
-        },
-        color: {
-            type: String,
-            default: "success",
+            default: 0,
         },
     },
     computed: {
@@ -212,7 +208,7 @@ export default {
                         shade: "dark",
                         type: "horizontal",
                         shadeIntensity: 0.5,
-                        gradientToColors: [$themeColors[this.color]],
+                        gradientToColors: [$themeColors[this.bgColor]],
                         inverseColors: true,
                         opacityFrom: 1,
                         opacityTo: 1,
