@@ -63,7 +63,7 @@ export function processRealisasiBulanData(apiData) {
             case 'fisik':
                 return {
                     title: "Persenstase Capaian Realisasi Fisik",
-                    subtitle: `${apiData.meta.month_name} ${apiData.meta.year}`,
+                    subtitle: `Januari - ${apiData.meta.month_name} ${apiData.meta.year}`,
                     hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
                     hintDescription: "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
                     items: items.map(item => {
@@ -81,7 +81,7 @@ export function processRealisasiBulanData(apiData) {
             case 'anggaran':
                 return {
                     title: "Persenstase Capaian Realisasi Anggaran",
-                    subtitle: `${apiData.meta.month_name} ${apiData.meta.year}`,
+                    subtitle: `Januari - ${apiData.meta.month_name} ${apiData.meta.year}`,
                     hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
                     hintDescription: "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
                     items: items.map(item => {
@@ -100,7 +100,7 @@ export function processRealisasiBulanData(apiData) {
             case 'kinerja':
                 return {
                     title: "Persenstase Capaian Realisasi Kinerja",
-                    subtitle: `${apiData.meta.month_name} ${apiData.meta.year}`,
+                    subtitle: `Januari - ${apiData.meta.month_name} ${apiData.meta.year}`,
                     hintTitle: "PERSENTASE CAPAIAN REALISASI BARJAS",
                     hintDescription: "Adalah nilai persentase yang menunjukkan jumlah capaian yang sudah tercapai dari sejak awal bulan Januari sampai dengan bulan berjalan.\nRealisasi capaian yang dihitung adalah realisasi paket yang sedang berprogres dan paket yang sudah selesai sampai dengan pembayaran SP2D.\nNilai tersebut didapat dari aplikasi (SIRUP, SIBARASAT, SIPDOK & SIPEKAT) yang data tersebut diolah dan dirumuskan sebagai berikut:\n(Jumlah paket berprogres + Jumlah paket selesai) / Total paket sampai dengan bulan berjalan",
                     items: items.map(item => {
@@ -182,8 +182,8 @@ export function processRealisasiTahunData(apiData) {
                         return null;
                     }).filter(Boolean),
                     progress: progress_formatted,
-                    layout: "rows",
                     color: getCardColorsByProgress(capaian).bgColor,
+                    layout: "rows",
                 };
 
             case 'kinerja':

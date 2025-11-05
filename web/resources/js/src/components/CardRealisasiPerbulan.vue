@@ -5,6 +5,8 @@
             <b-card
                 no-body
                 :class="`bg-gradient-${currentMonthColors.bgColor} ${currentMonthColors.textColor} card-rounded-2rem h-100 row`"
+                role="region"
+                :aria-label="`Current month ${currentMonth.month} with ${currentMonth.value}% achievement`"
             >
                 <b-card-body
                     class="text-center py-2 d-flex flex-column justify-content-center h-100"
@@ -14,6 +16,7 @@
                     </h5>
                     <h2
                         :class="`font-weight-bolder mb-0 ${currentMonthColors.textColor}`"
+                        :aria-label="`${currentMonth.value} percent achievement`"
                     >
                         {{ currentMonth.value }}%
                     </h2>
@@ -29,12 +32,17 @@
 
         <!-- Grid of 12 smaller cards -->
         <b-col lg="8" md="12" class="px-0">
-            <b-row class="mx-0">
+            <b-row
+                class="mx-0"
+                role="list"
+                aria-label="Monthly performance data"
+            >
                 <b-col
                     v-for="(monthData, index) in monthData"
                     :key="index"
                     cols="3"
                     class="pl-3 pr-0 mb-1"
+                    role="listitem"
                 >
                     <b-card
                         no-body
@@ -45,6 +53,11 @@
                         } ${
                             monthData.colors.textColor
                         } card-rounded-2rem h-100`"
+                        :aria-label="`${monthData.month}: ${
+                            monthData.showPercentage
+                                ? monthData.value + '%'
+                                : 'No data'
+                        }`"
                     >
                         <b-card-body
                             class="text-center py-1 d-flex flex-column justify-content-center h-100"
@@ -58,6 +71,7 @@
                             <h6
                                 v-if="monthData.showPercentage"
                                 :class="`font-weight-bolder mb-0 ${monthData.colors.textColor}`"
+                                :aria-label="`${monthData.value} percent`"
                             >
                                 {{ monthData.value }}%
                             </h6>
@@ -110,27 +124,23 @@ export default {
         },
         currentMonth: {
             type: Object,
-            default: () => ({
-                month: "October",
-                value: 85,
-            }),
+            required: true,
+            validator: (value) =>
+                value &&
+                typeof value.month === "string" &&
+                typeof value.value === "number",
         },
         monthlyData: {
             type: Array,
-            default: () => [
-                { month: "Jan", value: 75 },
-                { month: "Feb", value: 80 },
-                { month: "Mar", value: 70 },
-                { month: "Apr", value: 85 },
-                { month: "May", value: 90 },
-                { month: "Jun", value: 78 },
-                { month: "Jul", value: 82 },
-                { month: "Aug", value: 88 },
-                { month: "Sep", value: 92 },
-                { month: "Oct", value: 85 },
-                { month: "Nov", value: 0 },
-                { month: "Dec", value: 0 },
-            ],
+            required: true,
+            validator: (value) =>
+                Array.isArray(value) &&
+                value.every(
+                    (item) =>
+                        item &&
+                        typeof item.month === "string" &&
+                        typeof item.value === "number"
+                ),
         },
     },
     methods: {
@@ -192,9 +202,3 @@ export default {
     },
 };
 </script>
-
-<style scoped>
-.card-rounded-2rem {
-    border-radius: 2rem;
-}
-</style>

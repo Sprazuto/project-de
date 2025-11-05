@@ -1,36 +1,58 @@
 <template>
     <!-- Rankings List -->
-    <div class="rankings-list">
+    <div class="rankings-list" role="list" aria-label="Performance rankings">
         <div
             v-for="(item, index) in rankings"
             :key="index"
             class="ranking-item d-flex align-items-center justify-content-between py-1 px-1 mb-1 rounded"
             :class="getRankingClass(index)"
+            role="listitem"
+            :aria-label="`${item.name} ranked ${index + 1} with ${
+                item.total_score
+            }% overall score`"
         >
             <div class="d-flex align-items-center">
-                <div class="rank-badge mr-2" :class="getRankBadgeClass(index)">
+                <div
+                    class="rank-badge mr-2"
+                    :class="getRankBadgeClass(index)"
+                    aria-hidden="true"
+                >
                     <small style="font-size: 0.6rem">#</small>{{ index + 1 }}
                 </div>
                 <div class="status-score-section mr-3">
                     <b-badge
                         :variant="getScoreBadgeVariant(item.total_score)"
                         class="mb-1"
+                        :aria-label="`Status: ${getScoreStatusLabel(
+                            item.total_score
+                        )}`"
                     >
                         {{ getScoreStatusLabel(item.total_score) }}
                     </b-badge>
-                    <div class="score-value">{{ item.total_score }}%</div>
+                    <div class="score-value" aria-label="Total score">
+                        {{ item.total_score }}%
+                    </div>
                 </div>
                 <div class="instance-name-section mr-3">
-                    <h6 class="mb-0 text-primary font-weight-bold">
+                    <h6
+                        class="mb-0 text-primary font-weight-bold"
+                        aria-label="Organization name"
+                    >
                         {{ item.name }}
                     </h6>
                 </div>
             </div>
-            <div class="categories d-flex flex-wrap align-items-stretch">
+            <div
+                class="categories d-flex flex-wrap align-items-stretch"
+                role="list"
+                aria-label="Performance categories"
+            >
                 <div
                     v-for="(category, catIndex) in item.categories"
                     :key="catIndex"
                     class="category-card position-relative ml-2 d-flex flex-column"
+                    role="listitem"
+                    :aria-label="`${category.title}: ${category.percentage}% achievement`"
                 >
                     <b-card
                         no-body
@@ -111,8 +133,11 @@
                                         getCategoryColor(category.percentage)
                                     "
                                     class="mb-1"
+                                    :aria-label="`Progress: ${category.percentage}%`"
                                 />
-                                <small class="percentage text-center d-block"
+                                <small
+                                    class="percentage text-center d-block"
+                                    aria-hidden="true"
                                     >{{ category.percentage }}%</small
                                 >
                             </div>
@@ -238,22 +263,6 @@ export default {
     color: white;
 }
 
-.badge-gold {
-    background: linear-gradient(45deg, #ffd700, #ffed4e);
-}
-
-.badge-silver {
-    background: linear-gradient(45deg, #c0c0c0, #e8e8e8);
-}
-
-.badge-bronze {
-    background: linear-gradient(45deg, #cd7f32, #d2b48c);
-}
-
-.badge-default {
-    background: #6c757d;
-}
-
 .status-score-section {
     display: flex;
     flex-direction: column;
@@ -266,22 +275,6 @@ export default {
     display: flex;
     align-items: center;
     min-width: 120px;
-}
-
-.score-melesat {
-    background: linear-gradient(45deg, #28a745, #20c997);
-}
-
-.score-berlari {
-    background: linear-gradient(45deg, #007bff, #6610f2);
-}
-
-.score-berjalan {
-    background: linear-gradient(45deg, #ffc107, #fd7e14);
-}
-
-.score-diam {
-    background: linear-gradient(45deg, #dc3545, #e83e8c);
 }
 
 .status-label {
@@ -317,23 +310,6 @@ export default {
     flex-direction: column;
 }
 
-.mini-card {
-    border-radius: 1rem;
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border: 2px solid transparent;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-.mini-card:hover {
-    transform: translateY(-2px);
-    /* box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2); */
-    border-color: rgba(0, 123, 255, 0.3);
-}
-
 .category-title {
     font-size: 0.75rem;
     font-weight: bold;
@@ -354,34 +330,7 @@ export default {
     /* text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); */
 }
 
-.ribbon-flag {
-    position: absolute;
-    top: 0;
-    right: 12px;
-    z-index: 10;
-}
-
-.flag-pole {
-    height: 17px;
-}
-
-.flag-body {
-    position: relative;
-    width: 0;
-    height: 0;
-    border-left: 8px solid currentColor;
-    border-right: 8px solid currentColor;
-    border-bottom: 12px solid transparent;
-}
-
-.flag-text {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 0.5rem;
-    font-weight: bold;
-    white-space: nowrap;
+.mini-card {
+    border-radius: 1rem;
 }
 </style>

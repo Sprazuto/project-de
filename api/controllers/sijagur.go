@@ -2,9 +2,8 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
-	"time"
 
+	"github.com/Massad/gin-boilerplate/forms"
 	"github.com/Massad/gin-boilerplate/models"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +13,44 @@ import (
 type SijagurController struct{}
 
 var sijagurModel = new(models.SijagurModel)
+
+// getRealisasiData is a helper function to handle common logic for both bulan and tahun endpoints
+func (ctrl SijagurController) getRealisasiData(c *gin.Context, dataType string, getDataFunc func(int, int, int) ([]models.RealisasiData, error)) {
+	var queryForm forms.RealisasiQueryForm
+
+	// Bind query parameters
+	if err := c.ShouldBindQuery(&queryForm); err != nil {
+		sijagurForm := forms.SijagurForm{}
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": sijagurForm.ValidateRealisasiQuery(err), "error": err.Error()})
+		return
+	}
+
+	// Convert to integers with defaults
+	tahunInt, bulanInt, idsatkerInt, err := queryForm.ToInts()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Invalid query parameters", "error": err.Error()})
+		return
+	}
+
+	data, err := getDataFunc(tahunInt, bulanInt, idsatkerInt)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Could not get realisasi " + dataType + " data", "error": err.Error()})
+		return
+	}
+
+	response := models.RealisasiResponse{
+		Data: data,
+		Meta: models.RealisasiMeta{
+			Year:      tahunInt,
+			Month:     bulanInt,
+			MonthName: models.GetMonthName(bulanInt),
+			Idsatker:  idsatkerInt,
+			Type:      dataType,
+		},
+	}
+
+	c.JSON(http.StatusOK, response)
+}
 
 // GetRealisasiBulan godoc
 // @Summary Get Realisasi Bulan data
@@ -26,39 +63,11 @@ var sijagurModel = new(models.SijagurModel)
 // @Param bulan query int false "Month"
 // @Param idsatker query int false "Satker ID"
 // @Success 	 200  {object}  models.RealisasiBulanResponse
+// @Failure      400  {object}  gin.H
 // @Failure      500  {object}  gin.H
 // @Router /realisasi-bulan [GET]
 func (ctrl SijagurController) GetRealisasiBulan(c *gin.Context) {
-	now := time.Now()
-	currentYear := now.Year()
-	currentMonth := int(now.Month())
-
-	tahun := c.DefaultQuery("tahun", strconv.Itoa(currentYear))
-	bulan := c.DefaultQuery("bulan", strconv.Itoa(currentMonth))
-	idsatker := c.DefaultQuery("idsatker", "0")
-
-	tahunInt, _ := strconv.Atoi(tahun)
-	bulanInt, _ := strconv.Atoi(bulan)
-	idsatkerInt, _ := strconv.Atoi(idsatker)
-
-	data, err := sijagurModel.GetRealisasiBulanWithParams(tahunInt, bulanInt, idsatkerInt)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Could not get realisasi bulan data", "error": err.Error()})
-		return
-	}
-
-	response := models.RealisasiResponse{
-		Data: data,
-		Meta: models.RealisasiMeta{
-			Year:      tahunInt,
-			Month:     bulanInt,
-			MonthName: sijagurModel.GetMonthName(bulanInt),
-			Idsatker:  idsatkerInt,
-			Type:      "bulan",
-		},
-	}
-
-	c.JSON(http.StatusOK, response)
+	ctrl.getRealisasiData(c, "bulan", sijagurModel.GetRealisasiBulanWithParams)
 }
 
 // GetRealisasiTahun godoc
@@ -72,37 +81,9 @@ func (ctrl SijagurController) GetRealisasiBulan(c *gin.Context) {
 // @Param bulan query int false "Month"
 // @Param idsatker query int false "Satker ID"
 // @Success 	 200  {object}  models.RealisasiTahunResponse
+// @Failure      400  {object}  gin.H
 // @Failure      500  {object}  gin.H
 // @Router /realisasi-tahun [GET]
 func (ctrl SijagurController) GetRealisasiTahun(c *gin.Context) {
-	now := time.Now()
-	currentYear := now.Year()
-	currentMonth := int(now.Month())
-
-	tahun := c.DefaultQuery("tahun", strconv.Itoa(currentYear))
-	bulan := c.DefaultQuery("bulan", strconv.Itoa(currentMonth))
-	idsatker := c.DefaultQuery("idsatker", "0")
-
-	tahunInt, _ := strconv.Atoi(tahun)
-	bulanInt, _ := strconv.Atoi(bulan)
-	idsatkerInt, _ := strconv.Atoi(idsatker)
-
-	data, err := sijagurModel.GetRealisasiTahunWithParams(tahunInt, bulanInt, idsatkerInt)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "Could not get realisasi tahun data", "error": err.Error()})
-		return
-	}
-
-	response := models.RealisasiResponse{
-		Data: data,
-		Meta: models.RealisasiMeta{
-			Year:      tahunInt,
-			Month:     bulanInt,
-			MonthName: sijagurModel.GetMonthName(bulanInt),
-			Idsatker:  idsatkerInt,
-			Type:      "tahun",
-		},
-	}
-
-	c.JSON(http.StatusOK, response)
+	ctrl.getRealisasiData(c, "tahun", sijagurModel.GetRealisasiTahunWithParams)
 }

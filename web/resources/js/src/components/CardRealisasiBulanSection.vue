@@ -10,15 +10,35 @@
             </b-col>
         </b-row>
 
-        <b-alert v-else-if="error" variant="danger" show>
+        <b-alert
+            v-else-if="error"
+            variant="danger"
+            show
+            role="alert"
+            aria-live="assertive"
+        >
             <div class="alert-body">
-                <feather-icon icon="AlertTriangleIcon" class="mr-50" />
+                <feather-icon
+                    icon="AlertTriangleIcon"
+                    class="mr-50"
+                    aria-hidden="true"
+                />
                 {{ error }}
             </div>
         </b-alert>
 
-        <b-row v-else class="match-height">
-            <b-col lg="3" v-for="(card, index) in realisasiBulan" :key="index">
+        <b-row
+            v-else
+            class="match-height"
+            role="list"
+            aria-label="Monthly realization data"
+        >
+            <b-col
+                lg="3"
+                v-for="(card, index) in realisasiBulan"
+                :key="index"
+                role="listitem"
+            >
                 <card-realisasi-bulan
                     :title="card.title"
                     :subtitle="card.subtitle"

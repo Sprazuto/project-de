@@ -59,7 +59,7 @@ func (m AuthModel) CreateToken(userID int64) (*TokenDetails, error) {
 	atClaims["authorized"] = true
 	atClaims["access_uuid"] = td.AccessUUID
 	atClaims["user_id"] = userID
-	atClaims["exp"] = td.AtExpires
+	// Removed exp claim for sliding expiration
 
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
 	td.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
@@ -132,6 +132,7 @@ func (m AuthModel) TokenValid(r *http.Request) error {
 	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid {
 		return err
 	}
+	// Since exp is removed, we rely on Redis expiration
 	return nil
 }
 
