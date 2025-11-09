@@ -1,0 +1,90 @@
+// ========================================
+// Theme Color Configuration
+// Primary: #028C86 (Teal-600)
+// Secondary: #B1D663 (Light Green-400)
+// ========================================
+
+// CSS Variable Overrides for Runtime Theming
+:root {
+  // Primary Color Variables (Teal-600)
+  --v-theme-primary: #028C86;
+  --v-theme-primary-light: #4DB6AC;
+  --v-theme-primary-dark: #00695C;
+  --v-theme-on-primary: #FFFFFF;
+  
+  // Secondary Color Variables (Light Green-400)
+  --v-theme-secondary: #B1D663;
+  --v-theme-secondary-light: #C5E1A5;
+  --v-theme-secondary-dark: #7CB342;
+  --v-theme-on-secondary: #1F2937;
+  
+  // Extended Primary Palette (Teal shades)
+  --v-theme-primary-50: #E0F2F1;
+  --v-theme-primary-100: #B2DFDB;
+  --v-theme-primary-200: #80CBC4;
+  --v-theme-primary-300: #4DB6AC;
+  --v-theme-primary-400: #26A69A;
+  --v-theme-primary-500: #009688;
+  --v-theme-primary-600: #028C86; /* Main primary */
+  --v-theme-primary-700: #00695C;
+  --v-theme-primary-800: #004D40;
+  --v-theme-primary-900: #002171;
+  
+  // Extended Secondary Palette (Light Green shades)
+  --v-theme-secondary-50: #F1F8E9;
+  --v-theme-secondary-100: #DCEDC8;
+  --v-theme-secondary-200: #C5E1A5;
+  --v-theme-secondary-300: #AED581;
+  --v-theme-secondary-400: #9CCC65;
+  --v-theme-secondary-500: #8BC34A;
+  --v-theme-secondary-600: #7CB342; /* Main secondary */
+  --v-theme-secondary-700: #689F38;
+  --v-theme-secondary-800: #558B2F;
+  --v-theme-secondary-900: #33691E;
+}
+
+// Theme-specific overrides
+.v-theme--light {
+  --v-theme-primary: #028C86;
+  --v-theme-secondary: #B1D663;
+}
+
+.v-theme--dark {
+  --v-theme-primary: #028C86;
+  --v-theme-secondary: #B1D663;
+  --v-theme-surface: #1f2937;
+  --v-theme-on-surface: #f9fafb;
+  --v-theme-background: #111827;
+  --v-theme-on-background: #f9fafb;
+}
+
+// Component-specific theme classes
+.app-theme {
+  --v-theme-primary: #028C86;
+  --v-theme-secondary: #B1D663;
+}
+
+// Custom utility classes for theme colors
+.text-primary-custom {
+  color: var(--v-theme-primary) !important;
+}
+
+.text-secondary-custom {
+  color: var(--v-theme-secondary) !important;
+}
+
+.bg-primary-custom {
+  background-color: var(--v-theme-primary) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--v-theme-secondary) !important;
+}
+
+.border-primary-custom {
+  border-color: var(--v-theme-primary) !important;
+}
+
+.border-secondary-custom {
+  border-color: var(--v-theme-secondary) !important;
+}

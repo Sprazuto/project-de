@@ -1,0 +1,123 @@
+// Modern Design System Styles for SIJAGUR Dashboard
+// Aligned with Material Design 3 and Vuetify Design System
+
+// Import Theme Color Overrides
+@import '_theme-overrides.scss';
+@import '_theme-variables.scss';
+
+.match-height {
+  margin-bottom: 1.5rem !important;
+}
+
+// Loading and Skeleton States
+.skeleton-ranking {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--v-theme-on-surface), 0.04) 25%,
+    rgba(var(--v-theme-on-surface), 0.08) 50%,
+    rgba(var(--v-theme-on-surface), 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// ========================================
+// Theme Color Gradient Classes
+// Using New Theme Colors: Primary #028C86, Secondary #B1D663
+// ========================================
+
+// Primary Theme Gradients
+.bg-gradient-theme-primary {
+  background: linear-gradient(135deg, #028c86, rgba(2, 140, 134, 0.8)) !important;
+}
+
+.bg-gradient-theme-primary-light {
+  background: linear-gradient(135deg, #4db6ac, rgba(77, 182, 172, 0.8)) !important;
+}
+
+.bg-gradient-theme-primary-dark {
+  background: linear-gradient(135deg, #00695c, rgba(0, 105, 92, 0.8)) !important;
+}
+
+// Secondary Theme Gradients
+.bg-gradient-theme-secondary {
+  background: linear-gradient(135deg, #b1d663, rgba(177, 214, 99, 0.8)) !important;
+}
+
+.bg-gradient-theme-secondary-light {
+  background: linear-gradient(135deg, #c5e1a5, rgba(197, 225, 165, 0.8)) !important;
+}
+
+.bg-gradient-theme-secondary-dark {
+  background: linear-gradient(135deg, #7cb342, rgba(124, 179, 66, 0.8)) !important;
+}
+
+// Dark Theme Gradients
+.bg-gradient-theme-dark {
+  background: linear-gradient(135deg, #374151, rgba(55, 65, 81, 0.8)) !important;
+}
+
+.bg-gradient-theme-dark-light {
+  background: linear-gradient(135deg, #6b7280, rgba(107, 114, 128, 0.8)) !important;
+}
+
+.bg-gradient-theme-dark-dark {
+  background: linear-gradient(135deg, #1f2937, rgba(31, 41, 55, 0.8)) !important;
+}
+
+// Mixed Theme Gradients
+.bg-gradient-theme-primary-secondary {
+  background: linear-gradient(135deg, #028c86 0%, #b1d663 100%) !important;
+}
+
+.bg-gradient-theme-secondary-primary {
+  background: linear-gradient(135deg, #b1d663 0%, #028c86 100%) !important;
+}
+
+// Legacy Color Mappings (to maintain compatibility)
+.bg-gradient-primary {
+  background: linear-gradient(45deg, #028c86, rgba(2, 140, 134, 0.8)) !important;
+}
+
+// Additional gradient utilities for direct use
+.bg-gradient-secondary {
+  background: linear-gradient(45deg, #b1d663, rgba(177, 214, 99, 0.8)) !important;
+}
+
+.bg-gradient-error {
+  background: linear-gradient(45deg, #ef4444, rgba(239, 68, 68, 0.8)) !important;
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(45deg, #374151, rgba(55, 65, 81, 0.8)) !important;
+}
+
+.bg-dark {
+  background-color: #374151 !important;
+}
+
+// Theme-aware progress bars
+.v-progress-linear.bg-primary {
+  background: linear-gradient(90deg, #028c86, rgba(2, 140, 134, 0.8)) !important;
+}
+
+.v-progress-linear.bg-secondary {
+  background: linear-gradient(90deg, #b1d663, rgba(177, 214, 99, 0.8)) !important;
+}
+
+.v-progress-linear.bg-error {
+  background: linear-gradient(90deg, #ef4444, rgba(239, 68, 68, 0.8)) !important;
+}
+
+.v-progress-linear.bg-dark {
+  background: linear-gradient(90deg, #374151, rgba(55, 65, 81, 0.8)) !important;
+}

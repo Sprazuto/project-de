@@ -23,18 +23,67 @@ import (
 )
 
 // CORSMiddleware ...
-// CORS (Cross-Origin Resource Sharing)
+// CORS (Cross-Origin Resource Sharing) - Secure Configuration
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+		origin := c.Request.Header.Get("Origin")
+
+		// Get environment
+		env := os.Getenv("ENV")
+
+		// Define allowed origins based on environment
+		var allowedOrigins []string
+
+		if env == "PRODUCTION" {
+			// Production: only allow specific domains
+			productionDomain := os.Getenv("FRONTEND_DOMAIN")
+			if productionDomain != "" {
+				allowedOrigins = []string{
+					"https://" + productionDomain,
+					"http://" + productionDomain,
+				}
+			} else {
+				// If no specific domain set, restrict to none in production
+				allowedOrigins = []string{}
+			}
+		} else {
+			// Development: allow localhost development servers
+			allowedOrigins = []string{
+				"http://localhost:5173", // Vite development server
+				"http://localhost:8000", // Original allowed origin
+				"http://localhost:3000", // Common React dev server
+				"http://127.0.0.1:5173", // Vite alternative
+				"http://127.0.0.1:3000", // React alternative
+			}
+		}
+
+		// Strict origin validation
+		allowOrigin := ""
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				allowOrigin = allowed
+				break
+			}
+		}
+
+		// Only set CORS headers if origin is explicitly allowed
+		if allowOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+		}
+
+		// Set other CORS headers
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
 		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Only allow credentials for same-origin or explicitly allowed origins
+		if allowOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 
 		if c.Request.Method == "OPTIONS" {
-			fmt.Println("OPTIONS")
+			fmt.Printf("OPTIONS request from: %s (allowed: %v)\n", origin, allowOrigin != "")
 			c.AbortWithStatus(200)
 		} else {
 			c.Next()
@@ -52,12 +101,37 @@ func RequestIDMiddleware() gin.HandlerFunc {
 	}
 }
 
-var auth = new(controllers.AuthController)
+// ProtectedRouteMiddleware ...
+// Enhanced middleware that validates JWT tokens and provides detailed error responses for frontend
+func ProtectedRouteMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		auth := new(controllers.AuthController)
+
+		// Validate the token
+		auth.TokenValid(c)
+
+		if c.IsAborted() {
+			// Token is invalid or expired
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"success":  false,
+				"message":  "Unauthorized: Please login to access this resource",
+				"error":    "AUTHENTICATION_REQUIRED",
+				"redirect": "/login",
+			})
+			c.Abort()
+			return
+		}
+
+		// Token is valid, continue to the protected route
+		c.Next()
+	}
+}
 
 // TokenAuthMiddleware ...
 // JWT Authentication middleware attached to each request that needs to be authenticated to validate the access_token in the header
 func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		auth := new(controllers.AuthController)
 		auth.TokenValid(c)
 		c.Next()
 	}
@@ -168,6 +242,7 @@ func main() {
 	{
 		/*** START USER ***/
 		user := new(controllers.UserController)
+		auth := new(controllers.AuthController)
 
 		v1.POST("/user/login", user.Login)
 		v1.POST("/user/register", user.Register)
@@ -177,8 +252,6 @@ func main() {
 		v1.POST("/user/assign-role", TokenAuthMiddleware(), auth.HasPermission("manage_users"), user.AssignRole)
 
 		/*** START AUTH ***/
-		auth := new(controllers.AuthController)
-
 		//Refresh the token when needed to generate new access_token and refresh_token for the user
 		v1.POST("/token/refresh", auth.Refresh)
 
