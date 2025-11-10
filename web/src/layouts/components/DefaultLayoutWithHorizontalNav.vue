@@ -38,7 +38,10 @@ watch(
       </RouterLink>
       <VSpacer />
 
-      <NavBarI18n v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length" :languages="themeConfig.app.i18n.langConfig" />
+      <NavBarI18n
+        v-if="themeConfig.app.i18n.enable && themeConfig.app.i18n.langConfig?.length"
+        :languages="themeConfig.app.i18n.langConfig"
+      />
 
       <NavbarThemeSwitcher class="me-2" />
       <UserProfile />

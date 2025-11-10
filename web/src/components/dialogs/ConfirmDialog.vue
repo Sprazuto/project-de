@@ -53,7 +53,13 @@ const onCancel = () => {
   <VDialog max-width="500" :model-value="props.isDialogVisible" @update:model-value="updateModelValue">
     <VCard class="text-center px-10 py-6">
       <VCardText>
-        <VBtn icon variant="outlined" color="warning" class="my-4" style="block-size: 88px; inline-size: 88px; pointer-events: none">
+        <VBtn
+          icon
+          variant="outlined"
+          color="warning"
+          class="my-4"
+          style="block-size: 88px; inline-size: 88px; pointer-events: none"
+        >
           <span class="text-5xl">!</span>
         </VBtn>
 
@@ -74,7 +80,13 @@ const onCancel = () => {
   <VDialog v-model="unsubscribed" max-width="500">
     <VCard>
       <VCardText class="text-center px-10 py-6">
-        <VBtn icon variant="outlined" color="success" class="my-4" style="block-size: 88px; inline-size: 88px; pointer-events: none">
+        <VBtn
+          icon
+          variant="outlined"
+          color="success"
+          class="my-4"
+          style="block-size: 88px; inline-size: 88px; pointer-events: none"
+        >
           <span class="text-3xl">
             <VIcon icon="tabler-check" />
           </span>
@@ -95,7 +107,13 @@ const onCancel = () => {
   <VDialog v-model="cancelled" max-width="500">
     <VCard>
       <VCardText class="text-center px-10 py-6">
-        <VBtn icon variant="outlined" color="error" class="my-4" style="block-size: 88px; inline-size: 88px; pointer-events: none">
+        <VBtn
+          icon
+          variant="outlined"
+          color="error"
+          class="my-4"
+          style="block-size: 88px; inline-size: 88px; pointer-events: none"
+        >
           <span class="text-5xl font-weight-light">X</span>
         </VBtn>
 

@@ -49,21 +49,62 @@ watch(
 <template>
   <div>
     <div v-if="editor" class="d-flex gap-3 pa-2 flex-wrap align-center">
-      <VIcon class="font-weight-medium" icon="tabler-bold" :color="editor.isActive('bold') ? 'primary' : 'default'" size="20" @click="editor.chain().focus().toggleBold().run()" />
+      <VIcon
+        class="font-weight-medium"
+        icon="tabler-bold"
+        :color="editor.isActive('bold') ? 'primary' : 'default'"
+        size="20"
+        @click="editor.chain().focus().toggleBold().run()"
+      />
 
-      <VIcon :color="editor.isActive('underline') ? 'primary' : 'default'" icon="tabler-underline" size="20" @click="editor.commands.toggleUnderline()" />
+      <VIcon
+        :color="editor.isActive('underline') ? 'primary' : 'default'"
+        icon="tabler-underline"
+        size="20"
+        @click="editor.commands.toggleUnderline()"
+      />
 
-      <VIcon :color="editor.isActive('italic') ? 'primary' : 'default'" icon="tabler-italic" size="20" @click="editor.chain().focus().toggleItalic().run()" />
+      <VIcon
+        :color="editor.isActive('italic') ? 'primary' : 'default'"
+        icon="tabler-italic"
+        size="20"
+        @click="editor.chain().focus().toggleItalic().run()"
+      />
 
-      <VIcon icon="tabler-strikethrough" size="20" :color="editor.isActive('strike') ? 'primary' : 'default'" @click="editor.chain().focus().toggleStrike().run()" />
+      <VIcon
+        icon="tabler-strikethrough"
+        size="20"
+        :color="editor.isActive('strike') ? 'primary' : 'default'"
+        @click="editor.chain().focus().toggleStrike().run()"
+      />
 
-      <VIcon :color="editor.isActive({ textAlign: 'left' }) ? 'primary' : 'default'" icon="tabler-align-left" size="20" @click="editor.chain().focus().setTextAlign('left').run()" />
+      <VIcon
+        :color="editor.isActive({ textAlign: 'left' }) ? 'primary' : 'default'"
+        icon="tabler-align-left"
+        size="20"
+        @click="editor.chain().focus().setTextAlign('left').run()"
+      />
 
-      <VIcon icon="tabler-align-center" size="20" :color="editor.isActive({ textAlign: 'center' }) ? 'primary' : 'default'" @click="editor.chain().focus().setTextAlign('center').run()" />
+      <VIcon
+        icon="tabler-align-center"
+        size="20"
+        :color="editor.isActive({ textAlign: 'center' }) ? 'primary' : 'default'"
+        @click="editor.chain().focus().setTextAlign('center').run()"
+      />
 
-      <VIcon :color="editor.isActive({ textAlign: 'right' }) ? 'primary' : 'default'" icon="tabler-align-right" size="20" @click="editor.chain().focus().setTextAlign('right').run()" />
+      <VIcon
+        :color="editor.isActive({ textAlign: 'right' }) ? 'primary' : 'default'"
+        icon="tabler-align-right"
+        size="20"
+        @click="editor.chain().focus().setTextAlign('right').run()"
+      />
 
-      <VIcon :color="editor.isActive({ textAlign: 'justify' }) ? 'primary' : 'default'" icon="tabler-align-justified" size="20" @click="editor.chain().focus().setTextAlign('justify').run()" />
+      <VIcon
+        :color="editor.isActive({ textAlign: 'justify' }) ? 'primary' : 'default'"
+        icon="tabler-align-justified"
+        size="20"
+        @click="editor.chain().focus().setTextAlign('justify').run()"
+      />
     </div>
 
     <VDivider />

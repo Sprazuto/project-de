@@ -36,7 +36,11 @@ const dialogModelValueUpdate = (val) => {
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 580" :model-value="props.isDialogVisible" @update:model-value="dialogModelValueUpdate">
+  <VDialog
+    :width="$vuetify.display.smAndDown ? 'auto' : 580"
+    :model-value="props.isDialogVisible"
+    @update:model-value="dialogModelValueUpdate"
+  >
     <!-- Dialog close btn -->
     <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
 
@@ -56,7 +60,12 @@ const dialogModelValueUpdate = (val) => {
           <VRow>
             <!-- 👉 Card Number -->
             <VCol cols="12">
-              <AppTextField v-model="cardDetails.number" label="Card Number" placeholder="1234 1234 1234 1234" type="number" />
+              <AppTextField
+                v-model="cardDetails.number"
+                label="Card Number"
+                placeholder="1234 1234 1234 1234"
+                type="number"
+              />
             </VCol>
 
             <!-- 👉 Card Name -->

@@ -42,7 +42,11 @@ const dialogModelValueUpdate = (val) => {
 
 <template>
   <!-- 👉 upgrade plan -->
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 560" :model-value="props.isDialogVisible" @update:model-value="dialogModelValueUpdate">
+  <VDialog
+    :width="$vuetify.display.smAndDown ? 'auto' : 560"
+    :model-value="props.isDialogVisible"
+    @update:model-value="dialogModelValueUpdate"
+  >
     <!-- Dialog close btn -->
     <DialogCloseBtn @click="dialogModelValueUpdate(false)" />
 
@@ -57,7 +61,11 @@ const dialogModelValueUpdate = (val) => {
       </VCardItem>
 
       <VCardText class="d-flex align-center flex-column flex-sm-nowrap px-15">
-        <CustomRadios v-model:selected-radio="selectedPlan" :radio-content="plansList" :grid-column="{ cols: '12', sm: '6' }" />
+        <CustomRadios
+          v-model:selected-radio="selectedPlan"
+          :radio-content="plansList"
+          :grid-column="{ cols: '12', sm: '6' }"
+        />
         <VBtn class="mt-5"> Upgrade </VBtn>
       </VCardText>
 
@@ -71,7 +79,9 @@ const dialogModelValueUpdate = (val) => {
             <h3 class="text-h3 text-primary">99</h3>
             <sub class="text-body-1 mt-3">/ month</sub>
           </div>
-          <VBtn color="error" variant="tonal" class="mt-3" @click="isConfirmDialogVisible = true"> Cancel Subscription </VBtn>
+          <VBtn color="error" variant="tonal" class="mt-3" @click="isConfirmDialogVisible = true">
+            Cancel Subscription
+          </VBtn>
         </div>
       </VCardText>
 

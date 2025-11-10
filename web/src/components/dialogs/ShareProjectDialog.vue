@@ -84,7 +84,13 @@ const membersList = [
         <p class="text-sm-body-1 text-center mb-6">Share project with a team members</p>
 
         <p class="font-weight-medium mb-1">Add Members</p>
-        <AppAutocomplete :items="membersList" item-title="name" item-value="name" placeholder="Add project members..." density="compact">
+        <AppAutocomplete
+          :items="membersList"
+          item-title="name"
+          item-value="name"
+          placeholder="Add project members..."
+          density="compact"
+        >
           <template #item="{ props: listItemProp, item }">
             <VListItem v-bind="listItemProp">
               <template #prepend>
@@ -116,7 +122,11 @@ const membersList = [
 
                 <VMenu activator="parent">
                   <VList :selected="[member.permission]">
-                    <VListItem v-for="(item, index) in ['Owner', 'Can Edit', 'Can Comment', 'Can View']" :key="index" :value="item">
+                    <VListItem
+                      v-for="(item, index) in ['Owner', 'Can Edit', 'Can Comment', 'Can View']"
+                      :key="index"
+                      :value="item"
+                    >
                       <VListItemTitle>{{ item }}</VListItemTitle>
                     </VListItem>
                   </VList>

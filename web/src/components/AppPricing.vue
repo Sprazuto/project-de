@@ -41,7 +41,13 @@ const pricingPlans = [
     yearlyPrice: 0,
     isPopular: false,
     current: true,
-    features: ['100 responses a month', 'Unlimited forms and surveys', 'Unlimited fields', 'Basic form creation tools', 'Up to 2 subdomains']
+    features: [
+      '100 responses a month',
+      'Unlimited forms and surveys',
+      'Unlimited fields',
+      'Basic form creation tools',
+      'Up to 2 subdomains'
+    ]
   },
   {
     name: 'Standard',
@@ -51,7 +57,13 @@ const pricingPlans = [
     yearlyPrice: 499,
     isPopular: true,
     current: false,
-    features: ['Unlimited responses', 'Unlimited forms and surveys', 'Instagram profile page', 'Google Docs integration', 'Custom “Thank you” page']
+    features: [
+      'Unlimited responses',
+      'Unlimited forms and surveys',
+      'Instagram profile page',
+      'Google Docs integration',
+      'Custom “Thank you” page'
+    ]
   },
   {
     name: 'Enterprise',
@@ -61,7 +73,13 @@ const pricingPlans = [
     yearlyPrice: 999,
     isPopular: false,
     current: false,
-    features: ['PayPal payments', 'Logic Jumps', 'File upload with 5GB storage', 'Custom domain support', 'Stripe integration']
+    features: [
+      'PayPal payments',
+      'Logic Jumps',
+      'File upload with 5GB storage',
+      'Custom domain support',
+      'Stripe integration'
+    ]
   }
 ]
 </script>
@@ -125,7 +143,10 @@ const pricingPlans = [
             </div>
 
             <!-- 👉 Annual Price -->
-            <span v-show="annualMonthlyPlanPriceToggler" class="annual-price-text position-absolute text-sm text-disabled">
+            <span
+              v-show="annualMonthlyPlanPriceToggler"
+              class="annual-price-text position-absolute text-sm text-disabled"
+            >
               {{ plan.yearlyPrice === 0 ? 'free' : `USD ${plan.yearlyPrice}/Year` }}
             </span>
           </div>
@@ -145,7 +166,12 @@ const pricingPlans = [
           </VList>
 
           <!-- 👉 Plan actions -->
-          <VBtn block :color="plan.current ? 'success' : 'primary'" :variant="plan.isPopular ? 'elevated' : 'tonal'" :to="{ name: 'front-pages-payment' }">
+          <VBtn
+            block
+            :color="plan.current ? 'success' : 'primary'"
+            :variant="plan.isPopular ? 'elevated' : 'tonal'"
+            :to="{ name: 'front-pages-payment' }"
+          >
             {{ plan.yearlyPrice === 0 ? 'Your Current Plan' : 'Upgrade' }}
           </VBtn>
         </VCardText>

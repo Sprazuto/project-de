@@ -40,7 +40,12 @@ const { copy, copied } = useClipboard({
     <VCardItem>
       <VCardTitle>{{ props.title }}</VCardTitle>
       <template #append>
-        <IconBtn size="small" :color="isCodeShown ? 'primary' : 'default'" :class="isCodeShown ? '' : 'text-disabled'" @click="isCodeShown = !isCodeShown">
+        <IconBtn
+          size="small"
+          :color="isCodeShown ? 'primary' : 'default'"
+          :class="isCodeShown ? '' : 'text-disabled'"
+          @click="isCodeShown = !isCodeShown"
+        >
           <VIcon size="20" icon="tabler-code" />
         </IconBtn>
       </template>
@@ -67,7 +72,11 @@ const { copy, copied } = useClipboard({
           </div>
 
           <div class="position-relative">
-            <Prism :key="props.code[preferredCodeLanguage]" :language="props.codeLanguage" :style="$vuetify.locale.isRtl ? 'text-align: right' : 'text-align: left'">
+            <Prism
+              :key="props.code[preferredCodeLanguage]"
+              :language="props.codeLanguage"
+              :style="$vuetify.locale.isRtl ? 'text-align: right' : 'text-align: left'"
+            >
               {{ props.code[preferredCodeLanguage] }}
             </Prism>
             <IconBtn

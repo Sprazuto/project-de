@@ -34,8 +34,13 @@ const props = defineProps({
 const emit = defineEmits(['update:currentStep'])
 
 const currentStep = ref(props.currentStep || 0)
-const activeOrCompletedStepsClasses = computed(() => (index) => (index < currentStep.value ? 'stepper-steps-completed' : index === currentStep.value ? 'stepper-steps-active' : ''))
-const isHorizontalAndNotLastStep = computed(() => (index) => props.direction === 'horizontal' && props.items.length - 1 !== index)
+const activeOrCompletedStepsClasses = computed(
+  () => (index) =>
+    index < currentStep.value ? 'stepper-steps-completed' : index === currentStep.value ? 'stepper-steps-active' : ''
+)
+const isHorizontalAndNotLastStep = computed(
+  () => (index) => props.direction === 'horizontal' && props.items.length - 1 !== index
+)
 
 // check if validation is enabled
 const isValidationEnabled = computed(() => {
@@ -43,24 +48,37 @@ const isValidationEnabled = computed(() => {
 })
 
 watchEffect(() => {
-  if (props.currentStep !== undefined && props.currentStep < props.items.length && props.currentStep >= 0) currentStep.value = props.currentStep
+  if (props.currentStep !== undefined && props.currentStep < props.items.length && props.currentStep >= 0)
+    currentStep.value = props.currentStep
   emit('update:currentStep', currentStep.value)
 })
 </script>
 
 <template>
-  <VSlideGroup v-model="currentStep" class="app-stepper" show-arrows :direction="props.direction" :class="`app-stepper-${props.align}`">
+  <VSlideGroup
+    v-model="currentStep"
+    class="app-stepper"
+    show-arrows
+    :direction="props.direction"
+    :class="`app-stepper-${props.align}`"
+  >
     <VSlideGroupItem v-for="(item, index) in props.items" :key="item.title" :value="index">
       <div
         class="cursor-pointer mx-1"
-        :class="[!props.isActiveStepValid && isValidationEnabled && 'stepper-steps-invalid', activeOrCompletedStepsClasses(index)]"
+        :class="[
+          !props.isActiveStepValid && isValidationEnabled && 'stepper-steps-invalid',
+          activeOrCompletedStepsClasses(index)
+        ]"
         @click="!isValidationEnabled && emit('update:currentStep', index)"
       >
         <!-- SECTION stepper step with icon -->
         <template v-if="item.icon">
           <div class="stepper-icon-step text-high-emphasis d-flex align-center gap-2">
             <!-- 👉 icon and title -->
-            <div class="d-flex align-center gap-4 step-wrapper" :class="[props.direction === 'horizontal' && 'flex-column']">
+            <div
+              class="d-flex align-center gap-4 step-wrapper"
+              :class="[props.direction === 'horizontal' && 'flex-column']"
+            >
               <div class="stepper-icon">
                 <VIcon :icon="item.icon" :size="item.size || props.iconSize" />
               </div>
@@ -76,7 +94,12 @@ watchEffect(() => {
             </div>
 
             <!-- 👉 append chevron -->
-            <VIcon v-if="isHorizontalAndNotLastStep(index)" class="flip-in-rtl stepper-chevron-indicator mx-6" size="24" icon="tabler-chevron-right" />
+            <VIcon
+              v-if="isHorizontalAndNotLastStep(index)"
+              class="flip-in-rtl stepper-chevron-indicator mx-6"
+              size="24"
+              icon="tabler-chevron-right"
+            />
           </div>
         </template>
         <!-- !SECTION  -->

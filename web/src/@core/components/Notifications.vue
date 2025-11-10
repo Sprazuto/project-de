@@ -35,7 +35,13 @@ const totalUnseenNotifications = computed(() => {
 
 <template>
   <IconBtn id="notification-btn">
-    <VBadge v-bind="props.badgeProps" :model-value="props.notifications.some((n) => !n.isSeen)" color="error" :content="totalUnseenNotifications" class="notification-badge">
+    <VBadge
+      v-bind="props.badgeProps"
+      :model-value="props.notifications.some((n) => !n.isSeen)"
+      color="error"
+      :content="totalUnseenNotifications"
+      class="notification-badge"
+    >
       <VIcon size="26" icon="tabler-bell" />
     </VBadge>
 
@@ -63,7 +69,13 @@ const totalUnseenNotifications = computed(() => {
           <VList class="notification-list rounded-0 py-0">
             <template v-for="(notification, index) in props.notifications" :key="notification.title">
               <VDivider v-if="index > 0" />
-              <VListItem link lines="one" min-height="66px" class="list-item-hover-class" @click="$emit('click:notification', notification)">
+              <VListItem
+                link
+                lines="one"
+                min-height="66px"
+                class="list-item-hover-class"
+                @click="$emit('click:notification', notification)"
+              >
                 <!-- Slot: Prepend -->
                 <!-- Handles Avatar: Image, Icon, Text -->
                 <template #prepend>
@@ -106,7 +118,11 @@ const totalUnseenNotifications = computed(() => {
               </VListItem>
             </template>
 
-            <VListItem v-show="!props.notifications.length" class="text-center text-medium-emphasis" style="block-size: 56px">
+            <VListItem
+              v-show="!props.notifications.length"
+              class="text-center text-medium-emphasis"
+              style="block-size: 56px"
+            >
               <VListItemTitle>No Notification Found!</VListItemTitle>
             </VListItem>
           </VList>

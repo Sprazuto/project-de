@@ -106,14 +106,25 @@ const hideTitleAndIcon = configStore.isVerticalNavMini(isHovered)
           v-bind="layoutConfig.icons.verticalNavPinned"
           @click="configStore.isVerticalNavCollapsed = !configStore.isVerticalNavCollapsed"
         />
-        <Component :is="layoutConfig.app.iconRenderer || 'div'" class="header-action d-lg-none" v-bind="layoutConfig.icons.close" @click="toggleIsOverlayNavActive(false)" />
+        <Component
+          :is="layoutConfig.app.iconRenderer || 'div'"
+          class="header-action d-lg-none"
+          v-bind="layoutConfig.icons.close"
+          @click="toggleIsOverlayNavActive(false)"
+        />
       </slot>
     </div>
     <slot name="before-nav-items">
       <div class="vertical-nav-items-shadow" />
     </slot>
     <slot name="nav-items" :update-is-vertical-nav-scrolled="updateIsVerticalNavScrolled">
-      <PerfectScrollbar :key="configStore.isAppRTL" tag="ul" class="nav-items" :options="{ wheelPropagation: false }" @ps-scroll-y="handleNavScroll">
+      <PerfectScrollbar
+        :key="configStore.isAppRTL"
+        tag="ul"
+        class="nav-items"
+        :options="{ wheelPropagation: false }"
+        @ps-scroll-y="handleNavScroll"
+      >
         <Component :is="resolveNavItemComponent(item)" v-for="(item, index) in navItems" :key="index" :item="item" />
       </PerfectScrollbar>
     </slot>

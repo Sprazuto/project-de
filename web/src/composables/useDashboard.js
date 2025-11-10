@@ -5,36 +5,12 @@
 
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuth } from './useAuth'
-import { $api } from '@/utils/api'
+import { useApi } from './useApi'
 import { processRealisasiBulanData, processRealisasiTahunData } from '@/utils/realisasiDataProcessor'
-
-// TypeScript interfaces
-/**
- * @typedef {Object} DashboardStats
- * @property {number} totalBudget - Total budget amount
- * @property {number} totalRealization - Total realization amount
- * @property {number} realizationRate - Realization percentage
- * @property {number} variance - Budget variance
- * @property {string} trend - Performance trend
- */
-
-/**
- * @typedef {Object} RealisasiData
- * @property {string} nama_satker - Organization name
- * @property {number} total_budget - Total budget
- * @property {number} total_realization - Total realization
- * @property {number} realization_percentage - Realization percentage
- * @property {number} variance - Budget variance
- */
-
-/**
- * @typedef {Object} MonthlyDataPoint
- * @property {string} month - Month abbreviation
- * @property {number} value - Percentage value
- */
 
 export function useDashboard() {
   const { isAuthenticated } = useAuth()
+  const { $api } = useApi()
 
   // Reactive state
   const loading = ref({
@@ -58,82 +34,6 @@ export function useDashboard() {
   const selectedMonth = ref(new Date().getMonth() + 1)
   const selectedSatker = ref(0)
   const refreshInterval = ref(0) // 30 seconds
-
-  // Computed properties
-  const monthlyStats = computed(() => {
-    if (!realisasiBulan.value.length) {
-      return {
-        total_budget: 0,
-        total_realisasi: 0,
-        realization_percentage: 0,
-        variance: 0
-      }
-    }
-
-    const stats = {
-      total_budget: realisasiBulan.value.reduce((sum, item) => sum + (item.total_budget || 0), 0),
-      total_realisasi: realisasiBulan.value.reduce((sum, item) => sum + (item.total_realisasi || 0), 0),
-      realization_percentage: 0,
-      variance: 0
-    }
-
-    if (stats.total_budget > 0) {
-      stats.realization_percentage = (stats.total_realisasi / stats.total_budget) * 100
-      stats.variance = stats.total_budget - stats.total_realisasi
-    }
-
-    return stats
-  })
-
-  const yearlyStats = computed(() => {
-    if (!realisasiTahun.value.length) {
-      return {
-        total_budget: 0,
-        total_realisasi: 0,
-        realization_percentage: 0,
-        variance: 0
-      }
-    }
-
-    const stats = {
-      total_budget: realisasiTahun.value.reduce((sum, item) => sum + (item.total_budget || 0), 0),
-      total_realisasi: realisasiTahun.value.reduce((sum, item) => sum + (item.total_realisasi || 0), 0),
-      realization_percentage: 0,
-      variance: 0
-    }
-
-    if (stats.total_budget > 0) {
-      stats.realization_percentage = (stats.total_realisasi / stats.total_budget) * 100
-      stats.variance = stats.total_budget - stats.total_realisasi
-    }
-
-    return stats
-  })
-
-  const filteredData = computed(() => {
-    let filtered = realisasiBulan.value
-    if (selectedSatker.value > 0) {
-      filtered = filtered.filter((item) => item.idsatker === selectedSatker.value)
-    }
-
-    return filtered
-  })
-
-  // Utility functions
-  const formatCurrency = (value) => {
-    if (!value) return 'Rp 0'
-
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value)
-  }
-
-  const formatPercentage = (value) => {
-    return `${Math.round(value || 0)}%`
-  }
 
   // API functions
   const fetchRealisasiBulan = async (params = {}) => {
@@ -200,22 +100,6 @@ export function useDashboard() {
       loading.value.articles = false
     }
   }
-
-  // Data processing functions
-  const processRealisasiData = (data) => {
-    if (!Array.isArray(data)) return []
-
-    return data.map((item) => ({
-      id: item.id || Math.random(),
-      nama_satker: item.nama_satker || 'Unknown',
-      total_budget: parseFloat(item.total_budget) || 0,
-      total_realisasi: parseFloat(item.total_realisasi) || 0,
-      realization_percentage: parseFloat(item.realization_percentage) || 0,
-      variance: parseFloat(item.total_budget) - parseFloat(item.total_realisasi) || 0,
-      idsatker: item.idsatker || 0
-    }))
-  }
-
   // Initialization and auto-refresh
   let refreshTimer
 
@@ -281,20 +165,6 @@ export function useDashboard() {
     }
   }
 
-  // Filter management
-  const updateFilters = (newFilters) => {
-    if (newFilters.year !== undefined) selectedYear.value = newFilters.year
-    if (newFilters.month !== undefined) selectedMonth.value = newFilters.month
-    if (newFilters.satker !== undefined) selectedSatker.value = newFilters.satker
-    if (newFilters.interval !== undefined) {
-      refreshInterval.value = newFilters.interval
-      startAutoRefresh()
-    }
-
-    // Refresh data with new filters
-    refreshData()
-  }
-
   return {
     // State
     loading,
@@ -307,19 +177,9 @@ export function useDashboard() {
     selectedSatker,
     refreshInterval,
 
-    // Computed
-    monthlyStats,
-    yearlyStats,
-    filteredData,
-
     // Actions
     refreshData,
     retryFetch,
-    updateFilters,
-
-    // Utilities
-    formatCurrency,
-    formatPercentage,
 
     // Lifecycle control
     startAutoRefresh,

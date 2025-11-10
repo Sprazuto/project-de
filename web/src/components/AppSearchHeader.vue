@@ -23,14 +23,24 @@ defineOptions({
 
 <template>
   <!-- 👉 Search Banner  -->
-  <VCard flat class="text-center search-header" :class="props.customClass" :style="`background: url(${AppSearchHeaderBg});`">
+  <VCard
+    flat
+    class="text-center search-header"
+    :class="props.customClass"
+    :style="`background: url(${AppSearchHeaderBg});`"
+  >
     <VCardText>
       <h3 class="text-h3 font-weight-medium">
         {{ props.title }}
       </h3>
 
       <!-- 👉 Search Input -->
-      <VTextField v-bind="$attrs" placeholder="Search a question..." class="search-header-input mx-auto my-3" density="comfortable">
+      <VTextField
+        v-bind="$attrs"
+        placeholder="Search a question..."
+        class="search-header-input mx-auto my-3"
+        density="comfortable"
+      >
         <template #prepend-inner>
           <VIcon icon="tabler-search" size="23" />
         </template>

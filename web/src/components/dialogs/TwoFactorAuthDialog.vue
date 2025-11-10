@@ -53,7 +53,11 @@ const openSelectedMethodDialog = () => {
 </script>
 
 <template>
-  <VDialog max-width="787" :model-value="props.isDialogVisible" @update:model-value="(val) => $emit('update:isDialogVisible', val)">
+  <VDialog
+    max-width="787"
+    :model-value="props.isDialogVisible"
+    @update:model-value="(val) => $emit('update:isDialogVisible', val)"
+  >
     <!-- Dialog close btn -->
     <DialogCloseBtn @click="$emit('update:isDialogVisible', false)" />
 
@@ -61,13 +65,28 @@ const openSelectedMethodDialog = () => {
       <VCardItem class="text-center">
         <VCardTitle class="text-h3 mb-3"> Select Authentication Method </VCardTitle>
         <VCardSubtitle>
-          <span class="text-base"> You also need to select a method by which the proxy authenticates to the directory serve. </span>
+          <span class="text-base">
+            You also need to select a method by which the proxy authenticates to the directory serve.
+          </span>
         </VCardSubtitle>
       </VCardItem>
 
       <VCardText>
-        <VList v-model:selected="selectedMethod" mandatory variant="outlined" class="card-list auth-method-card" :class="$vuetify.display.xs ? 'responsive-card' : ''">
-          <VListItem v-for="item of authMethods" :key="item.title" rounded :value="item.method" class="py-5 px-6 my-6" :class="selectedMethod[0] === item.method && 'text-primary'">
+        <VList
+          v-model:selected="selectedMethod"
+          mandatory
+          variant="outlined"
+          class="card-list auth-method-card"
+          :class="$vuetify.display.xs ? 'responsive-card' : ''"
+        >
+          <VListItem
+            v-for="item of authMethods"
+            :key="item.title"
+            rounded
+            :value="item.method"
+            class="py-5 px-6 my-6"
+            :class="selectedMethod[0] === item.method && 'text-primary'"
+          >
             <template #prepend>
               <VIcon :icon="item.icon" size="38" />
             </template>

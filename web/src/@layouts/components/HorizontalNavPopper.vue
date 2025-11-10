@@ -53,7 +53,10 @@ const updatePopper = async () => {
   if (refPopperContainer.value !== undefined && refPopper.value !== undefined) {
     const { x, y } = await computePosition(refPopperContainer.value, refPopper.value, {
       placement: props.popperInlineEnd ? (props.isRtl ? 'left-start' : 'right-start') : 'bottom-start',
-      middleware: [flip({ boundary: document.querySelector('body') }), shift({ boundary: document.querySelector('body') })]
+      middleware: [
+        flip({ boundary: document.querySelector('body') }),
+        shift({ boundary: document.querySelector('body') })
+      ]
 
       /*ℹ️ Why we are not using fixed positioning?
 
@@ -136,7 +139,13 @@ watch(() => route.fullPath, hideContent)
     <!-- SECTION Popper Content -->
     <!-- 👉 Without transition -->
     <template v-if="!themeConfig.horizontalNav.transition">
-      <div ref="refPopper" class="popper-content" :style="popperContentStyles" @mouseenter="showContent" @mouseleave="hideContent">
+      <div
+        ref="refPopper"
+        class="popper-content"
+        :style="popperContentStyles"
+        @mouseenter="showContent"
+        @mouseleave="hideContent"
+      >
         <div>
           <slot name="content" />
         </div>
@@ -146,7 +155,14 @@ watch(() => route.fullPath, hideContent)
     <!-- 👉 CSS Transition -->
     <template v-else-if="typeof themeConfig.horizontalNav.transition === 'string'">
       <Transition :name="themeConfig.horizontalNav.transition">
-        <div v-show="isContentShown" ref="refPopper" class="popper-content" :style="popperContentStyles" @mouseenter="showContent" @mouseleave="hideContent">
+        <div
+          v-show="isContentShown"
+          ref="refPopper"
+          class="popper-content"
+          :style="popperContentStyles"
+          @mouseenter="showContent"
+          @mouseleave="hideContent"
+        >
           <div>
             <slot name="content" />
           </div>
@@ -157,7 +173,14 @@ watch(() => route.fullPath, hideContent)
     <!-- 👉 Transition Component -->
     <template v-else>
       <Component :is="themeConfig.horizontalNav.transition">
-        <div v-show="isContentShown" ref="refPopper" class="popper-content" :style="popperContentStyles" @mouseenter="showContent" @mouseleave="hideContent">
+        <div
+          v-show="isContentShown"
+          ref="refPopper"
+          class="popper-content"
+          :style="popperContentStyles"
+          @mouseenter="showContent"
+          @mouseleave="hideContent"
+        >
           <div>
             <slot name="content" />
           </div>

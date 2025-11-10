@@ -77,7 +77,16 @@ import CardRealisasiBulan from './CardRealisasiBulan.vue'
 
     <!-- Content State -->
     <VRow v-else class="match-height" role="list" aria-label="Monthly realization data">
-      <VCol v-for="(card, index) in realisasiBulan" :key="`bulan-${index}`" cols="12" sm="6" md="3" lg="3" xl="3" role="listitem">
+      <VCol
+        v-for="(card, index) in realisasiBulan"
+        :key="`bulan-${index}`"
+        cols="12"
+        sm="6"
+        md="3"
+        lg="3"
+        xl="3"
+        role="listitem"
+      >
         <CardRealisasiBulan
           :title="card.title"
           :subtitle="card.subtitle"

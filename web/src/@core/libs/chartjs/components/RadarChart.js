@@ -1,4 +1,13 @@
-import { Chart as ChartJS, Filler, Legend, LineElement, PointElement, RadialLinearScale, Title, Tooltip } from 'chart.js'
+import {
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LineElement,
+  PointElement,
+  RadialLinearScale,
+  Title,
+  Tooltip
+} from 'chart.js'
 import { defineComponent } from 'vue'
 import { Radar } from 'vue-chartjs'
 

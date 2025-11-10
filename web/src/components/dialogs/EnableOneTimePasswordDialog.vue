@@ -40,13 +40,22 @@ const dialogModelValueUpdate = (val) => {
       <VCardItem class="text-start">
         <VCardTitle class="text-h6 font-weight-medium mb-2"> Verify Your Mobile Number for SMS </VCardTitle>
         <VCardSubtitle>
-          <span class="text-base"> Enter your mobile phone number with country code and we will send you a verification code. </span>
+          <span class="text-base">
+            Enter your mobile phone number with country code and we will send you a verification code.
+          </span>
         </VCardSubtitle>
       </VCardItem>
 
       <VCardText class="pt-6">
         <VForm @submit.prevent="() => {}">
-          <AppTextField v-model="phoneNumber" name="mobile" label="Phone Number" placeholder="+1 123 456 7890" type="number" class="mb-5" />
+          <AppTextField
+            v-model="phoneNumber"
+            name="mobile"
+            label="Phone Number"
+            placeholder="+1 123 456 7890"
+            type="number"
+            class="mb-5"
+          />
 
           <div class="d-flex flex-wrap justify-end gap-4">
             <VBtn color="secondary" variant="tonal" @click="resetPhoneNumber"> Cancel </VBtn>

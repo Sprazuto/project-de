@@ -5,6 +5,8 @@
  */
 
 import { ref } from 'vue'
+import { ofetch } from 'ofetch'
+import { useRouter } from 'vue-router'
 import { useAuth } from './useAuth'
 
 export function useApi() {
@@ -26,15 +28,57 @@ export function useApi() {
     })
   }
 
+  // Create ofetch instance with interceptors
+  const $api = ofetch.create({
+    baseURL,
+    timeout,
+    async onRequest({ options }) {
+      requestCount.value++
+      const auth = useAuth()
+      let token = auth.getAccessToken?.() || localStorage.getItem('access_token') || localStorage.getItem('token')
+
+      if (token && token !== 'null' && token !== 'undefined') {
+        options.headers = {
+          ...options.headers,
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    },
+    async onResponse({ response }) {
+      requestCount.value--
+    },
+    async onResponseError({ response }) {
+      requestCount.value--
+      console.error('API Error:', response.status, response._data)
+
+      if (response.status === 401) {
+        // Clear invalid tokens
+        try {
+          const auth = useAuth()
+          auth.logout?.()
+        } catch (e) {
+          console.warn('Auth cleanup failed:', e)
+        }
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user')
+
+        // Redirect to login
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          try {
+            const router = useRouter()
+            await router.push('/login')
+          } catch (error) {
+            window.location.href = '/login'
+          }
+        }
+      }
+    }
+  })
+
   // Helper functions
-  const getAuthHeaders = () => {
-    // Get token from useAuth composable if available
-    const auth = useAuth()
-    let token = auth.getAccessToken?.() || localStorage.getItem('access_token') || localStorage.getItem('token')
-
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
   const handleError = (error, defaultMessage = 'An error occurred') => {
     console.error('API Error:', error)
 
@@ -51,39 +95,11 @@ export function useApi() {
     let message = null
 
     if (error.response) {
-      // Ofetch error format
       status = error.response.status
       message = error.response._data?.message || error.message
     } else if (error.status) {
-      // Custom error format
       status = error.status
       message = error.data?.message || error.message
-    }
-
-    if (status === 401) {
-      // Clear invalid tokens
-      try {
-        const auth = useAuth()
-
-        auth.logout?.()
-      } catch (e) {
-        console.warn('Auth cleanup failed:', e)
-      }
-
-      // Clear localStorage as fallback
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-
-      // Redirect to login
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        // TEMPORARILY DISABLED: Redirect to login for debugging
-        // window.location.href = '/login'
-        console.log('401 Unauthorized - redirect disabled for debugging')
-      }
-
-      return 'Authentication failed. Please log in again.'
     }
 
     switch (status) {
@@ -100,124 +116,50 @@ export function useApi() {
     }
   }
 
-  // Request function
-  const request = async (options) => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
-
-    try {
-      requestCount.value++
-
-      const config = {
-        baseURL,
-        timeout,
-        signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders(),
-          ...options.headers
-        },
-        ...options
-      }
-
-      // Properly construct the full URL
-      const fullUrl = config.url.startsWith('http') ? config.url : config.baseURL ? `${config.baseURL}${config.url}` : config.url
-
-      const response = await fetch(fullUrl, config)
-
-      clearTimeout(timeoutId)
-
-      // Handle HTTP errors
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        const error = new Error(errorData.message || `HTTP ${response.status}`)
-
-        error.response = { status: response.status, data: errorData }
-        throw error
-      }
-
-      // Parse response
-      const contentType = response.headers.get('content-type')
-
-      const data = contentType?.includes('application/json') ? await response.json() : await response.text()
-
-      return {
-        success: true,
-        data,
-        status: response.status
-      }
-    } catch (error) {
-      clearTimeout(timeoutId)
-
-      // For authentication errors, try to refresh user state
-      if (error.response?.status === 401) {
-        try {
-          const auth = useAuth()
-
-          auth.refreshUser?.()
-        } catch (e) {
-          console.warn('Auth refresh failed:', e)
-        }
-      }
-
-      return {
-        success: false,
-        error: handleError(error),
-        data: null
-      }
-    } finally {
-      requestCount.value--
-    }
-  }
-
-  // HTTP method helpers
+  // HTTP method helpers using ofetch
   const get = (url, params = {}) => {
     const queryString = new URLSearchParams(params).toString()
     const fullUrl = queryString ? `${url}?${queryString}` : url
-
-    return request({ url: fullUrl, method: 'GET' })
+    return $api(fullUrl, { method: 'GET' })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   const post = (url, data = {}) => {
-    return request({
-      url,
-      method: 'POST',
-      body: JSON.stringify(data)
-    })
+    return $api(url, { method: 'POST', body: data })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   const put = (url, data = {}) => {
-    return request({
-      url,
-      method: 'PUT',
-      body: JSON.stringify(data)
-    })
+    return $api(url, { method: 'PUT', body: data })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   const patch = (url, data = {}) => {
-    return request({
-      url,
-      method: 'PATCH',
-      body: JSON.stringify(data)
-    })
+    return $api(url, { method: 'PATCH', body: data })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   const del = (url) => {
-    return request({ url, method: 'DELETE' })
+    return $api(url, { method: 'DELETE' })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   // File upload
   const upload = async (url, formData) => {
-    return request({
-      url,
+    return $api(url, {
       method: 'POST',
+      body: formData,
       headers: {
-        ...getAuthHeaders()
-
-        // Don't set Content-Type for FormData, let browser set it with boundary
-      },
-      body: formData
+        // Let browser set Content-Type for FormData
+      }
     })
+      .then((data) => ({ success: true, data }))
+      .catch((error) => ({ success: false, error: handleError(error), data: null }))
   }
 
   return {
@@ -225,8 +167,10 @@ export function useApi() {
     isOnline,
     requestCount,
 
+    // ofetch instance for direct use
+    $api,
+
     // Methods
-    request,
     get,
     post,
     put,

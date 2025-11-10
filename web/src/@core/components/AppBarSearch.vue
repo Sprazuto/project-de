@@ -116,7 +116,12 @@ watch(
       <!-- 👉 Perfect Scrollbar -->
       <PerfectScrollbar :options="{ wheelPropagation: false, suppressScrollX: true }" class="h-100">
         <!-- 👉 Search List -->
-        <VList v-show="searchQueryLocal.length && !!props.searchResults.length" ref="refSearchList" density="compact" class="app-bar-search-list">
+        <VList
+          v-show="searchQueryLocal.length && !!props.searchResults.length"
+          ref="refSearchList"
+          density="compact"
+          class="app-bar-search-list"
+        >
           <!-- 👉 list Item /List Sub header -->
           <template v-for="item in props.searchResults" :key="item">
             <slot name="searchResult" :item="item">
@@ -136,7 +141,9 @@ watch(
         <div v-show="!props.searchResults.length && searchQueryLocal.length" class="h-100">
           <slot name="noData">
             <VCardText class="h-100">
-              <div class="app-bar-search-suggestions d-flex flex-column align-center justify-center text-high-emphasis h-100">
+              <div
+                class="app-bar-search-suggestions d-flex flex-column align-center justify-center text-high-emphasis h-100"
+              >
                 <VIcon size="75" icon="tabler-file-x" />
                 <div class="d-flex align-center flex-wrap justify-center gap-2 text-h6 my-3">
                   <span>No Result For </span>

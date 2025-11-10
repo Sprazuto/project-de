@@ -157,7 +157,13 @@ const onSubmit = () => {
 
         <VRow>
           <VCol cols="12" sm="5" md="4" lg="3">
-            <AppStepper v-model:current-step="currentStep" direction="vertical" :items="createApp" icon-size="24" class="stepper-icon-step-bg" />
+            <AppStepper
+              v-model:current-step="currentStep"
+              direction="vertical"
+              :items="createApp"
+              icon-size="24"
+              class="stepper-icon-step-bg"
+            />
           </VCol>
 
           <VCol cols="12" sm="7" md="8" lg="9">
@@ -169,7 +175,11 @@ const onSubmit = () => {
                 <h6 class="text-h6 my-4">Category</h6>
                 <VRadioGroup v-model="createAppData.category">
                   <VList class="card-list">
-                    <VListItem v-for="category in categories" :key="category.title" @click="createAppData.category = category.slug">
+                    <VListItem
+                      v-for="category in categories"
+                      :key="category.title"
+                      @click="createAppData.category = category.slug"
+                    >
                       <template #prepend>
                         <VAvatar size="48" rounded variant="tonal" :color="category.color" :icon="category.icon" />
                       </template>
@@ -194,7 +204,11 @@ const onSubmit = () => {
                 <h6 class="text-h6 mb-4">Select Framework</h6>
                 <VRadioGroup v-model="createAppData.framework">
                   <VList class="card-list">
-                    <VListItem v-for="framework in frameworks" :key="framework.title" @click="createAppData.framework = framework.slug">
+                    <VListItem
+                      v-for="framework in frameworks"
+                      :key="framework.title"
+                      @click="createAppData.framework = framework.slug"
+                    >
                       <template #prepend>
                         <VAvatar size="48" rounded variant="tonal" :color="framework.color">
                           <VIcon :icon="framework.icon" />
@@ -221,7 +235,11 @@ const onSubmit = () => {
                 <h6 class="text-h6 my-4">Select Database Engine</h6>
                 <VRadioGroup v-model="createAppData.database">
                   <VList class="card-list">
-                    <VListItem v-for="database in databases" :key="database.title" @click="createAppData.database = database.slug">
+                    <VListItem
+                      v-for="database in databases"
+                      :key="database.title"
+                      @click="createAppData.database = database.slug"
+                    >
                       <template #prepend>
                         <VAvatar size="48" rounded variant="tonal" :color="database.color">
                           <VIcon :icon="database.icon" />
@@ -248,7 +266,12 @@ const onSubmit = () => {
                 <VForm>
                   <VRow>
                     <VCol cols="12">
-                      <AppTextField v-model="createAppData.cardNumber" label="Card Number" placeholder="1234 1234 1234 1234" type="number" />
+                      <AppTextField
+                        v-model="createAppData.cardNumber"
+                        label="Card Number"
+                        placeholder="1234 1234 1234 1234"
+                        type="number"
+                      />
                     </VCol>
 
                     <VCol cols="12" md="6">

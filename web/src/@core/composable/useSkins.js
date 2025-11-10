@@ -11,7 +11,10 @@ export const useSkins = () => {
       wrapper: h(VThemeProvider, { tag: 'aside' }),
       wrapperProps: {
         withBackground: true,
-        theme: configStore.isVerticalNavSemiDark && configStore.appContentLayoutNav === AppContentLayoutNav.Vertical ? 'dark' : undefined
+        theme:
+          configStore.isVerticalNavSemiDark && configStore.appContentLayoutNav === AppContentLayoutNav.Vertical
+            ? 'dark'
+            : undefined
       }
     }
   }))

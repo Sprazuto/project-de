@@ -41,7 +41,15 @@ const handleLogout = () => {
               {{ auth.userName }}
             </VListItemTitle>
             <VListItemSubtitle>
-              <VChip v-if="auth.isAuthenticated.value" color="success" variant="tonal" size="small" prepend-icon="tabler-shield-check"> Authenticated </VChip>
+              <VChip
+                v-if="auth.isAuthenticated.value"
+                color="success"
+                variant="tonal"
+                size="small"
+                prepend-icon="tabler-shield-check"
+              >
+                Authenticated
+              </VChip>
               <span v-else>Guest</span>
             </VListItemSubtitle>
           </VListItem>

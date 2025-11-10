@@ -30,7 +30,11 @@ const resetAuthCode = () => {
 </script>
 
 <template>
-  <VDialog max-width="787" :model-value="props.isDialogVisible" @update:model-value="(val) => $emit('update:isDialogVisible', val)">
+  <VDialog
+    max-width="787"
+    :model-value="props.isDialogVisible"
+    @update:model-value="(val) => $emit('update:isDialogVisible', val)"
+  >
     <!-- Dialog close btn -->
     <DialogCloseBtn @click="$emit('update:isDialogVisible', false)" />
 
@@ -43,7 +47,8 @@ const resetAuthCode = () => {
         <h6 class="text-lg font-weight-medium mb-2">Authenticator Apps</h6>
 
         <p class="mb-6">
-          Using an authenticator app like Google Authenticator, Microsoft Authenticator, Authy, or 1Password, scan the QR code. It will generate a 6 digit code for you to enter below.
+          Using an authenticator app like Google Authenticator, Microsoft Authenticator, Authy, or 1Password, scan the
+          QR code. It will generate a 6 digit code for you to enter below.
         </p>
 
         <div class="mb-4">
@@ -55,7 +60,13 @@ const resetAuthCode = () => {
           <p class="mb-0">If you are unable to scan the QR code, you can manually enter the secret key below.</p>
         </VAlert>
         <VForm @submit.prevent="() => {}">
-          <AppTextField v-model="authCode" name="auth-code" label="Enter Authentication Code" placeholder="123 456" class="mb-4" />
+          <AppTextField
+            v-model="authCode"
+            name="auth-code"
+            label="Enter Authentication Code"
+            placeholder="123 456"
+            class="mb-4"
+          />
 
           <div class="d-flex justify-end flex-wrap gap-3">
             <VBtn color="secondary" variant="tonal" @click="resetAuthCode"> Cancel </VBtn>

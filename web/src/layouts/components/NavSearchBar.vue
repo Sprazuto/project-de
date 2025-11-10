@@ -159,21 +159,34 @@ const LazyAppBarSearch = defineAsyncComponent(() => import('@core/components/App
 </script>
 
 <template>
-  <div class="d-flex align-center cursor-pointer" v-bind="$attrs" style="user-select: none" @click="isAppSearchBarVisible = !isAppSearchBarVisible">
+  <div
+    class="d-flex align-center cursor-pointer"
+    v-bind="$attrs"
+    style="user-select: none"
+    @click="isAppSearchBarVisible = !isAppSearchBarVisible"
+  >
     <!-- 👉 Search Trigger button -->
     <!-- close active tour while opening search bar using icon -->
     <IconBtn class="me-1" @click="Shepherd.activeTour?.cancel()">
       <VIcon size="26" icon="tabler-search" />
     </IconBtn>
 
-    <span v-if="configStore.appContentLayoutNav === 'vertical'" class="d-none d-md-flex align-center text-disabled" @click="Shepherd.activeTour?.cancel()">
+    <span
+      v-if="configStore.appContentLayoutNav === 'vertical'"
+      class="d-none d-md-flex align-center text-disabled"
+      @click="Shepherd.activeTour?.cancel()"
+    >
       <span class="me-3">Search</span>
       <span class="meta-key">&#8984;K</span>
     </span>
   </div>
 
   <!-- 👉 App Bar Search -->
-  <LazyAppBarSearch v-model:is-dialog-visible="isAppSearchBarVisible" :search-results="searchResult" @search="searchQuery = $event">
+  <LazyAppBarSearch
+    v-model:is-dialog-visible="isAppSearchBarVisible"
+    :search-results="searchResult"
+    @search="searchQuery = $event"
+  >
     <!-- suggestion -->
     <template #suggestions>
       <VCardText class="app-bar-search-suggestions h-100 pa-10">
@@ -183,7 +196,14 @@ const LazyAppBarSearch = defineAsyncComponent(() => import('@core/components/App
               {{ suggestion.title }}
             </p>
             <VList class="card-list">
-              <VListItem v-for="item in suggestion.content" :key="item.title" link :title="item.title" class="app-bar-search-suggestion" @click="redirectToSuggestedOrSearchedPage(item)">
+              <VListItem
+                v-for="item in suggestion.content"
+                :key="item.title"
+                link
+                :title="item.title"
+                class="app-bar-search-suggestion"
+                @click="redirectToSuggestedOrSearchedPage(item)"
+              >
                 <template #prepend>
                   <VIcon :icon="item.icon" size="20" class="me-2" />
                 </template>

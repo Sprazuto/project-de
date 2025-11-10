@@ -397,7 +397,6 @@ declare global {
 import { UnwrapRef } from 'vue'
 declare module 'vue' {
   interface ComponentCustomProperties {
-    readonly $api: UnwrapRef<typeof import('./src/utils/api.js')['$api']>
     readonly // Computed
   userName: UnwrapRef<typeof import('./src/composables/useAuth.js')['// Computed
   userName']>

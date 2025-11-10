@@ -39,7 +39,9 @@ const referAndEarnSteps = [
     <VCard class="refer-and-earn-dialog">
       <VCardText class="px-5 px-sm-16 pt-16 pb-10">
         <h3 class="text-h3 text-center mb-3">Refer & Earn</h3>
-        <p class="text-sm-body-1 text-center">Invite your friend to vuexy, if they sign up, you and your friend will get 30 days free trial</p>
+        <p class="text-sm-body-1 text-center">
+          Invite your friend to vuexy, if they sign up, you and your friend will get 30 days free trial
+        </p>
 
         <VRow class="text-center mt-8">
           <VCol v-for="step in referAndEarnSteps" :key="step.title" cols="12" sm="4">

@@ -24,9 +24,16 @@ const updateSelectedOption = (value) => {
 <template>
   <VRow v-if="props.checkboxContent && props.selectedCheckbox">
     <VCol v-for="item in props.checkboxContent" :key="item.title" v-bind="gridColumn">
-      <VLabel class="custom-input custom-checkbox rounded cursor-pointer" :class="props.selectedCheckbox.includes(item.value) ? 'active' : ''">
+      <VLabel
+        class="custom-input custom-checkbox rounded cursor-pointer"
+        :class="props.selectedCheckbox.includes(item.value) ? 'active' : ''"
+      >
         <div>
-          <VCheckbox :model-value="props.selectedCheckbox" :value="item.value" @update:model-value="updateSelectedOption" />
+          <VCheckbox
+            :model-value="props.selectedCheckbox"
+            :value="item.value"
+            @update:model-value="updateSelectedOption"
+          />
         </div>
         <slot :item="item">
           <div class="flex-grow-1">

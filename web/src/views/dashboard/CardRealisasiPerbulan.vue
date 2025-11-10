@@ -27,7 +27,9 @@ const props = defineProps({
   monthlyData: {
     type: Array,
     required: true,
-    validator: (value) => Array.isArray(value) && value.every((item) => item && typeof item.month === 'string' && typeof item.value === 'number')
+    validator: (value) =>
+      Array.isArray(value) &&
+      value.every((item) => item && typeof item.month === 'string' && typeof item.value === 'number')
   }
 })
 
@@ -136,7 +138,12 @@ const hintContent = computed(() => {
             <span></span>
             <VTooltip v-if="hasHint" location="top">
               <template #activator="{ props: tooltipProps }">
-                <VIcon v-bind="tooltipProps" icon="tabler-help" size="18" :class="['cursor-pointer', 'help-icon', currentMonthColors.textColor, 'pt-7']" />
+                <VIcon
+                  v-bind="tooltipProps"
+                  icon="tabler-help"
+                  size="18"
+                  :class="['cursor-pointer', 'help-icon', currentMonthColors.textColor, 'pt-7']"
+                />
               </template>
               <div v-if="hintContent">
                 <strong v-html="hintContent.title" />
@@ -149,7 +156,12 @@ const hintContent = computed(() => {
           <h5 :class="`mb-1 ${currentMonthColors.textColor} text-h6`">
             {{ currentMonth.month }}
           </h5>
-          <h2 :class="`font-weight-bolder mb-0 ${currentMonthColors.textColor} text-h4`" :aria-label="`${currentMonth.value} percent achievement`">{{ currentMonth.value }}%</h2>
+          <h2
+            :class="`font-weight-bolder mb-0 ${currentMonthColors.textColor} text-h4`"
+            :aria-label="`${currentMonth.value} percent achievement`"
+          >
+            {{ currentMonth.value }}%
+          </h2>
           <p :class="`mb-0 ${currentMonthColors.textColor} text-caption`">Current Month</p>
         </VCardItem>
       </VCard>
@@ -158,7 +170,17 @@ const hintContent = computed(() => {
     <!-- Grid of 12 smaller cards -->
     <VCol cols="12" sm="6" lg="8" class="px-0">
       <VRow class="mx-0" dense role="list" aria-label="Monthly performance data">
-        <VCol v-for="(monthData, index) in monthData" :key="index" cols="4" sm="3" md="2" lg="3" xl="2" class="px-0 my-3 py-0 pl-6" role="listitem">
+        <VCol
+          v-for="(monthData, index) in monthData"
+          :key="index"
+          cols="4"
+          sm="3"
+          md="2"
+          lg="3"
+          xl="2"
+          class="px-0 my-3 py-0 pl-6"
+          role="listitem"
+        >
           <VCard
             :class="`${monthData.colors.bgColor !== 'transparent' ? 'bg-gradient-' + monthData.colors.bgColor : ''} ${monthData.colors.textColor}`"
             elevation="0"
@@ -171,7 +193,13 @@ const hintContent = computed(() => {
               <p :class="`mb-1 ${monthData.colors.textColor} text-caption font-weight-medium`" style="line-height: 1.2">
                 {{ monthData.month }}
               </p>
-              <h6 v-if="monthData.showPercentage" :class="`font-weight-bolder mb-0 ${monthData.colors.textColor} text-body-2`" :aria-label="`${monthData.value} percent`">{{ monthData.value }}%</h6>
+              <h6
+                v-if="monthData.showPercentage"
+                :class="`font-weight-bolder mb-0 ${monthData.colors.textColor} text-body-2`"
+                :aria-label="`${monthData.value} percent`"
+              >
+                {{ monthData.value }}%
+              </h6>
               <p v-else :class="`mb-0 ${monthData.colors.textColor} text-caption opacity-6`">-</p>
             </VCardItem>
           </VCard>

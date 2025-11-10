@@ -159,7 +159,12 @@ const getPopoverContent = (item) => {
         <span v-html="props.title"></span>
         <VTooltip v-if="hasHint" location="top">
           <template #activator="{ props: tooltipProps }">
-            <VIcon v-bind="tooltipProps" icon="tabler-help" size="18" :class="['cursor-pointer', 'help-icon', textColorClass, 'pt-7']" />
+            <VIcon
+              v-bind="tooltipProps"
+              icon="tabler-help"
+              size="18"
+              :class="['cursor-pointer', 'help-icon', textColorClass, 'pt-7']"
+            />
           </template>
           <div v-if="hintContent">
             <strong v-html="hintContent.title" />
@@ -171,15 +176,15 @@ const getPopoverContent = (item) => {
     </VCardItem>
 
     <!-- Apex Chart -->
-    <VCardItem class="text-center pt-10">
+    <VCardItem class="text-center pb-0 pt-5">
       <VueApexCharts type="radialBar" height="245" :options="chartOptions" :series="radialBarSeries" />
     </VCardItem>
 
     <VCardItem class="text-center pt-0">
       <template v-if="props.layout === 'rows'">
         <VRow v-for="(item, index) in props.items" :key="index" class="mx-0 mt-0">
-          <VCol cols="12" class="d-flex align-items-center flex-column">
-            <VCardText :class="`mb-0 px-0 py-2 ${textColorClass}`">
+          <VCol cols="12" class="d-flex align-items-center flex-column px-1">
+            <VCardText :class="`mb-0 px-0 py-1 ${textColorClass}`">
               {{ item.label }}
             </VCardText>
             <VTooltip v-if="getPopoverContent(item)" location="top">
@@ -197,8 +202,13 @@ const getPopoverContent = (item) => {
       </template>
       <template v-else>
         <VRow v-for="(row, rowIndex) in itemRows" :key="rowIndex" class="mx-0 mt-0">
-          <VCol v-for="(item, colIndex) in row" :key="`${rowIndex}-${colIndex}`" :cols="12 / row.length" class="d-flex align-items-center flex-column">
-            <VCardText :class="`mb-0 px-0 py-2 ${textColorClass}`">
+          <VCol
+            v-for="(item, colIndex) in row"
+            :key="`${rowIndex}-${colIndex}`"
+            :cols="12 / row.length"
+            class="d-flex align-items-center flex-column px-1"
+          >
+            <VCardText :class="`mb-0 px-0 py-1 ${textColorClass}`">
               {{ item.label }}
             </VCardText>
             <VTooltip v-if="getPopoverContent(item)" location="top">

@@ -238,11 +238,26 @@ const resetCustomizer = async () => {
 
 <template>
   <div class="d-lg-block d-none">
-    <VBtn icon size="small" class="app-customizer-toggler rounded-s-lg rounded-0" style="z-index: 1001" @click="isNavDrawerOpen = true">
+    <VBtn
+      icon
+      size="small"
+      class="app-customizer-toggler rounded-s-lg rounded-0"
+      style="z-index: 1001"
+      @click="isNavDrawerOpen = true"
+    >
       <VIcon size="22" icon="tabler-settings" />
     </VBtn>
 
-    <VNavigationDrawer v-model="isNavDrawerOpen" temporary touchless border="0" location="end" width="400" :scrim="false" class="app-customizer">
+    <VNavigationDrawer
+      v-model="isNavDrawerOpen"
+      temporary
+      touchless
+      border="0"
+      location="end"
+      width="400"
+      :scrim="false"
+      class="app-customizer"
+    >
       <!-- 👉 Header -->
       <div class="customizer-heading d-flex align-center justify-space-between">
         <div>
@@ -276,33 +291,73 @@ const resetCustomizer = async () => {
               <div
                 v-for="color in colors"
                 :key="color"
-                style="border-radius: 0.375rem; outline: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-block: 0.625rem; padding-inline: 0.625rem"
+                style="
+                  border-radius: 0.375rem;
+                  outline: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+                  padding-block: 0.625rem;
+                  padding-inline: 0.625rem;
+                "
                 class="cursor-pointer"
-                :style="vuetifyTheme.current.value.colors.primary === color ? `outline-color: ${color}; outline-width:2px;` : ''"
+                :style="
+                  vuetifyTheme.current.value.colors.primary === color
+                    ? `outline-color: ${color}; outline-width:2px;`
+                    : ''
+                "
                 @click="setPrimaryColor(color)"
               >
-                <div style="border-radius: 0.375rem; block-size: 1.875rem; inline-size: 1.875rem" :style="{ backgroundColor: color }" />
+                <div
+                  style="border-radius: 0.375rem; block-size: 1.875rem; inline-size: 1.875rem"
+                  :style="{ backgroundColor: color }"
+                />
               </div>
 
               <div
                 class="cursor-pointer"
-                style="border-radius: 0.375rem; outline: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)); padding-block: 0.625rem; padding-inline: 0.625rem"
-                :style="vuetifyTheme.current.value.colors.primary === customPrimaryColor ? `outline-color: ${customPrimaryColor}; outline-width:2px;` : ''"
+                style="
+                  border-radius: 0.375rem;
+                  outline: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+                  padding-block: 0.625rem;
+                  padding-inline: 0.625rem;
+                "
+                :style="
+                  vuetifyTheme.current.value.colors.primary === customPrimaryColor
+                    ? `outline-color: ${customPrimaryColor}; outline-width:2px;`
+                    : ''
+                "
               >
                 <VBtn
                   icon
                   size="30"
-                  :color="vuetifyTheme.current.value.colors.primary === customPrimaryColor ? customPrimaryColor : $vuetify.theme.current.dark ? '#8692d029' : '#4b465c29'"
+                  :color="
+                    vuetifyTheme.current.value.colors.primary === customPrimaryColor
+                      ? customPrimaryColor
+                      : $vuetify.theme.current.dark
+                        ? '#8692d029'
+                        : '#4b465c29'
+                  "
                   variant="flat"
                   style="border-radius: 0.375rem"
                 >
-                  <VIcon size="22" icon="tabler-color-picker" :color="vuetifyTheme.current.value.colors.primary === customPrimaryColor ? 'rgb(var(--v-theme-on-primary))' : ''" />
+                  <VIcon
+                    size="22"
+                    icon="tabler-color-picker"
+                    :color="
+                      vuetifyTheme.current.value.colors.primary === customPrimaryColor
+                        ? 'rgb(var(--v-theme-on-primary))'
+                        : ''
+                    "
+                  />
                 </VBtn>
 
                 <VMenu activator="parent" :close-on-content-click="false">
                   <VList>
                     <VListItem>
-                      <VColorPicker v-model="customPrimaryColor" mode="hex" :modes="['hex']" @update:model-value="setPrimaryColor" />
+                      <VColorPicker
+                        v-model="customPrimaryColor"
+                        mode="hex"
+                        :modes="['hex']"
+                        @update:model-value="setPrimaryColor"
+                      />
                     </VListItem>
                   </VList>
                 </VMenu>
@@ -314,14 +369,24 @@ const resetCustomizer = async () => {
           <div class="d-flex flex-column gap-3">
             <h6 class="text-base font-weight-medium">Theme</h6>
 
-            <CustomRadiosWithImage :key="configStore.theme" v-model:selected-radio="configStore.theme" :radio-content="themeMode" :grid-column="{ cols: '4' }" />
+            <CustomRadiosWithImage
+              :key="configStore.theme"
+              v-model:selected-radio="configStore.theme"
+              :radio-content="themeMode"
+              :grid-column="{ cols: '4' }"
+            />
           </div>
 
           <!-- 👉 Skin -->
           <div class="d-flex flex-column gap-3">
             <h6 class="text-base font-weight-medium">Skins</h6>
 
-            <CustomRadiosWithImage :key="configStore.skin" v-model:selected-radio="configStore.skin" :radio-content="themeSkin" :grid-column="{ cols: '4' }">
+            <CustomRadiosWithImage
+              :key="configStore.skin"
+              v-model:selected-radio="configStore.skin"
+              :radio-content="themeSkin"
+              :grid-column="{ cols: '4' }"
+            >
               <template #label="item">
                 <span class="text-sm text-medium-emphasis">{{ item?.label }}</span>
               </template>
@@ -331,7 +396,12 @@ const resetCustomizer = async () => {
           <!-- 👉 Semi Dark -->
           <div
             class="mt-4 align-center justify-space-between"
-            :class="vuetifyTheme.global.name.value === 'light' && configStore.appContentLayoutNav === AppContentLayoutNav.Vertical ? 'd-flex' : 'd-none'"
+            :class="
+              vuetifyTheme.global.name.value === 'light' &&
+              configStore.appContentLayoutNav === AppContentLayoutNav.Vertical
+                ? 'd-flex'
+                : 'd-none'
+            "
           >
             <VLabel for="customizer-semi-dark" class="text-high-emphasis"> Semi Dark Menu </VLabel>
 
@@ -348,7 +418,12 @@ const resetCustomizer = async () => {
           <div class="d-flex flex-column gap-3">
             <h6 class="text-base font-weight-medium">Layout</h6>
 
-            <CustomRadiosWithImage :key="currentLayout" v-model:selected-radio="currentLayout" :radio-content="layouts" :grid-column="{ cols: '4' }">
+            <CustomRadiosWithImage
+              :key="currentLayout"
+              v-model:selected-radio="currentLayout"
+              :radio-content="layouts"
+              :grid-column="{ cols: '4' }"
+            >
               <template #label="item">
                 <span class="text-sm text-medium-emphasis">{{ item.label }}</span>
               </template>
@@ -359,7 +434,12 @@ const resetCustomizer = async () => {
           <div class="d-flex flex-column gap-3">
             <h6 class="text-base font-weight-medium">Content</h6>
 
-            <CustomRadiosWithImage :key="configStore.appContentWidth" v-model:selected-radio="configStore.appContentWidth" :radio-content="contentWidth" :grid-column="{ cols: '4' }">
+            <CustomRadiosWithImage
+              :key="configStore.appContentWidth"
+              v-model:selected-radio="configStore.appContentWidth"
+              :radio-content="contentWidth"
+              :grid-column="{ cols: '4' }"
+            >
               <template #label="item">
                 <span class="text-sm text-medium-emphasis">{{ item.label }}</span>
               </template>
@@ -370,7 +450,12 @@ const resetCustomizer = async () => {
           <div class="d-flex flex-column gap-3">
             <h6 class="text-base font-weight-medium">Direction</h6>
 
-            <CustomRadiosWithImage :key="currentDir" v-model:selected-radio="currentDir" :radio-content="direction" :grid-column="{ cols: '4' }">
+            <CustomRadiosWithImage
+              :key="currentDir"
+              v-model:selected-radio="currentDir"
+              :radio-content="direction"
+              :grid-column="{ cols: '4' }"
+            >
               <template #label="item">
                 <span class="text-sm text-medium-emphasis">{{ item?.label }}</span>
               </template>

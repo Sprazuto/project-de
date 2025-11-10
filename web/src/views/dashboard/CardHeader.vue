@@ -36,7 +36,11 @@ const props = defineProps({
 </script>
 
 <template>
-  <VCard rounded="xl" class="match-height" :style="{ 'border-block-start': `4px solid rgba(var(--v-theme-primary), var(--v-disabled-opacity))` }">
+  <VCard
+    rounded="xl"
+    class="match-height"
+    :style="{ 'border-block-start': `4px solid rgba(var(--v-theme-primary), var(--v-disabled-opacity))` }"
+  >
     <VCardText>
       <VRow>
         <VCol cols="12">

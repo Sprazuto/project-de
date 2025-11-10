@@ -56,7 +56,8 @@ export function processRealisasiBulanData(apiData) {
                     label: 'Perencanaan',
                     value: `${selesai}<small>${terlambat > 0 ? `<sup><code class="text-error v-card--variant-elevated">-${terlambat}</code></sup>` : ''}/${target}</small>`,
                     popoverTitle: `${selesai} dari ${target} paket selesai.`,
-                    popoverContent: terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
+                    popoverContent:
+                      terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
                   }
                 }
                 if (item.type === 'pemilihan' && item.detail) {
@@ -65,7 +66,8 @@ export function processRealisasiBulanData(apiData) {
                     label: 'Pemilihan',
                     value: `${selesai}<small>${terlambat > 0 ? `<sup><code class="text-error v-card--variant-elevated">-${terlambat}</code></sup>` : ''}/${target}</small>`,
                     popoverTitle: `${selesai} dari ${target} paket selesai.`,
-                    popoverContent: terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
+                    popoverContent:
+                      terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
                   }
                 }
                 if (item.type === 'pengadaan' && item.detail) {
@@ -74,7 +76,8 @@ export function processRealisasiBulanData(apiData) {
                     label: 'Pengadaan',
                     value: `${selesai}<small>${terlambat > 0 ? `<sup><code class="text-error v-card--variant-elevated">-${terlambat}</code></sup>` : ''}/${target}</small>`,
                     popoverTitle: `${selesai} dari ${target} paket selesai.`,
-                    popoverContent: terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
+                    popoverContent:
+                      terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
                   }
                 }
                 if (item.type === 'penyerahan' && item.detail) {
@@ -83,7 +86,8 @@ export function processRealisasiBulanData(apiData) {
                     label: 'Penyerahan',
                     value: `${selesai}<small>${terlambat > 0 ? `<sup><code class="text-error v-card--variant-elevated">-${terlambat}</code></sup>` : ''}/${target}</small>`,
                     popoverTitle: `${selesai} dari ${target} paket selesai.`,
-                    popoverContent: terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
+                    popoverContent:
+                      terlambat > 0 ? `<span class="text-error">${terlambat} paket terlambat.</span>` : null
                   }
                 }
                 return null

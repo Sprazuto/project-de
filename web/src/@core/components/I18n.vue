@@ -23,7 +23,12 @@ const { locale } = useI18n({ useScope: 'global' })
       <!-- List -->
       <VList :selected="[locale]" color="primary" min-width="175px">
         <!-- List item -->
-        <VListItem v-for="lang in props.languages" :key="lang.i18nLang" :value="lang.i18nLang" @click="locale = lang.i18nLang">
+        <VListItem
+          v-for="lang in props.languages"
+          :key="lang.i18nLang"
+          :value="lang.i18nLang"
+          @click="locale = lang.i18nLang"
+        >
           <!-- Language label -->
           <VListItemTitle>{{ lang.label }}</VListItemTitle>
         </VListItem>

@@ -58,13 +58,24 @@ const rules = {
 
 // Get form validation status
 const isFormValid = computed(() => {
-  return form.value.username && form.value.password && rules.username(form.value.username) === true && rules.password(form.value.password) === true
+  return (
+    form.value.username &&
+    form.value.password &&
+    rules.username(form.value.username) === true &&
+    rules.password(form.value.password) === true
+  )
 })
 
 // Computed loading state
 const isLoading = computed(() => authLoading.value)
 
-const authThemeImg = useGenerateImageVariant(authV2LoginIllustrationLight, authV2LoginIllustrationDark, authV2LoginIllustrationBorderedLight, authV2LoginIllustrationBorderedDark, true)
+const authThemeImg = useGenerateImageVariant(
+  authV2LoginIllustrationLight,
+  authV2LoginIllustrationDark,
+  authV2LoginIllustrationBorderedLight,
+  authV2LoginIllustrationBorderedDark,
+  true
+)
 
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
@@ -127,7 +138,14 @@ const resetForm = () => {
         </VCardText>
         <VCardText>
           <!-- Error Alert -->
-          <VAlert v-if="errorMessage" type="error" variant="tonal" class="mb-4" closable @click:close="errorMessage = ''">
+          <VAlert
+            v-if="errorMessage"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+            closable
+            @click:close="errorMessage = ''"
+          >
             {{ errorMessage }}
           </VAlert>
 
@@ -135,7 +153,15 @@ const resetForm = () => {
             <VRow>
               <!-- username -->
               <VCol cols="12">
-                <AppTextField v-model="form.username" label="Username" placeholder="Enter your username" :rules="[rules.required, rules.username]" :disabled="isLoading" autofocus required />
+                <AppTextField
+                  v-model="form.username"
+                  label="Username"
+                  placeholder="Enter your username"
+                  :rules="[rules.required, rules.username]"
+                  :disabled="isLoading"
+                  autofocus
+                  required
+                />
               </VCol>
 
               <!-- password -->

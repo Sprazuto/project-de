@@ -155,7 +155,11 @@ const onReset = () => {
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 900" :model-value="props.isDialogVisible" @update:model-value="onReset">
+  <VDialog
+    :width="$vuetify.display.smAndDown ? 'auto' : 900"
+    :model-value="props.isDialogVisible"
+    @update:model-value="onReset"
+  >
     <!-- 👉 Dialog close btn -->
     <DialogCloseBtn @click="onReset" />
 

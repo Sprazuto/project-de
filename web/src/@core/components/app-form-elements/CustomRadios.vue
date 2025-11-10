@@ -25,7 +25,10 @@ const updateSelectedOption = (value) => {
   <VRadioGroup v-if="props.radioContent" :model-value="props.selectedRadio" @update:model-value="updateSelectedOption">
     <VRow>
       <VCol v-for="item in props.radioContent" :key="item.title" v-bind="gridColumn">
-        <VLabel class="custom-input custom-radio rounded cursor-pointer" :class="props.selectedRadio === item.value ? 'active' : ''">
+        <VLabel
+          class="custom-input custom-radio rounded cursor-pointer"
+          :class="props.selectedRadio === item.value ? 'active' : ''"
+        >
           <div>
             <VRadio :value="item.value" />
           </div>

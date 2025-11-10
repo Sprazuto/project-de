@@ -27,7 +27,10 @@ import CardRealisasiTahun from './CardRealisasiTahun.vue'
       <VCol v-for="n in 4" :key="`skeleton-${n}`" cols="12" sm="6" md="3" lg="3" xl="3">
         <VCard elevation="2" rounded="xl">
           <VCardItem class="pb-sm-0">
-            <VCardTitle class="d-flex align-start justify-space-between pb-5" style="white-space: normal; word-break: break-word">
+            <VCardTitle
+              class="d-flex align-start justify-space-between pb-5"
+              style="white-space: normal; word-break: break-word"
+            >
               <VSkeletonLoader type="text" width="70%" />
               <VSkeletonLoader type="avatar" size="18" />
             </VCardTitle>
@@ -74,7 +77,16 @@ import CardRealisasiTahun from './CardRealisasiTahun.vue'
 
     <!-- Content State -->
     <VRow v-else class="match-height" role="list" aria-label="Yearly realization data">
-      <VCol v-for="(card, index) in realisasiTahun" :key="`tahun-${index}`" cols="12" sm="6" md="3" lg="3" xl="3" role="listitem">
+      <VCol
+        v-for="(card, index) in realisasiTahun"
+        :key="`tahun-${index}`"
+        cols="12"
+        sm="6"
+        md="3"
+        lg="3"
+        xl="3"
+        role="listitem"
+      >
         <CardRealisasiTahun
           :title="card.title"
           :subtitle="card.subtitle"

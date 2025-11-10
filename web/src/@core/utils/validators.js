@@ -10,7 +10,8 @@ export const requiredValidator = (value) => {
 // 👉 Email Validator
 export const emailValidator = (value) => {
   if (isEmpty(value)) return true
-  const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  const re =
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   if (Array.isArray(value)) return value.every((val) => re.test(String(val))) || 'The Email field must be a valid email'
 
   return re.test(String(value)) || 'The Email field must be a valid email'
@@ -21,11 +22,15 @@ export const passwordValidator = (password) => {
   const regExp = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*()]).{8,}/
   const validPassword = regExp.test(password)
 
-  return validPassword || 'Field must contain at least one uppercase, lowercase, special character and digit with min 8 chars'
+  return (
+    validPassword ||
+    'Field must contain at least one uppercase, lowercase, special character and digit with min 8 chars'
+  )
 }
 
 // 👉 Confirm Password Validator
-export const confirmedValidator = (value, target) => value === target || 'The Confirm Password field confirmation does not match'
+export const confirmedValidator = (value, target) =>
+  value === target || 'The Confirm Password field confirmation does not match'
 
 // 👉 Between Validator
 export const betweenValidator = (value, min, max) => {
@@ -37,7 +42,8 @@ export const betweenValidator = (value, min, max) => {
 // 👉 Integer Validator
 export const integerValidator = (value) => {
   if (isEmpty(value)) return true
-  if (Array.isArray(value)) return value.every((val) => /^-?[0-9]+$/.test(String(val))) || 'This field must be an integer'
+  if (Array.isArray(value))
+    return value.every((val) => /^-?[0-9]+$/.test(String(val))) || 'This field must be an integer'
 
   return /^-?[0-9]+$/.test(String(value)) || 'This field must be an integer'
 }

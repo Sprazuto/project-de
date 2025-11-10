@@ -4,13 +4,20 @@ module.exports = {
     es2021: true,
     node: true
   },
-  extends: ['eslint:recommended', 'plugin:vue/vue3-recommended', 'plugin:prettier/recommended'],
-  parser: '@typescript-eslint/parser',
+  extends: [
+    'eslint:recommended',
+    'plugin:vue/vue3-essential',
+    'plugin:import/recommended',
+    'plugin:prettier/recommended'
+  ],
+  parser: 'vue-eslint-parser',
   parserOptions: {
+    parser: '@typescript-eslint/parser',
     ecmaVersion: 13,
-    sourceType: 'module'
+    sourceType: 'module',
+    extraFileExtensions: ['.vue']
   },
-  plugins: ['vue'],
+  plugins: ['vue', 'import', 'prettier'],
   ignorePatterns: ['src/plugins/iconify/*.js', 'src/assets/**', 'node_modules', 'dist', 'public', '*.d.ts'],
   rules: {
     // Disable all rules for maximum performance
@@ -27,6 +34,7 @@ module.exports = {
     semi: 'off',
     'comma-dangle': 'off',
     'object-curly-spacing': 'off',
+    'prettier/prettier': 'error',
 
     // Vue specific - disable most rules
     'vue/multi-word-component-names': 'off',
@@ -35,15 +43,10 @@ module.exports = {
     'vue/valid-v-slot': 'off',
     'vue/no-v-html': 'off',
 
-    // Disable import rules
+    // Disable import rules for performance
     'import/no-unresolved': 'off',
     'import/extensions': 'off',
-    'import/newline-after-import': 'off',
-
-    // Disable all slow plugins
-    'sonarjs/cognitive-complexity': 'off',
-    'sonarjs/no-duplicate-string': 'off',
-    'sonarjs/no-nested-template-literals': 'off'
+    'import/newline-after-import': 'off'
   },
   globals: {
     // Vue 3 Composition API globals

@@ -27,9 +27,21 @@ const props = defineProps({
       }
     ]"
   >
-    <Component :is="item.to ? 'RouterLink' : 'a'" v-bind="getComputedNavLinkToProp(item)" :class="{ 'router-link-active router-link-exact-active': isNavLinkActive(item, $router) }">
-      <Component :is="layoutConfig.app.iconRenderer || 'div'" class="nav-item-icon" v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps" />
-      <Component :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'" class="nav-item-title" v-bind="getDynamicI18nProps(item.title, 'span')">
+    <Component
+      :is="item.to ? 'RouterLink' : 'a'"
+      v-bind="getComputedNavLinkToProp(item)"
+      :class="{ 'router-link-active router-link-exact-active': isNavLinkActive(item, $router) }"
+    >
+      <Component
+        :is="layoutConfig.app.iconRenderer || 'div'"
+        class="nav-item-icon"
+        v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps"
+      />
+      <Component
+        :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'"
+        class="nav-item-title"
+        v-bind="getDynamicI18nProps(item.title, 'span')"
+      >
         {{ item.title }}
       </Component>
     </Component>

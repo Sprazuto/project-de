@@ -42,7 +42,9 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
   const footerType = ref(layoutConfig.footer.type)
 
   // 👉 Misc
-  const isLessThanOverlayNavBreakpoint = computed(() => useMediaQuery(`(max-width: ${layoutConfig.app.overlayNavFromBreakpoint}px)`).value)
+  const isLessThanOverlayNavBreakpoint = computed(
+    () => useMediaQuery(`(max-width: ${layoutConfig.app.overlayNavFromBreakpoint}px)`).value
+  )
 
   // 👉 Layout Classes
   const _layoutClasses = computed(() => {
@@ -53,7 +55,10 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
       `layout-navbar-${navbarType.value}`,
       `layout-footer-${footerType.value}`,
       {
-        'layout-vertical-nav-collapsed': isVerticalNavCollapsed.value && appContentLayoutNav.value === 'vertical' && !isLessThanOverlayNavBreakpoint.value
+        'layout-vertical-nav-collapsed':
+          isVerticalNavCollapsed.value &&
+          appContentLayoutNav.value === 'vertical' &&
+          !isLessThanOverlayNavBreakpoint.value
       },
       { [`horizontal-nav-${horizontalNavType.value}`]: appContentLayoutNav.value === 'horizontal' },
       `layout-content-width-${appContentWidth.value}`,
@@ -85,7 +90,9 @@ export const useLayoutConfigStore = defineStore('layoutConfig', () => {
   const isVerticalNavMini = (isVerticalNavHovered = null) => {
     const isVerticalNavHoveredLocal = isVerticalNavHovered || inject(injectionKeyIsVerticalNavHovered) || ref(false)
 
-    return computed(() => isVerticalNavCollapsed.value && !isVerticalNavHoveredLocal.value && !isLessThanOverlayNavBreakpoint.value)
+    return computed(
+      () => isVerticalNavCollapsed.value && !isVerticalNavHoveredLocal.value && !isLessThanOverlayNavBreakpoint.value
+    )
   }
 
   return {

@@ -60,14 +60,20 @@ const addressTypes = [
 </script>
 
 <template>
-  <VDialog :width="$vuetify.display.smAndDown ? 'auto' : 610" :model-value="props.isDialogVisible" @update:model-value="(val) => $emit('update:isDialogVisible', val)">
+  <VDialog
+    :width="$vuetify.display.smAndDown ? 'auto' : 610"
+    :model-value="props.isDialogVisible"
+    @update:model-value="(val) => $emit('update:isDialogVisible', val)"
+  >
     <!-- 👉 Dialog close btn -->
     <DialogCloseBtn @click="$emit('update:isDialogVisible', false)" />
 
     <VCard v-if="props.billingAddress" class="pa-sm-8 pa-5">
       <!-- 👉 Title -->
       <VCardItem>
-        <VCardTitle class="text-h3 text-center"> {{ props.billingAddress.address ? 'Edit' : 'Add New' }} Address </VCardTitle>
+        <VCardTitle class="text-h3 text-center">
+          {{ props.billingAddress.address ? 'Edit' : 'Add New' }} Address
+        </VCardTitle>
       </VCardItem>
 
       <VCardText>
@@ -77,7 +83,11 @@ const addressTypes = [
         </VCardSubtitle>
 
         <div class="d-flex">
-          <CustomRadiosWithIcon v-model:selected-radio="selectedAddress" :radio-content="addressTypes" :grid-column="{ sm: '6', cols: '12' }" />
+          <CustomRadiosWithIcon
+            v-model:selected-radio="selectedAddress"
+            :radio-content="addressTypes"
+            :grid-column="{ sm: '6', cols: '12' }"
+          />
         </div>
 
         <!-- 👉 Form -->
@@ -105,7 +115,12 @@ const addressTypes = [
 
             <!-- 👉 Billing Address -->
             <VCol cols="12">
-              <AppTextarea v-model="billingAddress.address" rows="2" label="Billing Address" placeholder="1, Pixinvent Street, USA" />
+              <AppTextarea
+                v-model="billingAddress.address"
+                rows="2"
+                label="Billing Address"
+                placeholder="1, Pixinvent Street, USA"
+              />
             </VCol>
 
             <!-- 👉 Contact -->

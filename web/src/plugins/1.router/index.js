@@ -28,7 +28,14 @@ function getRouteProtectionConfig(routeName, routePath) {
 
   // Dashboard/Index - requires authentication
   // Check both route name and path for index/dashboard
-  if (name === '' || name === 'dashboard' || name.includes('index') || path === '/' || path === '/index' || path === '/dashboard') {
+  if (
+    name === '' ||
+    name === 'dashboard' ||
+    name.includes('index') ||
+    path === '/' ||
+    path === '/index' ||
+    path === '/dashboard'
+  ) {
     return {
       requiresAuth: true,
       unauthenticatedOnly: false

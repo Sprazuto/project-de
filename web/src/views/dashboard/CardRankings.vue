@@ -84,7 +84,7 @@ const getRibbonIcon = (type) => {
 
 <template>
   <!-- Rankings List -->
-  <div role="list" aria-label="Performance rankings">
+  <div role="list" aria-label="Performance rankings" class="match-height">
     <div
       v-for="(item, index) in props.rankings"
       :key="index"
@@ -94,9 +94,16 @@ const getRibbonIcon = (type) => {
       :aria-label="`${item.name} ranked ${index + 1} with ${item.total_score}% overall score`"
     >
       <div class="d-flex align-items-center">
-        <div class="rank-badge mr-2" :class="getRankBadgeClass(index)" aria-hidden="true"><small style="font-size: 0.6rem">#</small>{{ index + 1 }}</div>
+        <div class="rank-badge mr-2" :class="getRankBadgeClass(index)" aria-hidden="true">
+          <small style="font-size: 0.6rem">#</small>{{ index + 1 }}
+        </div>
         <div class="status-score-section mr-3">
-          <VChip :color="getScoreBadgeVariant(item.total_score)" size="x-small" variant="flat" :aria-label="`Status: ${getScoreStatusLabel(item.total_score)}`">
+          <VChip
+            :color="getScoreBadgeVariant(item.total_score)"
+            size="x-small"
+            variant="flat"
+            :aria-label="`Status: ${getScoreStatusLabel(item.total_score)}`"
+          >
             {{ getScoreStatusLabel(item.total_score) }}
           </VChip>
           <div aria-label="Total score">{{ item.total_score }}%</div>
@@ -139,7 +146,15 @@ const getRibbonIcon = (type) => {
             <VCardText class="py-4 px-4 position-relative">
               <div
                 class="watermark-icon position-absolute"
-                style="top: 50%; right: -25px; transform: translateY(-50%) rotate(-12deg); opacity: 0.05; z-index: 0; filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.28)); pointer-events: none"
+                style="
+                  top: 50%;
+                  right: -25px;
+                  transform: translateY(-50%) rotate(-12deg);
+                  opacity: 0.05;
+                  z-index: 0;
+                  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.28));
+                  pointer-events: none;
+                "
               >
                 <VIcon :icon="getTablerIcon(category.icon)" size="70" />
               </div>
@@ -155,7 +170,13 @@ const getRibbonIcon = (type) => {
                 </small>
               </div>
               <div class="progress-container mt-1" style="position: relative; z-index: 2">
-                <VProgressLinear :model-value="category.percentage" height="4" :color="getCategoryColor(category.percentage)" class="mb-1" :aria-label="`Progress: ${category.percentage}%`" />
+                <VProgressLinear
+                  :model-value="category.percentage"
+                  height="4"
+                  :color="getCategoryColor(category.percentage)"
+                  class="mb-1"
+                  :aria-label="`Progress: ${category.percentage}%`"
+                />
                 <small class="percentage text-center d-block" aria-hidden="true">{{ category.percentage }}%</small>
               </div>
             </VCardText>

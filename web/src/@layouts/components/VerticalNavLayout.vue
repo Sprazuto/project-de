@@ -34,12 +34,17 @@ export default defineComponent({
     // })
     // ℹ️ Hide overlay if user open overlay nav in <md and increase the window width without closing overlay nav
     watch(windowWidth, () => {
-      if (!configStore.isLessThanOverlayNavBreakpoint && isLayoutOverlayVisible.value) isLayoutOverlayVisible.value = false
+      if (!configStore.isLessThanOverlayNavBreakpoint && isLayoutOverlayVisible.value)
+        isLayoutOverlayVisible.value = false
     })
 
     return () => {
       const verticalNavAttrs = toRef(props, 'verticalNavAttrs')
-      const { wrapper: verticalNavWrapper, wrapperProps: verticalNavWrapperProps, ...additionalVerticalNavAttrs } = verticalNavAttrs.value
+      const {
+        wrapper: verticalNavWrapper,
+        wrapperProps: verticalNavWrapperProps,
+        ...additionalVerticalNavAttrs
+      } = verticalNavAttrs.value
 
       // 👉 Vertical nav
       const verticalNav = h(
@@ -68,10 +73,16 @@ export default defineComponent({
       ])
 
       // 👉 Content area
-      const main = h('main', { class: 'layout-page-content' }, h('div', { class: 'page-content-container' }, slots.default?.()))
+      const main = h(
+        'main',
+        { class: 'layout-page-content' },
+        h('div', { class: 'page-content-container' }, slots.default?.())
+      )
 
       // 👉 Footer
-      const footer = h('footer', { class: 'layout-footer' }, [h('div', { class: 'footer-content-container' }, slots.footer?.())])
+      const footer = h('footer', { class: 'layout-footer' }, [
+        h('div', { class: 'footer-content-container' }, slots.footer?.())
+      ])
 
       // 👉 Overlay
       const layoutOverlay = h('div', {
@@ -82,7 +93,9 @@ export default defineComponent({
       })
 
       return h('div', { class: ['layout-wrapper', ...configStore._layoutClasses] }, [
-        verticalNavWrapper ? h(verticalNavWrapper, verticalNavWrapperProps, { default: () => verticalNav }) : verticalNav,
+        verticalNavWrapper
+          ? h(verticalNavWrapper, verticalNavWrapperProps, { default: () => verticalNav })
+          : verticalNav,
         h('div', { class: 'layout-content-wrapper' }, [navbar, main, footer]),
         layoutOverlay
       ])

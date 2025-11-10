@@ -138,14 +138,28 @@ const isMounted = useMounted()
     ]"
   >
     <div class="nav-group-label" @click="isGroupOpen = !isGroupOpen">
-      <Component :is="layoutConfig.app.iconRenderer || 'div'" v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps" class="nav-item-icon" />
+      <Component
+        :is="layoutConfig.app.iconRenderer || 'div'"
+        v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps"
+        class="nav-item-icon"
+      />
       <!--
         ℹ️ isMounted is workaround of nuxt's hydration issue:
         https://github.com/vuejs/core/issues/6715
       -->
-      <Component :is="isMounted ? TransitionGroup : 'div'" name="transition-slide-x" v-bind="!isMounted ? { class: 'd-flex align-center flex-grow-1' } : undefined">
+      <Component
+        :is="isMounted ? TransitionGroup : 'div'"
+        name="transition-slide-x"
+        v-bind="!isMounted ? { class: 'd-flex align-center flex-grow-1' } : undefined"
+      >
         <!-- 👉 Title -->
-        <Component :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'" v-bind="getDynamicI18nProps(item.title, 'span')" v-show="!hideTitleAndBadge" key="title" class="nav-item-title">
+        <Component
+          :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'"
+          v-bind="getDynamicI18nProps(item.title, 'span')"
+          v-show="!hideTitleAndBadge"
+          key="title"
+          class="nav-item-title"
+        >
           {{ item.title }}
         </Component>
 
@@ -161,12 +175,23 @@ const isMounted = useMounted()
         >
           {{ item.badgeContent }}
         </Component>
-        <Component :is="layoutConfig.app.iconRenderer || 'div'" v-show="!hideTitleAndBadge" v-bind="layoutConfig.icons.chevronRight" key="arrow" class="nav-group-arrow" />
+        <Component
+          :is="layoutConfig.app.iconRenderer || 'div'"
+          v-show="!hideTitleAndBadge"
+          v-bind="layoutConfig.icons.chevronRight"
+          key="arrow"
+          class="nav-group-arrow"
+        />
       </Component>
     </div>
     <TransitionExpand>
       <ul v-show="isGroupOpen" class="nav-group-children">
-        <Component :is="'children' in child ? 'VerticalNavGroup' : VerticalNavLink" v-for="child in item.children" :key="child.title" :item="child" />
+        <Component
+          :is="'children' in child ? 'VerticalNavGroup' : VerticalNavLink"
+          v-for="child in item.children"
+          :key="child.title"
+          :item="child"
+        />
       </ul>
     </TransitionExpand>
   </li>

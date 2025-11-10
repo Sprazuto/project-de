@@ -277,10 +277,18 @@ onMounted(async () => {
 <template>
   <div>
     <!-- Realisasi Bulan Section using processed data from useDashboard -->
-    <CardRealisasiBulanSection :realisasi-bulan="processedRealisasiBulan" :loading="dashboard.loading.value.bulan" :error="dashboard.error.bulan" />
+    <CardRealisasiBulanSection
+      :realisasi-bulan="processedRealisasiBulan"
+      :loading="dashboard.loading.value.bulan"
+      :error="dashboard.error.bulan"
+    />
 
     <!-- Realisasi Tahun Section using processed data from useDashboard -->
-    <CardRealisasiTahunSection :realisasi-tahun="processedRealisasiTahun" :loading="dashboard.loading.value.tahun" :error="dashboard.error.tahun" />
+    <CardRealisasiTahunSection
+      :realisasi-tahun="processedRealisasiTahun"
+      :loading="dashboard.loading.value.tahun"
+      :error="dashboard.error.tahun"
+    />
 
     <!-- Realisasi Perbulan Barjas Section -->
     <CardHeader title="Realisasi Perbulan Barjas" icon="tabler-stack-pop" />
@@ -353,10 +361,11 @@ onMounted(async () => {
     <!-- Card Header for Rankings -->
     <CardHeader title="Peringkat Kinerja" subtitle="Organisasi Perangkat Daerah" icon="tabler-award" />
 
-    <VRow class="match-height">
-      <VCol cols="12" lg="12">
-        <CardRankings :rankings="rankings" />
-      </VCol>
-    </VRow>
+    <CardRankings :rankings="rankings" />
+
+    <!-- Card Header for Rankings -->
+    <CardHeader title="Peringkat Kinerja" subtitle="Kecamatan" icon="tabler-award" />
+
+    <CardRankings :rankings="rankings" />
   </div>
 </template>

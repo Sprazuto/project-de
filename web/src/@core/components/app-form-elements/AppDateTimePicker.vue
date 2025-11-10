@@ -95,7 +95,12 @@ const elementId = computed(() => {
 <template>
   <div class="app-picker-field">
     <!-- v-input -->
-    <VLabel v-if="fieldProps.label" class="mb-1 text-body-2 text-high-emphasis" :for="elementId" :text="fieldProps.label" />
+    <VLabel
+      v-if="fieldProps.label"
+      class="mb-1 text-body-2 text-high-emphasis"
+      :for="elementId"
+      :text="fieldProps.label"
+    />
 
     <VInput
       v-bind="{ ...inputProps, ...rootAttrs }"
@@ -143,7 +148,14 @@ const elementId = computed(() => {
               />
 
               <!-- simple input for inline prop -->
-              <input v-if="isInlinePicker" :value="modelValue" :placeholder="props.placeholder" :readonly="isReadonly.value" class="flat-picker-custom-style" type="text" />
+              <input
+                v-if="isInlinePicker"
+                :value="modelValue"
+                :placeholder="props.placeholder"
+                :readonly="isReadonly.value"
+                class="flat-picker-custom-style"
+                type="text"
+              />
             </div>
           </template>
         </VField>

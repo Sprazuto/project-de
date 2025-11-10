@@ -1,4 +1,4 @@
-import { $api } from '@/utils/api'
+import { useApi } from '@/composables/useApi'
 
 const AuthService = {
   login: async (username, password) => {
@@ -8,6 +8,9 @@ const AuthService = {
         username,
         password
       }
+
+      // Get API instance from composable
+      const { $api } = useApi()
 
       // Fixed: Use relative path so $api can properly combine with baseURL
       const response = await $api(`/user/login`, {
@@ -55,6 +58,7 @@ const AuthService = {
 
   register: async (user) => {
     try {
+      const { $api } = useApi()
       const response = await $api('/user/register', {
         method: 'POST',
         body: user

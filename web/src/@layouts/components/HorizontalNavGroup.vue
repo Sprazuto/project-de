@@ -64,15 +64,34 @@ watch(
     :popper-inline-end="childrenAtEnd"
   >
     <div class="nav-group-label">
-      <Component :is="layoutConfig.app.iconRenderer || 'div'" class="nav-item-icon" v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps" />
-      <Component :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'" v-bind="getDynamicI18nProps(item.title, 'span')" class="nav-item-title">
+      <Component
+        :is="layoutConfig.app.iconRenderer || 'div'"
+        class="nav-item-icon"
+        v-bind="item.icon || layoutConfig.verticalNav.defaultNavItemIconProps"
+      />
+      <Component
+        :is="layoutConfig.app.i18n.enable ? 'i18n-t' : 'span'"
+        v-bind="getDynamicI18nProps(item.title, 'span')"
+        class="nav-item-title"
+      >
         {{ item.title }}
       </Component>
-      <Component v-bind="layoutConfig.icons.chevronDown" :is="layoutConfig.app.iconRenderer || 'div'" class="nav-group-arrow" />
+      <Component
+        v-bind="layoutConfig.icons.chevronDown"
+        :is="layoutConfig.app.iconRenderer || 'div'"
+        class="nav-group-arrow"
+      />
     </div>
 
     <template #content>
-      <Component :is="'children' in child ? 'HorizontalNavGroup' : HorizontalNavLink" v-for="child in item.children" :key="child.title" :item="child" children-at-end is-sub-item />
+      <Component
+        :is="'children' in child ? 'HorizontalNavGroup' : HorizontalNavLink"
+        v-for="child in item.children"
+        :key="child.title"
+        :item="child"
+        children-at-end
+        is-sub-item
+      />
     </template>
   </HorizontalNavPopper>
 </template>

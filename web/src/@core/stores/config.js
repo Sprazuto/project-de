@@ -26,7 +26,16 @@ export const useConfigStore = defineStore('config', () => {
   const skin = cookieRef('skin', themeConfig.app.skin)
 
   // ℹ️ We need to use `storeToRefs` to forward the state
-  const { isLessThanOverlayNavBreakpoint, appContentWidth, navbarType, isNavbarBlurEnabled, appContentLayoutNav, isVerticalNavCollapsed, footerType, isAppRTL } = storeToRefs(useLayoutConfigStore())
+  const {
+    isLessThanOverlayNavBreakpoint,
+    appContentWidth,
+    navbarType,
+    isNavbarBlurEnabled,
+    appContentLayoutNav,
+    isVerticalNavCollapsed,
+    footerType,
+    isAppRTL
+  } = storeToRefs(useLayoutConfigStore())
 
   return {
     theme,
@@ -52,7 +61,12 @@ export const initConfigStore = () => {
   const configStore = useConfigStore()
 
   watch([() => configStore.theme, userPreferredColorScheme], () => {
-    vuetifyTheme.global.name.value = configStore.theme === 'system' ? (userPreferredColorScheme.value === 'dark' ? 'dark' : 'light') : configStore.theme
+    vuetifyTheme.global.name.value =
+      configStore.theme === 'system'
+        ? userPreferredColorScheme.value === 'dark'
+          ? 'dark'
+          : 'light'
+        : configStore.theme
   })
   onMounted(() => {
     if (configStore.theme === 'system') vuetifyTheme.global.name.value = userPreferredColorScheme.value
