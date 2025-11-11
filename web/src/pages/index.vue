@@ -1,19 +1,13 @@
 <script setup>
 // Vue 3 Composition API with seamless useAuth and useApi integration
-import { ref, computed, onMounted } from 'vue'
-import { useAuth } from '@/composables/useAuth'
-import { useApi } from '@/composables/useApi'
+import { computed, onMounted } from 'vue'
 import { useDashboard } from '@/composables/useDashboard'
-
-// Import required Vuetify components
-import { VCard, VCardText, VRow, VCol } from 'vuetify/components'
 
 // Fixed component imports - using the correct paths
 import CardHeader from '@/views/dashboard/CardHeader.vue'
 import CardRealisasiBulanSection from '@/views/dashboard/CardRealisasiBulanSection.vue'
 import CardRealisasiTahunSection from '@/views/dashboard/CardRealisasiTahunSection.vue'
 import CardRealisasiPerbulanSection from '@/views/dashboard/CardRealisasiPerbulanSection.vue'
-import CardRealisasiBulan from '@/views/dashboard/CardRealisasiBulan.vue'
 import CardRankings from '@/views/dashboard/CardRankings.vue'
 
 // Page meta
@@ -26,7 +20,6 @@ definePage({
 })
 
 // Composables for seamless API integration
-const { currentUser, isAuthenticated } = useAuth()
 const dashboard = useDashboard()
 
 // Processed realization data computed property
@@ -38,75 +31,64 @@ const processedRealisasiTahun = computed(() => {
   return dashboard.realisasiTahun.value || []
 })
 
-// Monthly data for perbulan sections - matching Home.vue structure
-const monthlyData = ref({
-  barjas: {
-    currentMonth: { month: 'October', value: 85 },
-    data: [
-      { month: 'Jan', value: 75 },
-      { month: 'Feb', value: 80 },
-      { month: 'Mar', value: 70 },
-      { month: 'Apr', value: 85 },
-      { month: 'May', value: 90 },
-      { month: 'Jun', value: 78 },
-      { month: 'Jul', value: 82 },
-      { month: 'Aug', value: 88 },
-      { month: 'Sep', value: 92 },
-      { month: 'Oct', value: 85 },
-      { month: 'Nov', value: 0 },
-      { month: 'Dec', value: 95 }
-    ]
-  },
-  fisik: {
-    currentMonth: { month: 'October', value: 20 },
-    data: [
-      { month: 'Jan', value: 15 },
-      { month: 'Feb', value: 18 },
-      { month: 'Mar', value: 12 },
-      { month: 'Apr', value: 22 },
-      { month: 'May', value: 25 },
-      { month: 'Jun', value: 19 },
-      { month: 'Jul', value: 21 },
-      { month: 'Aug', value: 23 },
-      { month: 'Sep', value: 26 },
-      { month: 'Oct', value: 20 },
-      { month: 'Nov', value: 0 },
-      { month: 'Dec', value: 0 }
-    ]
-  },
-  anggaran: {
-    currentMonth: { month: 'October', value: 60 },
-    data: [
-      { month: 'Jan', value: 55 },
-      { month: 'Feb', value: 58 },
-      { month: 'Mar', value: 52 },
-      { month: 'Apr', value: 62 },
-      { month: 'May', value: 65 },
-      { month: 'Jun', value: 0 },
-      { month: 'Jul', value: 61 },
-      { month: 'Aug', value: 63 },
-      { month: 'Sep', value: 66 },
-      { month: 'Oct', value: 60 },
-      { month: 'Nov', value: 0 },
-      { month: 'Dec', value: 0 }
-    ]
-  },
-  kinerja: {
-    currentMonth: { month: 'October', value: 35 },
-    data: [
-      { month: 'Jan', value: 30 },
-      { month: 'Feb', value: 33 },
-      { month: 'Mar', value: 27 },
-      { month: 'Apr', value: 37 },
-      { month: 'May', value: 40 },
-      { month: 'Jun', value: 34 },
-      { month: 'Jul', value: 36 },
-      { month: 'Aug', value: 38 },
-      { month: 'Sep', value: 41 },
-      { month: 'Oct', value: 35 },
-      { month: 'Nov', value: 0 },
-      { month: 'Dec', value: 0 }
-    ]
+// Computed perbulan cards from useDashboard (driven by /realisasi-perbulan)
+const perbulanBarjas = computed(() => {
+  const src = dashboard.realisasiPerbulan.value?.barjas
+  if (!src || !src.currentMonth || !Array.isArray(src.monthlyData)) return null
+
+  return {
+    key: 'barjas',
+    title: 'Realisasi Perbulan Barjas',
+    icon: 'tabler-stack-pop',
+    hintTitle: 'Informasi',
+    hintDescription: 'Data realisasi bulanan untuk kategori Barang dan Jasa.',
+    currentMonth: src.currentMonth,
+    monthlyData: src.monthlyData
+  }
+})
+
+const perbulanFisik = computed(() => {
+  const src = dashboard.realisasiPerbulan.value?.fisik
+  if (!src || !src.currentMonth || !Array.isArray(src.monthlyData)) return null
+
+  return {
+    key: 'fisik',
+    title: 'Realisasi Perbulan Fisik',
+    icon: 'tabler-map-pin',
+    hintTitle: 'Informasi',
+    hintDescription: 'Data realisasi bulanan untuk kategori Fisik.',
+    currentMonth: src.currentMonth,
+    monthlyData: src.monthlyData
+  }
+})
+
+const perbulanAnggaran = computed(() => {
+  const src = dashboard.realisasiPerbulan.value?.anggaran
+  if (!src || !src.currentMonth || !Array.isArray(src.monthlyData)) return null
+
+  return {
+    key: 'anggaran',
+    title: 'Realisasi Perbulan Anggaran',
+    icon: 'tabler-shopping-bag',
+    hintTitle: 'Informasi',
+    hintDescription: 'Data realisasi bulanan untuk kategori Anggaran.',
+    currentMonth: src.currentMonth,
+    monthlyData: src.monthlyData
+  }
+})
+
+const perbulanKinerja = computed(() => {
+  const src = dashboard.realisasiPerbulan.value?.kinerja
+  if (!src || !src.currentMonth || !Array.isArray(src.monthlyData)) return null
+
+  return {
+    key: 'kinerja',
+    title: 'Realisasi Perbulan Kinerja',
+    icon: 'tabler-adjustments-alt',
+    hintTitle: 'Informasi',
+    hintDescription: 'Data realisasi bulanan untuk kategori Kinerja.',
+    currentMonth: src.currentMonth,
+    monthlyData: src.monthlyData
   }
 })
 
@@ -290,72 +272,40 @@ onMounted(async () => {
       :error="dashboard.error.tahun"
     />
 
-    <!-- Realisasi Perbulan Barjas Section -->
-    <CardHeader title="Realisasi Perbulan Barjas" icon="tabler-stack-pop" />
+    <!-- Realisasi Perbulan Barjas -->
+    <CardHeader v-if="perbulanBarjas" :title="perbulanBarjas.title" :icon="perbulanBarjas.icon" />
     <CardRealisasiPerbulanSection
-      :realisasi-perbulan="[
-        {
-          title: 'Realisasi Perbulan Barjas',
-          subtitle: 'Monthly Barjas Realization',
-          hintTitle: 'Information',
-          hintDescription: 'Monthly realization data for Barjas category',
-          currentMonth: monthlyData.barjas.currentMonth,
-          monthlyData: monthlyData.barjas.data
-        }
-      ]"
-      :loading="false"
-      :error="null"
+      v-if="perbulanBarjas"
+      :realisasi-perbulan="[perbulanBarjas]"
+      :loading="dashboard.loading.value.perbulan"
+      :error="dashboard.error.perbulan"
     />
 
-    <!-- Realisasi Perbulan Fisik Section -->
-    <CardHeader title="Realisasi Perbulan Fisik" icon="tabler-map-pin" />
+    <!-- Realisasi Perbulan Fisik -->
+    <CardHeader v-if="perbulanFisik" :title="perbulanFisik.title" :icon="perbulanFisik.icon" />
     <CardRealisasiPerbulanSection
-      :realisasi-perbulan="[
-        {
-          title: 'Realisasi Perbulan Fisik',
-          subtitle: 'Monthly Physical Realization',
-          hintTitle: 'Information',
-          hintDescription: 'Monthly realization data for Physical category',
-          currentMonth: monthlyData.fisik.currentMonth,
-          monthlyData: monthlyData.fisik.data
-        }
-      ]"
-      :loading="false"
-      :error="null"
+      v-if="perbulanFisik"
+      :realisasi-perbulan="[perbulanFisik]"
+      :loading="dashboard.loading.value.perbulan"
+      :error="dashboard.error.perbulan"
     />
 
-    <!-- Realisasi Perbulan Anggaran Section -->
-    <CardHeader title="Realisasi Perbulan Anggaran" icon="tabler-shopping-bag" />
+    <!-- Realisasi Perbulan Anggaran -->
+    <CardHeader v-if="perbulanAnggaran" :title="perbulanAnggaran.title" :icon="perbulanAnggaran.icon" />
     <CardRealisasiPerbulanSection
-      :realisasi-perbulan="[
-        {
-          title: 'Realisasi Perbulan Anggaran',
-          subtitle: 'Monthly Budget Realization',
-          hintTitle: 'Information',
-          hintDescription: 'Monthly realization data for Budget category',
-          currentMonth: monthlyData.anggaran.currentMonth,
-          monthlyData: monthlyData.anggaran.data
-        }
-      ]"
-      :loading="false"
-      :error="null"
+      v-if="perbulanAnggaran"
+      :realisasi-perbulan="[perbulanAnggaran]"
+      :loading="dashboard.loading.value.perbulan"
+      :error="dashboard.error.perbulan"
     />
 
-    <!-- Realisasi Perbulan Kinerja Section -->
-    <CardHeader title="Realisasi Perbulan Kinerja" icon="tabler-adjustments-alt" />
+    <!-- Realisasi Perbulan Kinerja -->
+    <CardHeader v-if="perbulanKinerja" :title="perbulanKinerja.title" :icon="perbulanKinerja.icon" />
     <CardRealisasiPerbulanSection
-      :realisasi-perbulan="[
-        {
-          title: 'Realisasi Perbulan Kinerja',
-          subtitle: 'Monthly Performance Realization',
-          hintTitle: 'Information',
-          hintDescription: 'Monthly realization data for Performance category',
-          currentMonth: monthlyData.kinerja.currentMonth,
-          monthlyData: monthlyData.kinerja.data
-        }
-      ]"
-      :loading="false"
-      :error="null"
+      v-if="perbulanKinerja"
+      :realisasi-perbulan="[perbulanKinerja]"
+      :loading="dashboard.loading.value.perbulan"
+      :error="dashboard.error.perbulan"
     />
 
     <!-- Card Header for Rankings -->

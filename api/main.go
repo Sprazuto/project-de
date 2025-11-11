@@ -272,6 +272,7 @@ func main() {
 
 		v1.GET("/realisasi-bulan", sijagur.GetRealisasiBulan)
 		v1.GET("/realisasi-tahun", sijagur.GetRealisasiTahun)
+		v1.GET("/realisasi-perbulan", sijagur.GetRealisasiPerbulan)
 	}
 
 	// Swagger docs

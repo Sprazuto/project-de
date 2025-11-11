@@ -83,8 +83,7 @@ import CardRealisasiPerbulan from './CardRealisasiPerbulan.vue'
         <CardRealisasiPerbulan
           v-for="(card, index) in realisasiPerbulan"
           :key="`perbulan-${index}`"
-          :title="card.title"
-          :subtitle="card.subtitle"
+          :category-key="card.key"
           :hint-title="card.hintTitle"
           :hint-description="card.hintDescription"
           :current-month="card.currentMonth"

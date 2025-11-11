@@ -156,6 +156,7 @@ declare global {
   const resolveRef: typeof import('@vueuse/core')['resolveRef']
   const resolveUnref: typeof import('@vueuse/core')['resolveUnref']
   const resolveVuetifyTheme: typeof import('./src/@core/utils/vuetify.js')['resolveVuetifyTheme']
+  const rupiahAbbreviate: typeof import('./src/@core/utils/formatters.js')['rupiahAbbreviate']
   const saveAuthState: typeof import('./src/composables/useAuth.js')['saveAuthState']
   const setActivePinia: typeof import('pinia')['setActivePinia']
   const setMapStoreSuffix: typeof import('pinia')['setMapStoreSuffix']
@@ -552,6 +553,7 @@ declare module 'vue' {
     readonly resolveRef: UnwrapRef<typeof import('@vueuse/core')['resolveRef']>
     readonly resolveUnref: UnwrapRef<typeof import('@vueuse/core')['resolveUnref']>
     readonly resolveVuetifyTheme: UnwrapRef<typeof import('./src/@core/utils/vuetify.js')['resolveVuetifyTheme']>
+    readonly rupiahAbbreviate: UnwrapRef<typeof import('./src/@core/utils/formatters.js')['rupiahAbbreviate']>
     readonly saveAuthState: UnwrapRef<typeof import('./src/composables/useAuth.js')['saveAuthState']>
     readonly setActivePinia: UnwrapRef<typeof import('pinia')['setActivePinia']>
     readonly setMapStoreSuffix: UnwrapRef<typeof import('pinia')['setMapStoreSuffix']>

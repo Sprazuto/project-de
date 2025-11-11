@@ -12,7 +12,7 @@ import (
 // SijagurController ...
 type SijagurController struct{}
 
-var sijagurModel = new(models.SijagurModel)
+var sijagurModel = new(models.SijagurData)
 
 // getRealisasiData is a helper function to handle common logic for both bulan and tahun endpoints
 func (ctrl SijagurController) getRealisasiData(c *gin.Context, dataType string, getDataFunc func(int, int, int) ([]models.RealisasiData, error)) {
@@ -86,4 +86,23 @@ func (ctrl SijagurController) GetRealisasiBulan(c *gin.Context) {
 // @Router /realisasi-tahun [GET]
 func (ctrl SijagurController) GetRealisasiTahun(c *gin.Context) {
 	ctrl.getRealisasiData(c, "tahun", sijagurModel.GetRealisasiTahunWithParams)
+}
+
+// GetRealisasiPerbulan godoc
+// @Summary Get Realisasi Perbulan data (4 categories monthly breakdown)
+// @Schemes
+// @Description Get Realisasi Perbulan data for Barjas, Fisik, Anggaran, and Kinerja based on tahun and idsatker
+// @Tags Sijagur
+// @Accept json
+// @Produce json
+// @Param tahun query int false "Year (default: current year)"
+// @Param idsatker query int false "Satker ID (default: 0 for all)"
+// @Success 200 {object} models.RealisasiResponse
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /realisasi-perbulan [GET]
+func (ctrl SijagurController) GetRealisasiPerbulan(c *gin.Context) {
+	ctrl.getRealisasiData(c, "perbulan", func(year, month, idsatker int) ([]models.RealisasiData, error) {
+		return sijagurModel.GetRealisasiPerbulan(year, idsatker)
+	})
 }

@@ -1,15 +1,12 @@
 <script setup>
 import { computed } from 'vue'
+import { rupiahAbbreviate } from '@/@core/utils/formatters'
 
 // Props
 const props = defineProps({
-  title: {
+  categoryKey: {
     type: String,
-    default: 'Realisasi Perbulan'
-  },
-  subtitle: {
-    type: String,
-    default: 'Monthly Realization Overview'
+    default: ''
   },
   hintTitle: {
     type: String,
@@ -61,24 +58,31 @@ const currentMonthColors = computed(() => {
 
 // Methods
 const isFutureMonth = (monthName) => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const fullMonths = {
-    January: 'Jan',
-    February: 'Feb',
-    March: 'Mar',
-    April: 'Apr',
-    May: 'May',
-    June: 'Jun',
-    July: 'Jul',
-    August: 'Aug',
-    September: 'Sep',
-    October: 'Oct',
-    November: 'Nov',
-    December: 'Dec'
+  const normalize = (name) => {
+    if (!name) return -1
+    const lower = String(name).toLowerCase()
+
+    if (lower.startsWith('januari')) return 0
+    if (lower.startsWith('februari')) return 1
+    if (lower.startsWith('maret')) return 2
+    if (lower.startsWith('april')) return 3
+    if (lower.startsWith('mei')) return 4
+    if (lower.startsWith('juni')) return 5
+    if (lower.startsWith('juli')) return 6
+    if (lower.startsWith('agustus')) return 7
+    if (lower.startsWith('september')) return 8
+    if (lower.startsWith('oktober')) return 9
+    if (lower.startsWith('november')) return 10
+    if (lower.startsWith('desember')) return 11
+
+    return -1
   }
-  const currentMonthShort = fullMonths[props.currentMonth.month] || props.currentMonth.month
-  const currentIndex = months.indexOf(currentMonthShort)
-  const monthIndex = months.indexOf(monthName)
+
+  const currentIndex = normalize(props.currentMonth.month)
+  const monthIndex = normalize(monthName)
+
+  if (currentIndex === -1 || monthIndex === -1) return false
+
   return monthIndex > currentIndex
 }
 
@@ -120,6 +124,11 @@ const hintContent = computed(() => {
     description: props.hintDescription.trim()
   }
 })
+
+// Check if this is Anggaran category
+const isAnggaranCategory = computed(() => {
+  return props.categoryKey === 'anggaran'
+})
 </script>
 
 <template>
@@ -158,11 +167,23 @@ const hintContent = computed(() => {
           </h5>
           <h2
             :class="`font-weight-bolder mb-0 ${currentMonthColors.textColor} text-h4`"
-            :aria-label="`${currentMonth.value} percent achievement`"
+            :aria-label="`${currentMonth.value_formatted || currentMonth.value} percent achievement`"
           >
-            {{ currentMonth.value }}%
+            {{ currentMonth.value_formatted || currentMonth.value }}%
           </h2>
-          <p :class="`mb-0 ${currentMonthColors.textColor} text-caption`">Current Month</p>
+          <p :class="`mb-0 ${currentMonthColors.textColor} text-caption text-right`">
+            {{
+              isAnggaranCategory
+                ? rupiahAbbreviate(currentMonth.realisasi_formatted || currentMonth.realisasi || currentMonth.value)
+                : currentMonth.realisasi_formatted || currentMonth.realisasi || currentMonth.value
+            }}<small
+              >/{{
+                isAnggaranCategory
+                  ? rupiahAbbreviate(currentMonth.target_formatted || currentMonth.target || 100)
+                  : currentMonth.target_formatted || currentMonth.target || 100
+              }}</small
+            >
+          </p>
         </VCardItem>
       </VCard>
     </VCol>
@@ -196,11 +217,26 @@ const hintContent = computed(() => {
               <h6
                 v-if="monthData.showPercentage"
                 :class="`font-weight-bolder mb-0 ${monthData.colors.textColor} text-body-2`"
-                :aria-label="`${monthData.value} percent`"
+                :aria-label="`${monthData.value_formatted || monthData.value} percent`"
               >
-                {{ monthData.value }}%
+                {{ monthData.value_formatted || monthData.value }}%
+
+                <p :class="`mb-0 ${monthData.colors.textColor} text-caption text-right`">
+                  <small
+                    >{{
+                      isAnggaranCategory
+                        ? rupiahAbbreviate(monthData.realisasi_formatted || monthData.realisasi || monthData.value)
+                        : monthData.realisasi_formatted || monthData.realisasi || monthData.value
+                    }}<small
+                      >/{{
+                        isAnggaranCategory
+                          ? rupiahAbbreviate(monthData.target_formatted || monthData.target || 100)
+                          : monthData.target_formatted || monthData.target || 100
+                      }}</small
+                    ></small
+                  >
+                </p>
               </h6>
-              <p v-else :class="`mb-0 ${monthData.colors.textColor} text-caption opacity-6`">-</p>
             </VCardItem>
           </VCard>
         </VCol>

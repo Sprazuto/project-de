@@ -16,17 +16,20 @@ export function useDashboard() {
   const loading = ref({
     bulan: true, // Start with loading true to show skeleton immediately
     tahun: true,
+    perbulan: true,
     articles: true
   })
 
   const error = ref({
     bulan: null,
     tahun: null,
+    perbulan: null,
     articles: null
   })
 
   const realisasiBulan = ref([])
   const realisasiTahun = ref([])
+  const realisasiPerbulan = ref(null)
   const articles = ref([])
 
   // Filter state
@@ -86,6 +89,88 @@ export function useDashboard() {
     }
   }
 
+  const fetchRealisasiPerbulan = async (params = {}) => {
+    loading.value.perbulan = true
+    error.value.perbulan = null
+
+    try {
+      const queryParams = new URLSearchParams({
+        tahun: Number(selectedYear.value),
+        idsatker: Number(selectedSatker.value),
+        ...params
+      })
+
+      const response = await $api(`/realisasi-perbulan?${queryParams}`)
+
+      // Normalize Axios or direct-fetch style response:
+      // - Axios: response.data = { data: [...], meta: {...} }
+      // - Direct: response = { data: [...], meta: {...} }
+      const d = response && response.data && response.data.data ? response.data : response
+
+      if (!d || !Array.isArray(d.data)) {
+        throw new Error('Invalid response format for realisasi perbulan')
+      }
+
+      const mapCategory = (categoryData, hintTitle, hintDescription) => {
+        if (!categoryData || !categoryData.current_month || !Array.isArray(categoryData.monthly)) return null
+
+        return {
+          key: categoryData.category,
+          hintTitle,
+          hintDescription,
+          currentMonth: {
+            month: categoryData.current_month.month,
+            value: Number(categoryData.current_month.value) || 0,
+            value_formatted: categoryData.current_month.value_formatted || '0',
+            realisasi: Number(categoryData.current_month.realisasi) || 0,
+            target: Number(categoryData.current_month.target) || 100,
+            realisasi_formatted: categoryData.current_month.realisasi_formatted || null,
+            target_formatted: categoryData.current_month.target_formatted || null
+          },
+          monthlyData: categoryData.monthly.map((m) => ({
+            month: m.month,
+            value: Number(m.value) || 0,
+            value_formatted: m.value_formatted || '0',
+            realisasi: Number(m.realisasi) || 0,
+            target: Number(m.target) || 100,
+            realisasi_formatted: m.realisasi_formatted || null,
+            target_formatted: m.target_formatted || null
+          }))
+        }
+      }
+
+      const categories = {}
+      d.data.forEach((categoryData) => {
+        const hintTitles = {
+          barjas: 'Informasi',
+          fisik: 'Informasi',
+          anggaran: 'Informasi',
+          kinerja: 'Informasi'
+        }
+        const hintDescriptions = {
+          barjas: 'Data realisasi bulanan untuk kategori Barang dan Jasa.',
+          fisik: 'Data realisasi bulanan untuk kategori Fisik.',
+          anggaran: 'Data realisasi bulanan untuk kategori Anggaran.',
+          kinerja: 'Data realisasi bulanan untuk kategori Kinerja.'
+        }
+
+        categories[categoryData.category] = mapCategory(
+          categoryData,
+          hintTitles[categoryData.category] || 'Informasi',
+          hintDescriptions[categoryData.category] || ''
+        )
+      })
+
+      realisasiPerbulan.value = categories
+    } catch (err) {
+      console.error('Error fetching realisasi perbulan data:', err)
+      error.value.perbulan = err.message || 'Failed to fetch realisasi perbulan data'
+      realisasiPerbulan.value = null
+    } finally {
+      loading.value.perbulan = false
+    }
+  }
+
   const fetchArticles = async () => {
     loading.value.articles = true
     error.value.articles = null
@@ -113,13 +198,19 @@ export function useDashboard() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 3000))
-      await Promise.allSettled([fetchRealisasiBulan(), fetchRealisasiTahun(), fetchArticles()])
+      await Promise.allSettled([
+        fetchRealisasiBulan(),
+        fetchRealisasiTahun(),
+        fetchRealisasiPerbulan()
+        // fetchArticles()
+      ])
     } catch (err) {
       console.error('Error refreshing dashboard data:', err)
     } finally {
       // Reset loading states after fetch completes
       loading.value.bulan = false
       loading.value.tahun = false
+      loading.value.perbulan = false
       loading.value.articles = false
     }
   }
@@ -162,6 +253,9 @@ export function useDashboard() {
       case 'articles':
         await fetchArticles()
         break
+      case 'perbulan':
+        await fetchRealisasiPerbulan()
+        break
     }
   }
 
@@ -171,6 +265,7 @@ export function useDashboard() {
     error,
     realisasiBulan,
     realisasiTahun,
+    realisasiPerbulan,
     articles,
     selectedYear,
     selectedMonth,

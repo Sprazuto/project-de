@@ -13,8 +13,8 @@ type SijagurForm struct{}
 
 // RealisasiQueryForm represents the query parameters for realisasi endpoints
 type RealisasiQueryForm struct {
-	Tahun    string `form:"tahun" json:"tahun" binding:"omitempty,numeric,min=1900,max=2100"`
-	Bulan    string `form:"bulan" json:"bulan" binding:"omitempty,numeric,min=1,max=12"`
+	Tahun    string `form:"tahun" json:"tahun" binding:"omitempty"`
+	Bulan    string `form:"bulan" json:"bulan" binding:"omitempty"`
 	Idsatker string `form:"idsatker" json:"idsatker" binding:"omitempty,numeric,min=0"`
 }
 

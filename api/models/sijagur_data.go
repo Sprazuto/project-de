@@ -7,7 +7,7 @@ import (
 )
 
 // getProgressData retrieves progress data from de_ranking_opd
-func (m SijagurModel) getProgressData(year, month, idsatker int) (ProgressData, error) {
+func (m SijagurData) getProgressData(year, month, idsatker int) (ProgressData, error) {
 	query := `
 		SELECT
 			capaian_opd, capaian_barjas, capaian_fisik, capaian_anggaran, capaian_kinerja,
@@ -34,7 +34,7 @@ func (m SijagurModel) getProgressData(year, month, idsatker int) (ProgressData, 
 }
 
 // getBarjasRawData retrieves raw barjas data for frontend processing
-func (m SijagurModel) getBarjasRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
+func (m SijagurData) getBarjasRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
 	// Query to get barjas data
 	query := `
 		SELECT
@@ -74,14 +74,14 @@ func (m SijagurModel) getBarjasRawData(year, month, idsatker int, progress float
 
 	return RealisasiData{
 		Category:          "barjas",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
-		Items:              items,
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
+		Items:             items,
 	}, nil
 }
 
 // getFisikRawData retrieves raw fisik data for frontend processing
-func (m SijagurModel) getFisikRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
+func (m SijagurData) getFisikRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
 	// Query to get fisik data
 	query := `
 		SELECT
@@ -101,8 +101,8 @@ func (m SijagurModel) getFisikRawData(year, month, idsatker int, progress float6
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "fisik",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatNumber(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatNumber(target)},
@@ -111,7 +111,7 @@ func (m SijagurModel) getFisikRawData(year, month, idsatker int, progress float6
 }
 
 // getAnggaranRawData retrieves raw anggaran data for frontend processing
-func (m SijagurModel) getAnggaranRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
+func (m SijagurData) getAnggaranRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
 	// Query to get anggaran data
 	query := `
 		SELECT
@@ -131,8 +131,8 @@ func (m SijagurModel) getAnggaranRawData(year, month, idsatker int, progress flo
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "anggaran",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatCurrency(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatCurrency(target)},
@@ -141,7 +141,7 @@ func (m SijagurModel) getAnggaranRawData(year, month, idsatker int, progress flo
 }
 
 // getKinerjaRawData retrieves raw kinerja data for frontend processing
-func (m SijagurModel) getKinerjaRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
+func (m SijagurData) getKinerjaRawData(year, month, idsatker int, progress float64) (RealisasiData, error) {
 	// Query to get kinerja data
 	query := `
 		SELECT
@@ -161,8 +161,8 @@ func (m SijagurModel) getKinerjaRawData(year, month, idsatker int, progress floa
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "kinerja",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatNumber(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatNumber(target)},
@@ -171,7 +171,7 @@ func (m SijagurModel) getKinerjaRawData(year, month, idsatker int, progress floa
 }
 
 // getBarjasRawDataTahun retrieves raw barjas tahun data for frontend processing
-func (m SijagurModel) getBarjasRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
+func (m SijagurData) getBarjasRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
 	// Query to get barjas data for the year up to the specified month
 	query := `
 		SELECT
@@ -191,9 +191,9 @@ func (m SijagurModel) getBarjasRawDataTahun(year, month, idsatker int, progress 
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "barjas",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
-		Capaian:            capaian,
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
+		Capaian:           capaian,
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: totalRealisasi, Formatted: formatter.FormatNumber(totalRealisasi)},
 			{Type: "target", Value: totalTarget, Formatted: formatter.FormatNumber(totalTarget)},
@@ -201,7 +201,7 @@ func (m SijagurModel) getBarjasRawDataTahun(year, month, idsatker int, progress 
 	}, nil
 }
 
-func (m SijagurModel) getFisikRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
+func (m SijagurData) getFisikRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
 	query := `
 		SELECT
 			k_fisik_realisasi, k_fisik_target
@@ -220,9 +220,9 @@ func (m SijagurModel) getFisikRawDataTahun(year, month, idsatker int, progress f
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "fisik",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
-		Capaian:            capaian,
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
+		Capaian:           capaian,
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatNumber(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatNumber(target)},
@@ -230,7 +230,7 @@ func (m SijagurModel) getFisikRawDataTahun(year, month, idsatker int, progress f
 	}, nil
 }
 
-func (m SijagurModel) getAnggaranRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
+func (m SijagurData) getAnggaranRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
 	query := `
 		SELECT
 			k_anggaran_realisasi, k_anggaran_target
@@ -249,9 +249,9 @@ func (m SijagurModel) getAnggaranRawDataTahun(year, month, idsatker int, progres
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "anggaran",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
-		Capaian:            capaian,
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
+		Capaian:           capaian,
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatCurrency(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatCurrency(target)},
@@ -259,7 +259,7 @@ func (m SijagurModel) getAnggaranRawDataTahun(year, month, idsatker int, progres
 	}, nil
 }
 
-func (m SijagurModel) getKinerjaRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
+func (m SijagurData) getKinerjaRawDataTahun(year, month, idsatker int, progress float64, capaian float64) (RealisasiData, error) {
 	query := `
 		SELECT
 			k_kinerja_realisasi, k_kinerja_target
@@ -278,12 +278,102 @@ func (m SijagurModel) getKinerjaRawDataTahun(year, month, idsatker int, progress
 	formatter := Formatter{}
 	return RealisasiData{
 		Category:          "kinerja",
-		Progress:           progress,
-		ProgressFormatted:  formatter.FormatProgress(progress),
-		Capaian:            capaian,
+		Progress:          progress,
+		ProgressFormatted: formatter.FormatProgress(progress),
+		Capaian:           capaian,
 		Items: []RealisasiRawItem{
 			{Type: "realisasi", Value: realisasi, Formatted: formatter.FormatNumber(realisasi)},
 			{Type: "target", Value: target, Formatted: formatter.FormatNumber(target)},
 		},
 	}, nil
+}
+
+// FetchRealisasiPerbulanData fetches raw monthly progress data for perbulan processing
+func FetchRealisasiPerbulanData(year, idsatker int) ([]struct {
+	Month             int
+	PeriodikBarjas    float64
+	PeriodikFisik     float64
+	PeriodikAnggaran  float64
+	PeriodikKinerja   float64
+	RealisasiBarjas   float64
+	TargetBarjas      float64
+	RealisasiFisik    float64
+	TargetFisik       float64
+	RealisasiAnggaran float64
+	TargetAnggaran    float64
+	RealisasiKinerja  float64
+	TargetKinerja     float64
+}, error) {
+	// Query all 12 months for the given tahun & idsatker from de_ranking_opd and detail tables.
+	rows, err := db.GetDB().Query(`
+		SELECT
+			dro.bulan,
+			dro.periodik_barjas,
+			dro.periodik_fisik,
+			dro.periodik_anggaran,
+			dro.periodik_kinerja,
+			COALESCE(ddb.p_barjas_realisasi, 0) as realisasi_barjas,
+			COALESCE(ddb.p_barjas_target, 0) as target_barjas,
+			COALESCE(ddf.p_fisik_realisasi, 0) as realisasi_fisik,
+			COALESCE(ddf.p_fisik_target, 0) as target_fisik,
+			COALESCE(dda.p_anggaran_realisasi, 0) as realisasi_anggaran,
+			COALESCE(dda.p_anggaran_target, 0) as target_anggaran,
+			COALESCE(ddk.p_kinerja_realisasi, 0) as realisasi_kinerja,
+			COALESCE(ddk.p_kinerja_target, 0) as target_kinerja
+		FROM de_ranking_opd dro
+		LEFT JOIN de_detail_barjas ddb ON ddb.id_ranking_opd = dro.id
+		LEFT JOIN de_detail_fisik ddf ON ddf.id_ranking_opd = dro.id
+		LEFT JOIN de_detail_anggaran dda ON dda.id_ranking_opd = dro.id
+		LEFT JOIN de_detail_kinerja ddk ON ddk.id_ranking_opd = dro.id
+		WHERE dro.tahun = $1 AND dro.idsatker = $2
+		ORDER BY dro.bulan ASC
+	`, year, idsatker)
+	if err != nil {
+		log.Printf("FetchRealisasiPerbulanData: error querying de_ranking_opd: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var progressByMonth []struct {
+		Month             int
+		PeriodikBarjas    float64
+		PeriodikFisik     float64
+		PeriodikAnggaran  float64
+		PeriodikKinerja   float64
+		RealisasiBarjas   float64
+		TargetBarjas      float64
+		RealisasiFisik    float64
+		TargetFisik       float64
+		RealisasiAnggaran float64
+		TargetAnggaran    float64
+		RealisasiKinerja  float64
+		TargetKinerja     float64
+	}
+	for rows.Next() {
+		var p struct {
+			Month             int
+			PeriodikBarjas    float64
+			PeriodikFisik     float64
+			PeriodikAnggaran  float64
+			PeriodikKinerja   float64
+			RealisasiBarjas   float64
+			TargetBarjas      float64
+			RealisasiFisik    float64
+			TargetFisik       float64
+			RealisasiAnggaran float64
+			TargetAnggaran    float64
+			RealisasiKinerja  float64
+			TargetKinerja     float64
+		}
+		if scanErr := rows.Scan(&p.Month, &p.PeriodikBarjas, &p.PeriodikFisik, &p.PeriodikAnggaran, &p.PeriodikKinerja, &p.RealisasiBarjas, &p.TargetBarjas, &p.RealisasiFisik, &p.TargetFisik, &p.RealisasiAnggaran, &p.TargetAnggaran, &p.RealisasiKinerja, &p.TargetKinerja); scanErr != nil {
+			log.Printf("FetchRealisasiPerbulanData: scan error: %v", scanErr)
+			return nil, scanErr
+		}
+		// Only months 1-12 are relevant; ignore invalid months defensively.
+		if p.Month >= 1 && p.Month <= 12 {
+			progressByMonth = append(progressByMonth, p)
+		}
+	}
+
+	return progressByMonth, nil
 }

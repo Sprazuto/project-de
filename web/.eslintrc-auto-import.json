@@ -405,6 +405,7 @@
     "getCardColorsByProgress": true,
     "processRealisasiBulanData": true,
     "processRealisasiTahunData": true,
-    "useAuth": true
+    "useAuth": true,
+    "rupiahAbbreviate": true
   }
 }
