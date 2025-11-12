@@ -17,20 +17,32 @@ export function useDashboard() {
     bulan: true, // Start with loading true to show skeleton immediately
     tahun: true,
     perbulan: true,
-    articles: true
+    articles: true,
+    rankingsOpd: true,
+    rankingsKecamatan: true
   })
 
   const error = ref({
     bulan: null,
     tahun: null,
     perbulan: null,
-    articles: null
+    articles: null,
+    rankingsOpd: null,
+    rankingsKecamatan: null
   })
 
   const realisasiBulan = ref([])
   const realisasiTahun = ref([])
   const realisasiPerbulan = ref(null)
   const articles = ref([])
+
+  // Peringkat Kinerja state (alias-based from /sijagur/peringkat-kinerja)
+  const rankingsOpd = ref([])
+  const rankingsKecamatan = ref([])
+
+  // Ranking filters (shared for both OPD & Kecamatan APIs)
+  const rankingDimension = ref('kumulatif')
+  const rankingCategory = ref('all')
 
   // Filter state
   const selectedYear = ref(new Date().getFullYear())
@@ -192,6 +204,117 @@ export function useDashboard() {
       loading.value.articles = false
     }
   }
+
+  // Map raw ranking row -> CardRankings item (includes formatted values when provided by backend)
+  const mapRankingRowToCard = (row) => ({
+    name: row.nama_opd || `OPD ${row.id}`,
+    total_score: Number(row.score_total) || 0,
+    // formatted overall score (e.g., "91.39%")
+    total_score_formatted: row.score_total_formatted + '%' || null,
+    score_status: row.score_status || null,
+    categories: [
+      {
+        key: 'barjas',
+        title: 'Realisasi Barjas',
+        subtitle: 'Capaian Tahunan',
+        percentage: Number(row.score_barjas) || 0,
+        // use backend formatted value if present
+        formatted: row.score_barjas_formatted + '%' || null,
+        icon: 'LayersIcon'
+      },
+      {
+        key: 'fisik',
+        title: 'Realisasi Fisik',
+        subtitle: 'Capaian Tahunan',
+        percentage: Number(row.score_fisik) || 0,
+        formatted: row.score_fisik_formatted + '%' || null,
+        icon: 'MapPinIcon'
+      },
+      {
+        key: 'anggaran',
+        title: 'Realisasi Anggaran',
+        subtitle: 'Capaian Tahunan',
+        percentage: Number(row.score_anggaran) || 0,
+        formatted: row.score_anggaran_formatted + '%' || null,
+        icon: 'ShoppingBagIcon'
+      },
+      {
+        key: 'kinerja',
+        title: 'Realisasi Kinerja',
+        subtitle: 'Capaian Tahunan',
+        percentage: Number(row.score_kinerja) || 0,
+        formatted: row.score_kinerja_formatted + '%' || null,
+        icon: 'SlidersIcon'
+      }
+    ]
+  })
+
+  // Fetch Peringkat Kinerja OPD (scope=skpd) using single backend endpoint with scope filter.
+  const fetchRankingsOpd = async () => {
+    loading.value.rankingsOpd = true
+    error.value.rankingsOpd = null
+
+    try {
+      const params = new URLSearchParams({
+        year: String(selectedYear.value || new Date().getFullYear()),
+        month: String(selectedMonth.value || new Date().getMonth() + 1),
+        idsatker: String(selectedSatker.value || 0),
+        category: rankingCategory.value || 'all',
+        dimension: rankingDimension.value || 'kumulatif',
+        scope: 'skpd'
+        // No client-side page/pageSize: backend should return complete result set for this scope
+      })
+
+      const response = await $api(`/sijagur/peringkat-kinerja?${params.toString()}`)
+      const payload = response && response.status && Array.isArray(response.data) ? response : response
+
+      if (!payload || payload.status !== 'success' || !Array.isArray(payload.data)) {
+        console.error('Unexpected peringkat-kinerja OPD (scope=skpd) payload:', payload)
+        throw new Error('Invalid peringkat-kinerja OPD (scope=skpd) response')
+      }
+
+      rankingsOpd.value = payload.data.map(mapRankingRowToCard)
+    } catch (err) {
+      console.error('Error fetching peringkat kinerja OPD (scope=skpd) rankings:', err)
+      error.value.rankingsOpd = err.message || 'Failed to fetch peringkat kinerja OPD'
+      rankingsOpd.value = []
+    } finally {
+      loading.value.rankingsOpd = false
+    }
+  }
+
+  // Fetch Peringkat Kinerja Kecamatan (scope=kecamatan) using same endpoint with scope filter.
+  const fetchRankingsKecamatan = async () => {
+    loading.value.rankingsKecamatan = true
+    error.value.rankingsKecamatan = null
+
+    try {
+      const params = new URLSearchParams({
+        year: String(selectedYear.value || new Date().getFullYear()),
+        month: String(selectedMonth.value || new Date().getMonth() + 1),
+        category: rankingCategory.value || 'all',
+        dimension: rankingDimension.value || 'kumulatif',
+        scope: 'kecamatan'
+      })
+
+      const response = await $api(`/sijagur/peringkat-kinerja?${params.toString()}`)
+      const payload = response && response.status && Array.isArray(response.data) ? response : response
+
+      if (!payload || payload.status !== 'success' || !Array.isArray(payload.data)) {
+        console.error('Unexpected peringkat-kinerja Kecamatan (scope=kecamatan) payload:', payload)
+        throw new Error('Invalid peringkat-kinerja Kecamatan (scope=kecamatan) response')
+      }
+
+      rankingsKecamatan.value = payload.data.map(mapRankingRowToCard)
+    } catch (err) {
+      console.error('Error fetching peringkat kinerja Kecamatan (scope=kecamatan) rankings:', err)
+      error.value.rankingsKecamatan = err.message || 'Failed to fetch peringkat kinerja Kecamatan'
+      rankingsKecamatan.value = []
+    } finally {
+      loading.value.rankingsKecamatan = false
+    }
+  }
+
   // Initialization and auto-refresh
   let refreshTimer
 
@@ -202,6 +325,7 @@ export function useDashboard() {
     loading.value.bulan = true
     loading.value.tahun = true
     loading.value.perbulan = true
+    loading.value.rankings = true
     loading.value.articles = true
 
     try {
@@ -211,8 +335,10 @@ export function useDashboard() {
       await Promise.allSettled([
         fetchRealisasiBulan(),
         fetchRealisasiTahun(),
-        fetchRealisasiPerbulan()
-        // fetchArticles()
+        fetchRealisasiPerbulan(),
+        // fetchArticles(),
+        fetchRankingsOpd(),
+        fetchRankingsKecamatan()
       ])
     } catch (err) {
       console.error('Error refreshing dashboard data:', err)
@@ -224,6 +350,7 @@ export function useDashboard() {
       loading.value.tahun = false
       loading.value.perbulan = false
       loading.value.articles = false
+      // Rankings loading flags are finalized inside fetchRankingsOpd/Kecamatan
     }
   }
 
@@ -265,6 +392,12 @@ export function useDashboard() {
       case 'perbulan':
         await fetchRealisasiPerbulan()
         break
+      case 'rankingsOpd':
+        await fetchRankingsOpd()
+        break
+      case 'rankingsKecamatan':
+        await fetchRankingsKecamatan()
+        break
       case 'articles':
         await fetchArticles()
         break
@@ -279,14 +412,20 @@ export function useDashboard() {
     realisasiTahun,
     realisasiPerbulan,
     articles,
+    rankingsOpd,
+    rankingsKecamatan,
     selectedYear,
     selectedMonth,
     selectedSatker,
     refreshInterval,
+    rankingDimension,
+    rankingCategory,
 
     // Actions
     refreshData,
     retryFetch,
+    fetchRankingsOpd,
+    fetchRankingsKecamatan,
 
     // Lifecycle control
     startAutoRefresh,

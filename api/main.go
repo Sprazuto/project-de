@@ -270,9 +270,14 @@ func main() {
 		/*** START Sijagur ***/
 		sijagur := new(controllers.SijagurController)
 
+		// Realisasi endpoints (existing)
 		v1.GET("/realisasi-bulan", TokenAuthMiddleware(), sijagur.GetRealisasiBulan)
 		v1.GET("/realisasi-tahun", TokenAuthMiddleware(), sijagur.GetRealisasiTahun)
 		v1.GET("/realisasi-perbulan", TokenAuthMiddleware(), sijagur.GetRealisasiPerbulan)
+
+		// Peringkat Kinerja (alias-based ranking, scoped by jenis_opd via ?scope=skpd|kecamatan)
+		// Uses models.SijagurData.GetPeringkatKinerja and returns models.RankingResponse
+		v1.GET("/sijagur/peringkat-kinerja", TokenAuthMiddleware(), sijagur.GetPeringkatKinerja)
 	}
 
 	// Swagger docs

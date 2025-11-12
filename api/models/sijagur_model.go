@@ -95,6 +95,65 @@ type ProgressData struct {
 // SijagurData ...
 type SijagurData struct{}
 
+// RankingRow is the normalized alias-based shape for Peringkat Kinerja.
+// One active dimension at a time is mapped into these aliases by the model layer:
+// - score_total: primary score of current dimension
+// - score_barjas / score_fisik / score_anggaran / score_kinerja: per-category scores for the same dimension
+// - *_formatted: pre-formatted strings for direct display on frontend
+// - rank_number: peringkat_opd when dimension="kumulatif", otherwise can be 0 (frontend may infer)
+type RankingRow struct {
+	ID            int64   `json:"id"`
+	Idsatker      int64   `json:"idsatker,omitempty"`
+	NamaOpd       string  `json:"nama_opd,omitempty"`
+	RankNumber    int64   `json:"rank_number"`
+	ScoreTotal    float64 `json:"score_total"`
+	ScoreBarjas   float64 `json:"score_barjas,omitempty"`
+	ScoreFisik    float64 `json:"score_fisik,omitempty"`
+	ScoreAnggaran float64 `json:"score_anggaran,omitempty"`
+	ScoreKinerja  float64 `json:"score_kinerja,omitempty"`
+	ScoreStatus   string  `json:"score_status"` // "Diam" | "Berjalan" | "Berlari" | "Melesat"
+
+	// Pre-formatted values for UI (percent-style)
+	ScoreTotalFormatted    string `json:"score_total_formatted,omitempty"`
+	ScoreBarjasFormatted   string `json:"score_barjas_formatted,omitempty"`
+	ScoreFisikFormatted    string `json:"score_fisik_formatted,omitempty"`
+	ScoreAnggaranFormatted string `json:"score_anggaran_formatted,omitempty"`
+	ScoreKinerjaFormatted  string `json:"score_kinerja_formatted,omitempty"`
+
+	Year  int `json:"year"`
+	Month int `json:"month,omitempty"`
+}
+
+// RankingResponse is the top-level contract for the Peringkat Kinerja endpoint.
+type RankingResponse struct {
+	Status    string       `json:"status"` // "success"
+	Scope     string       `json:"scope"`  // "opd"
+	Category  string       `json:"category"`
+	Dimension string       `json:"dimension"` // "kumulatif" | "capaian" | "periodik"
+	Year      int          `json:"year"`
+	Month     int          `json:"month,omitempty"`
+	Page      int          `json:"page"`
+	PageSize  int          `json:"page_size"`
+	Total     int          `json:"total"`
+	SortBy    string       `json:"sort_by"`
+	SortDir   string       `json:"sort_dir"`
+	Data      []RankingRow `json:"data"`
+}
+
+// scoreStatusFromTotal maps score_total (0-100) to human-readable label.
+func scoreStatusFromTotal(score float64) string {
+	if score >= 75 {
+		return "Melesat"
+	}
+	if score >= 50 {
+		return "Berlari"
+	}
+	if score >= 25 {
+		return "Berjalan"
+	}
+	return "Diam"
+}
+
 // GetRealisasiBulanWithParams retrieves raw realisasi bulan data for frontend processing
 func (m SijagurData) GetRealisasiBulanWithParams(year, month, idsatker int) ([]RealisasiData, error) {
 	// First, get the progress percentages from de_ranking_opd

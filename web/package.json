@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 5050",
-    "lint": "eslint src -c .eslintrc.cjs --fix --ext .ts,.js,.cjs,.vue,.tsx,.jsx --cache --cache-location=node_modules/.eslintcache",
+    "format": "prettier \"src/**/*.{js,ts,jsx,tsx,vue,json,md,css,scss}\" --write",
+    "format:check": "prettier \"src/**/*.{js,ts,jsx,tsx,vue,json,md,css,scss}\" --check",
     "build:icons": "tsx src/plugins/iconify/build-icons.js",
     "msw:init": "msw init public/ --save",
     "postinstall": "npm run build:icons && npm run msw:init"

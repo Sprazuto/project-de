@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Massad/gin-boilerplate/db"
@@ -286,6 +287,328 @@ func (m SijagurData) getKinerjaRawDataTahun(year, month, idsatker int, progress 
 			{Type: "target", Value: target, Formatted: formatter.FormatNumber(target)},
 		},
 	}, nil
+}
+
+// GetPeringkatKinerja returns rankings from de_ranking_opd with alias-based scores,
+// supporting scoped views via jenis_opd:
+// - scope = "skpd"      -> WHERE jenis_opd = 'skpd'
+// - scope = "kecamatan" -> WHERE jenis_opd = 'kecamatan'
+// - scope empty/other   -> no jenis_opd filter (all)
+func (m SijagurData) GetPeringkatKinerja(
+	year int,
+	month int,
+	idsatker int,
+	category string,
+	dimension string,
+	scope string,
+	sortBy string,
+	sortDir string,
+) (RankingResponse, error) {
+	if year <= 0 {
+		return RankingResponse{}, nil
+	}
+
+	// Normalize dimension
+	switch dimension {
+	case "capaian", "periodik", "kumulatif":
+		// ok
+	default:
+		dimension = "kumulatif"
+	}
+
+	if category == "" {
+		category = "all"
+	}
+
+	// Build WHERE clause
+	where := "WHERE tahun = $1"
+	args := []interface{}{year}
+	argIdx := 2
+
+	if month > 0 {
+		where += " AND bulan = $" + fmt.Sprint(argIdx)
+		args = append(args, month)
+		argIdx++
+	}
+	if idsatker > 0 {
+		where += " AND idsatker = $" + fmt.Sprint(argIdx)
+		args = append(args, idsatker)
+		argIdx++
+	}
+
+	// Apply scope filter using jenis_opd
+	normalizedScope := ""
+	if scope == "skpd" || scope == "kecamatan" {
+		normalizedScope = scope
+		where += " AND jenis_opd = $" + fmt.Sprint(argIdx)
+		args = append(args, normalizedScope)
+		argIdx++
+	}
+
+	// Count total for this scope
+	countSQL := "SELECT COUNT(*) FROM de_ranking_opd " + where
+	var total int
+	if err := db.GetDB().QueryRow(countSQL, args...).Scan(&total); err != nil {
+		log.Printf("GetPeringkatKinerja: count query error: %v", err)
+		return RankingResponse{}, err
+	}
+
+	if total == 0 {
+		return RankingResponse{
+			Status:    "success",
+			Scope:     normalizedScope,
+			Category:  category,
+			Dimension: dimension,
+			Year:      year,
+			Month:     month,
+			Page:      1,
+			PageSize:  total,
+			Total:     0,
+			SortBy:    sortBy,
+			SortDir:   sortDir,
+			Data:      []RankingRow{},
+		}, nil
+	}
+
+	// Determine base column for score_total based on dimension
+	scoreColumn := "kumulatif_opd"
+	switch dimension {
+	case "capaian":
+		scoreColumn = "capaian_opd"
+	case "periodik":
+		scoreColumn = "periodik_opd"
+	}
+
+	// Normalize sortBy
+	if sortBy == "" || sortBy == "score_total" {
+		sortBy = scoreColumn
+	} else {
+		switch sortBy {
+		case "rank_number":
+			sortBy = "peringkat_opd"
+		case "score_barjas":
+			if dimension == "kumulatif" {
+				sortBy = "kumulatif_barjas"
+			} else if dimension == "capaian" {
+				sortBy = "capaian_barjas"
+			} else {
+				sortBy = "periodik_barjas"
+			}
+		case "score_fisik":
+			if dimension == "kumulatif" {
+				sortBy = "kumulatif_fisik"
+			} else if dimension == "capaian" {
+				sortBy = "capaian_fisik"
+			} else {
+				sortBy = "periodik_fisik"
+			}
+		case "score_anggaran":
+			if dimension == "kumulatif" {
+				sortBy = "kumulatif_anggaran"
+			} else if dimension == "capaian" {
+				sortBy = "capaian_anggaran"
+			} else {
+				sortBy = "periodik_anggaran"
+			}
+		case "score_kinerja":
+			if dimension == "kumulatif" {
+				sortBy = "kumulatif_kinerja"
+			} else if dimension == "capaian" {
+				sortBy = "capaian_kinerja"
+			} else {
+				sortBy = "periodik_kinerja"
+			}
+		default:
+			sortBy = scoreColumn
+		}
+	}
+
+	if sortDir != "asc" && sortDir != "ASC" {
+		sortDir = "DESC"
+	}
+
+	orderClause := "ORDER BY " + sortBy + " " + sortDir
+
+	// Full result set for this scope (no LIMIT/OFFSET)
+	sql := `
+        SELECT
+            id,
+            idsatker,
+            nama_opd,
+            capaian_barjas,
+            capaian_fisik,
+            capaian_anggaran,
+            capaian_kinerja,
+            kumulatif_barjas,
+            kumulatif_fisik,
+            kumulatif_anggaran,
+            kumulatif_kinerja,
+            kumulatif_opd,
+            periodik_barjas,
+            periodik_fisik,
+            periodik_anggaran,
+            periodik_kinerja,
+            periodik_opd,
+            peringkat_opd,
+            tahun,
+            bulan
+        FROM de_ranking_opd
+        ` + where + `
+        ` + orderClause + `
+    `
+
+	rows, err := db.GetDB().Query(sql, args...)
+	if err != nil {
+		log.Printf("GetPeringkatKinerja: data query error: %v", err)
+		return RankingResponse{}, err
+	}
+	defer rows.Close()
+
+	formatter := Formatter{}
+	var list []RankingRow
+
+	for rows.Next() {
+		var (
+			id                 int64
+			rowIdsatker        int64
+			namaOpd            string
+			cCapaianBarjas     float64
+			cCapaianFisik      float64
+			cCapaianAnggaran   float64
+			cCapaianKinerja    float64
+			kKumulatifBarjas   float64
+			kKumulatifFisik    float64
+			kKumulatifAnggaran float64
+			kKumulatifKinerja  float64
+			kKumulatifOpd      float64
+			pPeriodikBarjas    float64
+			pPeriodikFisik     float64
+			pPeriodikAnggaran  float64
+			pPeriodikKinerja   float64
+			pPeriodikOpd       float64
+			peringkatOpd       int64
+			tahunVal           int
+			bulanVal           int
+		)
+
+		if err := rows.Scan(
+			&id,
+			&rowIdsatker,
+			&namaOpd,
+			&cCapaianBarjas,
+			&cCapaianFisik,
+			&cCapaianAnggaran,
+			&cCapaianKinerja,
+			&kKumulatifBarjas,
+			&kKumulatifFisik,
+			&kKumulatifAnggaran,
+			&kKumulatifKinerja,
+			&kKumulatifOpd,
+			&pPeriodikBarjas,
+			&pPeriodikFisik,
+			&pPeriodikAnggaran,
+			&pPeriodikKinerja,
+			&pPeriodikOpd,
+			&peringkatOpd,
+			&tahunVal,
+			&bulanVal,
+		); err != nil {
+			log.Printf("GetPeringkatKinerja: scan error: %v", err)
+			return RankingResponse{}, err
+		}
+
+		var scoreTotal, scoreBarjas, scoreFisik, scoreAnggaran, scoreKinerja float64
+
+		switch dimension {
+		case "capaian":
+			scoreTotal = cCapaianKinerja
+			if category == "all" || category == "barjas" {
+				scoreBarjas = cCapaianBarjas
+			}
+			if category == "all" || category == "fisik" {
+				scoreFisik = cCapaianFisik
+			}
+			if category == "all" || category == "anggaran" {
+				scoreAnggaran = cCapaianAnggaran
+			}
+			if category == "all" || category == "kinerja" {
+				scoreKinerja = cCapaianKinerja
+			}
+		case "periodik":
+			scoreTotal = pPeriodikOpd
+			if category == "all" || category == "barjas" {
+				scoreBarjas = pPeriodikBarjas
+			}
+			if category == "all" || category == "fisik" {
+				scoreFisik = pPeriodikFisik
+			}
+			if category == "all" || category == "anggaran" {
+				scoreAnggaran = pPeriodikAnggaran
+			}
+			if category == "all" || category == "kinerja" {
+				scoreKinerja = pPeriodikKinerja
+			}
+		default: // kumulatif
+			scoreTotal = kKumulatifOpd
+			if category == "all" || category == "barjas" {
+				scoreBarjas = kKumulatifBarjas
+			}
+			if category == "all" || category == "fisik" {
+				scoreFisik = kKumulatifFisik
+			}
+			if category == "all" || category == "anggaran" {
+				scoreAnggaran = kKumulatifAnggaran
+			}
+			if category == "all" || category == "kinerja" {
+				scoreKinerja = kKumulatifKinerja
+			}
+		}
+
+		// rank_number: use peringkat_opd when dim=kumulatif and > 0, else 0
+		rankNumber := peringkatOpd
+		if dimension != "kumulatif" || rankNumber <= 0 {
+			rankNumber = 0
+		}
+
+		row := RankingRow{
+			ID:                     id,
+			Idsatker:               rowIdsatker,
+			NamaOpd:                namaOpd,
+			RankNumber:             rankNumber,
+			ScoreTotal:             scoreTotal,
+			ScoreBarjas:            scoreBarjas,
+			ScoreFisik:             scoreFisik,
+			ScoreAnggaran:          scoreAnggaran,
+			ScoreKinerja:           scoreKinerja,
+			ScoreStatus:            scoreStatusFromTotal(scoreTotal),
+			ScoreTotalFormatted:    formatter.FormatProgress(scoreTotal),
+			ScoreBarjasFormatted:   formatter.FormatProgress(scoreBarjas),
+			ScoreFisikFormatted:    formatter.FormatProgress(scoreFisik),
+			ScoreAnggaranFormatted: formatter.FormatProgress(scoreAnggaran),
+			ScoreKinerjaFormatted:  formatter.FormatProgress(scoreKinerja),
+			Year:                   tahunVal,
+			Month:                  bulanVal,
+		}
+
+		list = append(list, row)
+	}
+
+	resp := RankingResponse{
+		Status:    "success",
+		Scope:     normalizedScope,
+		Category:  category,
+		Dimension: dimension,
+		Year:      year,
+		Month:     month,
+		Page:      1,
+		PageSize:  total,
+		Total:     total,
+		SortBy:    sortBy,
+		SortDir:   sortDir,
+		Data:      list,
+	}
+
+	return resp, nil
 }
 
 // FetchRealisasiPerbulanData fetches raw monthly progress data for perbulan processing

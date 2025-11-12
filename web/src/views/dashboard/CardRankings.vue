@@ -42,7 +42,7 @@ const getRankBadgeClass = (index) => {
 const getCategoryColor = (percentage) => {
   if (percentage >= 75) return 'primary'
   if (percentage >= 50) return 'secondary'
-  if (percentage >= 25) return 'danger'
+  if (percentage >= 25) return 'error'
   return 'dark'
 }
 
@@ -56,7 +56,7 @@ const getScoreStatusLabel = (score) => {
 const getScoreBadgeVariant = (score) => {
   if (score >= 75) return 'primary'
   if (score >= 50) return 'secondary'
-  if (score >= 25) return 'danger'
+  if (score >= 25) return 'error'
   return 'dark'
 }
 
@@ -106,10 +106,16 @@ const getRibbonIcon = (type) => {
           >
             {{ getScoreStatusLabel(item.total_score) }}
           </VChip>
-          <div aria-label="Total score">{{ item.total_score }}%</div>
+          <div aria-label="Total score">
+            <!-- Prefer formatted value when provided by backend -->
+            <span v-if="item.total_score_formatted">
+              {{ item.total_score_formatted }}
+            </span>
+            <span v-else> {{ item.total_score }}% </span>
+          </div>
         </div>
         <div class="instance-name-section mr-3">
-          <h4 class="mb-0 text-primary font-weight-bold" aria-label="Organization name">
+          <h4 class="mb-0 font-weight-bold" aria-label="Organization name">
             {{ item.name }}
           </h4>
         </div>
@@ -177,7 +183,13 @@ const getRibbonIcon = (type) => {
                   class="mb-1"
                   :aria-label="`Progress: ${category.percentage}%`"
                 />
-                <small class="percentage text-center d-block" aria-hidden="true">{{ category.percentage }}%</small>
+                <small class="percentage text-center d-block" aria-hidden="true">
+                  <!-- Prefer formatted per-category score when provided -->
+                  <span v-if="category.formatted">
+                    {{ category.formatted }}
+                  </span>
+                  <span v-else> {{ category.percentage }}% </span>
+                </small>
               </div>
             </VCardText>
           </VCard>

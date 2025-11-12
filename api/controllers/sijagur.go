@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/Massad/gin-boilerplate/forms"
 	"github.com/Massad/gin-boilerplate/models"
@@ -120,4 +121,63 @@ func (ctrl SijagurController) GetRealisasiPerbulan(c *gin.Context) {
 	ctrl.getRealisasiData(c, "perbulan", func(year, month, idsatker int) ([]models.RealisasiData, error) {
 		return sijagurModel.GetRealisasiPerbulan(year, idsatker)
 	})
+}
+
+// GetPeringkatKinerja godoc
+// @Summary Get Peringkat Kinerja (OPD/SKPD or Kecamatan) with scope
+// @Schemes
+// @Description Get performance rankings from de_ranking_opd using alias-based scores and jenis_opd-based scope
+// @Tags Sijagur
+// @Accept json
+// @Produce json
+// @Param year query int true "Year"
+// @Param month query int false "Month"
+// @Param idsatker query int false "Satker ID"
+// @Param category query string false "Category filter: all|barjas|fisik|anggaran|kinerja" default(all)
+// @Param dimension query string false "Score dimension: kumulatif|capaian|periodik" default(kumulatif)
+// @Param scope query string false "Scope: skpd|kecamatan (mapped to jenis_opd)" default(skpd)
+// @Param sortBy query string false "Sort by: score_total|score_barjas|score_fisik|score_anggaran|score_kinerja|rank_number"
+// @Param sortDir query string false "Sort direction: asc|desc" default(desc)
+// @Success 200 {object} models.RankingResponse
+// @Failure 400 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /sijagur/peringkat-kinerja [GET]
+func (ctrl SijagurController) GetPeringkatKinerja(c *gin.Context) {
+	year, _ := strconv.Atoi(c.DefaultQuery("year", "0"))
+	month, _ := strconv.Atoi(c.DefaultQuery("month", "0"))
+	idsatker, _ := strconv.Atoi(c.DefaultQuery("idsatker", "0"))
+	category := c.DefaultQuery("category", "all")
+	dimension := c.DefaultQuery("dimension", "kumulatif")
+	scope := c.DefaultQuery("scope", "skpd")
+	sortBy := c.DefaultQuery("sortBy", "")
+	sortDir := c.DefaultQuery("sortDir", "desc")
+
+	if year <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": "year is required",
+		})
+		return
+	}
+
+	resp, err := sijagurModel.GetPeringkatKinerja(
+		year,
+		month,
+		idsatker,
+		category,
+		dimension,
+		scope,
+		sortBy,
+		sortDir,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "error",
+			"message": "failed to fetch peringkat kinerja",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }

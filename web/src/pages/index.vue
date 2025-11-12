@@ -8,7 +8,7 @@ import CardHeader from '@/views/dashboard/CardHeader.vue'
 import CardRealisasiBulanSection from '@/views/dashboard/CardRealisasiBulanSection.vue'
 import CardRealisasiTahunSection from '@/views/dashboard/CardRealisasiTahunSection.vue'
 import CardRealisasiPerbulanSection from '@/views/dashboard/CardRealisasiPerbulanSection.vue'
-import CardRankings from '@/views/dashboard/CardRankings.vue'
+import CardRankingSection from '@/views/dashboard/CardRankingSection.vue'
 
 // Page meta
 definePage({
@@ -92,161 +92,14 @@ const perbulanKinerja = computed(() => {
   }
 })
 
-// Rankings computed property - using legacy mock data structure
-const rankings = computed(() => {
-  // Mock data matching legacy structure exactly
-  return [
-    {
-      name: 'DINAS PERIKANAN DAN PETERNAKAN',
-      total_score: 85.75,
-      categories: [
-        {
-          title: 'Realisasi Barjas',
-          subtitle: 'Capaian Tahunan',
-          percentage: 85,
-          icon: 'LayersIcon'
-        },
-        {
-          title: 'Realisasi Fisik',
-          subtitle: 'Capaian Tahunan',
-          percentage: 78,
-          icon: 'MapPinIcon'
-        },
-        {
-          title: 'Realisasi Anggaran',
-          subtitle: 'Capaian Tahunan',
-          percentage: 74,
-          icon: 'ShoppingBagIcon'
-        },
-        {
-          title: 'Realisasi Kinerja',
-          subtitle: 'Capaian Tahunan',
-          percentage: 45,
-          icon: 'SlidersIcon'
-        }
-      ]
-    },
-    {
-      name: 'DINAS PENANAMAN MODAL DAN PELAYANAN TERPADU SATU PINTU',
-      total_score: 82.75,
-      categories: [
-        {
-          title: 'Realisasi Barjas',
-          subtitle: 'Capaian Tahunan',
-          percentage: 29,
-          icon: 'LayersIcon'
-        },
-        {
-          title: 'Realisasi Fisik',
-          subtitle: 'Capaian Tahunan',
-          percentage: 75,
-          icon: 'MapPinIcon'
-        },
-        {
-          title: 'Realisasi Anggaran',
-          subtitle: 'Capaian Tahunan',
-          percentage: 62,
-          icon: 'ShoppingBagIcon'
-        },
-        {
-          title: 'Realisasi Kinerja',
-          subtitle: 'Capaian Tahunan',
-          percentage: 85,
-          icon: 'SlidersIcon'
-        }
-      ]
-    },
-    {
-      name: 'DINAS KEPENDUDUKAN DAN PENCATATAN SIPIL',
-      total_score: 79.75,
-      categories: [
-        {
-          title: 'Realisasi Barjas',
-          subtitle: 'Capaian Tahunan',
-          percentage: 79,
-          icon: 'LayersIcon'
-        },
-        {
-          title: 'Realisasi Fisik',
-          subtitle: 'Capaian Tahunan',
-          percentage: 40,
-          icon: 'MapPinIcon'
-        },
-        {
-          title: 'Realisasi Anggaran',
-          subtitle: 'Capaian Tahunan',
-          percentage: 86,
-          icon: 'ShoppingBagIcon'
-        },
-        {
-          title: 'Realisasi Kinerja',
-          subtitle: 'Capaian Tahunan',
-          percentage: 55,
-          icon: 'SlidersIcon'
-        }
-      ]
-    },
-    {
-      name: 'DINAS PERHUBUNGAN',
-      total_score: 76.75,
-      categories: [
-        {
-          title: 'Realisasi Barjas',
-          subtitle: 'Capaian Tahunan',
-          percentage: 76,
-          icon: 'LayersIcon'
-        },
-        {
-          title: 'Realisasi Fisik',
-          subtitle: 'Capaian Tahunan',
-          percentage: 69,
-          icon: 'MapPinIcon'
-        },
-        {
-          title: 'Realisasi Anggaran',
-          subtitle: 'Capaian Tahunan',
-          percentage: 99,
-          icon: 'ShoppingBagIcon'
-        },
-        {
-          title: 'Realisasi Kinerja',
-          subtitle: 'Capaian Tahunan',
-          percentage: 79,
-          icon: 'SlidersIcon'
-        }
-      ]
-    },
-    {
-      name: 'DINAS PENDIDIKAN',
-      total_score: 73.75,
-      categories: [
-        {
-          title: 'Realisasi Barjas',
-          subtitle: 'Capaian Tahunan',
-          percentage: 99,
-          icon: 'LayersIcon'
-        },
-        {
-          title: 'Realisasi Fisik',
-          subtitle: 'Capaian Tahunan',
-          percentage: 66,
-          icon: 'MapPinIcon'
-        },
-        {
-          title: 'Realisasi Anggaran',
-          subtitle: 'Capaian Tahunan',
-          percentage: 80,
-          icon: 'ShoppingBagIcon'
-        },
-        {
-          title: 'Realisasi Kinerja',
-          subtitle: 'Capaian Tahunan',
-          percentage: 76,
-          icon: 'SlidersIcon'
-        }
-      ]
-    }
-  ]
+const rankingsOPDKumulatif = computed(() => {
+  const src = dashboard.rankingsOpd
+  return Array.isArray(src) ? src : Array.isArray(src?.value) ? src.value : []
+})
+
+const rankingsKecamatanKumulatif = computed(() => {
+  const src = dashboard.rankingsKecamatan
+  return Array.isArray(src) ? src : Array.isArray(src?.value) ? src.value : []
 })
 
 // Initialize data - the useDashboard composable handles this automatically
@@ -320,14 +173,34 @@ onMounted(async () => {
       :error="dashboard.error.perbulan"
     />
 
-    <!-- Card Header for Rankings -->
-    <CardHeader title="Peringkat Kinerja" subtitle="Organisasi Perangkat Daerah" icon="tabler-award" />
+    <!-- Peringkat Kinerja OPD - Kumulatif (live via useDashboard + CardRankingSection) -->
+    <CardHeader
+      v-if="!dashboard.loading.value.rankingsOpd && rankingsOPDKumulatif"
+      title="Peringkat Kinerja"
+      subtitle="Organisasi Perangkat Daerah"
+      icon="tabler-award"
+    />
+    <CardRankingSection
+      title="Peringkat Kinerja"
+      subtitle="Organisasi Perangkat Daerah"
+      :rankings="rankingsOPDKumulatif"
+      :loading="dashboard.loading.value.rankingsOpd"
+      :error="dashboard.error.rankingsOpd"
+    />
 
-    <CardRankings :rankings="rankings" />
-
-    <!-- Card Header for Rankings -->
-    <CardHeader title="Peringkat Kinerja" subtitle="Kecamatan" icon="tabler-award" />
-
-    <CardRankings :rankings="rankings" />
+    <!-- Peringkat Kinerja Kecamatan - Kumulatif (placeholder, no data yet) -->
+    <CardHeader
+      v-if="!dashboard.loading.value.rankingsKecamatan && rankingsKecamatanKumulatif"
+      title="Peringkat Kinerja"
+      subtitle="Kecamatan"
+      icon="tabler-award"
+    />
+    <CardRankingSection
+      title="Peringkat Kinerja"
+      subtitle="Kecamatan"
+      :rankings="rankingsKecamatanKumulatif"
+      :loading="dashboard.loading.value.rankingsKecamatan"
+      :error="dashboard.error.rankingsKecamatan"
+    />
   </div>
 </template>
