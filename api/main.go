@@ -270,9 +270,9 @@ func main() {
 		/*** START Sijagur ***/
 		sijagur := new(controllers.SijagurController)
 
-		v1.GET("/realisasi-bulan", sijagur.GetRealisasiBulan)
-		v1.GET("/realisasi-tahun", sijagur.GetRealisasiTahun)
-		v1.GET("/realisasi-perbulan", sijagur.GetRealisasiPerbulan)
+		v1.GET("/realisasi-bulan", TokenAuthMiddleware(), sijagur.GetRealisasiBulan)
+		v1.GET("/realisasi-tahun", TokenAuthMiddleware(), sijagur.GetRealisasiTahun)
+		v1.GET("/realisasi-perbulan", TokenAuthMiddleware(), sijagur.GetRealisasiPerbulan)
 	}
 
 	// Swagger docs

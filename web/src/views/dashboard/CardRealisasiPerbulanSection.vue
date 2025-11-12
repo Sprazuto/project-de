@@ -23,42 +23,63 @@ import CardRealisasiPerbulan from './CardRealisasiPerbulan.vue'
 
 <template>
   <div>
-    <!-- Loading State -->
+    <!-- Loading State: clean, minimal skeleton that mimics CardRealisasiPerbulan layout -->
     <VRow v-if="loading" class="match-height">
       <VCol cols="12">
-        <VCard elevation="2" rounded="xl">
-          <VCardItem class="pb-2">
-            <VCardTitle class="d-flex align-start justify-space-between pb-3">
-              <VSkeletonLoader type="text" width="70%" />
-              <VSkeletonLoader type="avatar" size="18" />
+        <!-- Outer wrapper matches real card section spacing and radius -->
+        <VCard elevation="0" rounded="xl" class="pa-4">
+          <!-- Header skeleton: title + optional icon space, neutral grayscale -->
+          <VCardItem class="pb-4">
+            <VCardTitle class="d-flex align-center justify-center">
+              <VSkeletonLoader type="avatar" size="20" class="bg-grey-lighten-3" />
+              <VSkeletonLoader type="text" width="35%" class="bg-grey-lighten-3" />
             </VCardTitle>
             <VCardSubtitle>
-              <VSkeletonLoader type="text" width="50%" />
+              <VSkeletonLoader type="text" width="22%" height="10" class="mt-1 bg-grey-lighten-3" />
             </VCardSubtitle>
           </VCardItem>
 
-          <VCardItem class="px-4 pb-2">
-            <VRow class="mx-0 mb-2">
-              <!-- Large card skeleton for current month -->
-              <VCol cols="12" md="4" class="px-1 mb-1">
-                <VCard elevation="0" rounded="xl" height="200">
-                  <VCardItem class="text-center py-2 d-flex flex-column justify-center h-100">
-                    <VSkeletonLoader type="text" width="60%" class="mb-2" />
-                    <VSkeletonLoader type="text" width="80%" height="32" class="mb-1" />
-                    <VSkeletonLoader type="text" width="50%" height="16" />
-                  </VCardItem>
+          <!-- Body skeleton: structure = 1 large current month + 12 small cards -->
+          <VCardItem class="pt-0">
+            <VRow class="mx-0">
+              <!-- Large current month skeleton -->
+              <VCol cols="12" sm="6" lg="4" class="px-0 my-3 py-2">
+                <VCard elevation="0" rounded="xl" class="d-flex flex-column justify-center align-center px-4">
+                  <!-- Title placeholder -->
+                  <VSkeletonLoader type="text" width="40%" height="12" class="mb-3 bg-grey-lighten-3" />
+                  <!-- Main value placeholder -->
+                  <VSkeletonLoader type="text" width="55%" height="26" class="mb-2 bg-grey-lighten-3" />
+                  <!-- Supporting text placeholder -->
+                  <VSkeletonLoader type="text" width="60%" height="10" class="bg-grey-lighten-3" />
                 </VCard>
               </VCol>
 
-              <!-- Grid of 12 smaller cards skeleton -->
-              <VCol cols="12" md="8" class="px-0">
-                <VRow class="mx-0">
-                  <VCol v-for="n in 12" :key="`skeleton-month-${n}`" cols="3" class="pl-1 pr-0 mb-1">
-                    <VCard elevation="0" rounded="xl" height="100">
-                      <VCardItem class="text-center py-1 d-flex flex-column justify-center h-100">
-                        <VSkeletonLoader type="text" width="70%" height="14" class="mb-1" />
-                        <VSkeletonLoader type="text" width="60%" height="16" />
-                      </VCardItem>
+              <!-- Grid of 12 smaller month cards -->
+              <VCol cols="12" sm="6" lg="8" class="px-0">
+                <VRow class="mx-0" dense>
+                  <VCol
+                    v-for="n in 12"
+                    :key="`skeleton-month-${n}`"
+                    cols="4"
+                    sm="3"
+                    md="2"
+                    lg="3"
+                    xl="2"
+                    class="px-0 my-3 py-0 pl-6"
+                  >
+                    <VCard
+                      elevation="0"
+                      rounded="xl"
+                      height="100"
+                      min-height="80"
+                      class="d-flex flex-column justify-center align-center px-3"
+                    >
+                      <!-- Month label placeholder -->
+                      <VSkeletonLoader type="text" width="60%" height="9" class="mb-2 bg-grey-lighten-3" />
+                      <!-- Percentage placeholder -->
+                      <VSkeletonLoader type="text" width="40%" height="14" class="mb-1 bg-grey-lighten-3" />
+                      <!-- Realisasi/target line placeholder -->
+                      <VSkeletonLoader type="text" width="65%" height="8" class="bg-grey-lighten-3" />
                     </VCard>
                   </VCol>
                 </VRow>

@@ -25,7 +25,7 @@ import CardRealisasiBulan from './CardRealisasiBulan.vue'
     <!-- Loading State -->
     <VRow v-if="loading" class="match-height">
       <VCol v-for="n in 4" :key="`skeleton-${n}`" cols="12" sm="6" md="3" lg="3" xl="3">
-        <VCard elevation="2" rounded="xl">
+        <VCard elevation="0" rounded="xl">
           <VCardItem class="pb-sm-0">
             <VCardTitle class="d-flex align-start justify-space-between pb-5">
               <VSkeletonLoader type="text" width="70%" />
@@ -38,7 +38,7 @@ import CardRealisasiBulan from './CardRealisasiBulan.vue'
 
           <!-- Chart Placeholder -->
           <VCardItem class="text-center pt-6">
-            <VSkeletonLoader type="image" height="150" width="150" class="mx-auto" style="border-radius: 50%" />
+            <VSkeletonLoader type="image" height="150" width="150" class="mx-auto" />
           </VCardItem>
 
           <VCardItem class="text-center pt-0 pb-1">

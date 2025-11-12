@@ -25,12 +25,9 @@ import CardRealisasiTahun from './CardRealisasiTahun.vue'
     <!-- Loading State -->
     <VRow v-if="loading" class="match-height">
       <VCol v-for="n in 4" :key="`skeleton-${n}`" cols="12" sm="6" md="3" lg="3" xl="3">
-        <VCard elevation="2" rounded="xl">
+        <VCard elevation="0" rounded="xl">
           <VCardItem class="pb-sm-0">
-            <VCardTitle
-              class="d-flex align-start justify-space-between pb-5"
-              style="white-space: normal; word-break: break-word"
-            >
+            <VCardTitle class="d-flex align-start justify-space-between pb-5">
               <VSkeletonLoader type="text" width="70%" />
               <VSkeletonLoader type="avatar" size="18" />
             </VCardTitle>

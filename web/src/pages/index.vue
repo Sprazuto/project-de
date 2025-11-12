@@ -273,37 +273,49 @@ onMounted(async () => {
     />
 
     <!-- Realisasi Perbulan Barjas -->
-    <CardHeader v-if="perbulanBarjas" :title="perbulanBarjas.title" :icon="perbulanBarjas.icon" />
+    <CardHeader
+      v-if="!dashboard.loading.value.perbulan && perbulanBarjas"
+      :title="perbulanBarjas.title"
+      :icon="perbulanBarjas.icon"
+    />
     <CardRealisasiPerbulanSection
-      v-if="perbulanBarjas"
-      :realisasi-perbulan="[perbulanBarjas]"
+      :realisasi-perbulan="perbulanBarjas ? [perbulanBarjas] : []"
       :loading="dashboard.loading.value.perbulan"
       :error="dashboard.error.perbulan"
     />
 
     <!-- Realisasi Perbulan Fisik -->
-    <CardHeader v-if="perbulanFisik" :title="perbulanFisik.title" :icon="perbulanFisik.icon" />
+    <CardHeader
+      v-if="!dashboard.loading.value.perbulan && perbulanFisik"
+      :title="perbulanFisik.title"
+      :icon="perbulanFisik.icon"
+    />
     <CardRealisasiPerbulanSection
-      v-if="perbulanFisik"
-      :realisasi-perbulan="[perbulanFisik]"
+      :realisasi-perbulan="perbulanFisik ? [perbulanFisik] : []"
       :loading="dashboard.loading.value.perbulan"
       :error="dashboard.error.perbulan"
     />
 
     <!-- Realisasi Perbulan Anggaran -->
-    <CardHeader v-if="perbulanAnggaran" :title="perbulanAnggaran.title" :icon="perbulanAnggaran.icon" />
+    <CardHeader
+      v-if="!dashboard.loading.value.perbulan && perbulanAnggaran"
+      :title="perbulanAnggaran.title"
+      :icon="perbulanAnggaran.icon"
+    />
     <CardRealisasiPerbulanSection
-      v-if="perbulanAnggaran"
-      :realisasi-perbulan="[perbulanAnggaran]"
+      :realisasi-perbulan="perbulanAnggaran ? [perbulanAnggaran] : []"
       :loading="dashboard.loading.value.perbulan"
       :error="dashboard.error.perbulan"
     />
 
     <!-- Realisasi Perbulan Kinerja -->
-    <CardHeader v-if="perbulanKinerja" :title="perbulanKinerja.title" :icon="perbulanKinerja.icon" />
+    <CardHeader
+      v-if="!dashboard.loading.value.perbulan && perbulanKinerja"
+      :title="perbulanKinerja.title"
+      :icon="perbulanKinerja.icon"
+    />
     <CardRealisasiPerbulanSection
-      v-if="perbulanKinerja"
-      :realisasi-perbulan="[perbulanKinerja]"
+      :realisasi-perbulan="perbulanKinerja ? [perbulanKinerja] : []"
       :loading="dashboard.loading.value.perbulan"
       :error="dashboard.error.perbulan"
     />

@@ -36,7 +36,10 @@ export function useDashboard() {
   const selectedYear = ref(new Date().getFullYear())
   const selectedMonth = ref(new Date().getMonth() + 1)
   const selectedSatker = ref(0)
-  const refreshInterval = ref(0) // 30 seconds
+
+  // Auto-refresh interval in milliseconds (10 seconds)
+  // Used by startAutoRefresh to periodically refresh dashboard data.
+  const refreshInterval = ref(0) // 1000 : 1sec
 
   // API functions
   const fetchRealisasiBulan = async (params = {}) => {
@@ -54,7 +57,9 @@ export function useDashboard() {
 
       const response = await $api(`/realisasi-bulan?${queryParams}`)
 
-      const processedData = processRealisasiBulanData(response || {})
+      // Normalize response structure for bulan
+      const normalizedResponse = response && response.data && response.data.results ? response.data : response
+      const processedData = processRealisasiBulanData(normalizedResponse || {})
       realisasiBulan.value = processedData
     } catch (err) {
       console.error('Error fetching realization data:', err)
@@ -81,7 +86,9 @@ export function useDashboard() {
 
       const response = await $api(`/realisasi-tahun?${queryParams}`)
 
-      realisasiTahun.value = processRealisasiTahunData(response || {})
+      // Normalize response structure for tahun
+      const normalizedResponse = response && response.data && response.data.results ? response.data : response
+      realisasiTahun.value = processRealisasiTahunData(normalizedResponse || {})
     } catch (err) {
       console.error('Error fetching yearly realization data:', err)
     } finally {
@@ -103,11 +110,11 @@ export function useDashboard() {
       const response = await $api(`/realisasi-perbulan?${queryParams}`)
 
       // Normalize Axios or direct-fetch style response:
-      // - Axios: response.data = { data: [...], meta: {...} }
-      // - Direct: response = { data: [...], meta: {...} }
-      const d = response && response.data && response.data.data ? response.data : response
+      // - Axios: response.data = { results: [{ data: [...], meta: {...} }] }
+      // - Direct: response = { results: [{ data: [...], meta: {...} }] }
+      const d = response && response.data && response.data.results ? response.data : response
 
-      if (!d || !Array.isArray(d.data)) {
+      if (!d || !Array.isArray(d.results) || !d.results[0] || !Array.isArray(d.results[0].data)) {
         throw new Error('Invalid response format for realisasi perbulan')
       }
 
@@ -140,7 +147,7 @@ export function useDashboard() {
       }
 
       const categories = {}
-      d.data.forEach((categoryData) => {
+      d.results[0].data.forEach((categoryData) => {
         const hintTitles = {
           barjas: 'Informasi',
           fisik: 'Informasi',
@@ -191,13 +198,16 @@ export function useDashboard() {
   const refreshData = async () => {
     if (!isAuthenticated.value) return
 
-    // Start loading immediately to show skeleton
+    // Start loading immediately so all sections (including perbulan) show skeletons
     loading.value.bulan = true
     loading.value.tahun = true
+    loading.value.perbulan = true
     loading.value.articles = true
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      // Brief defer so initial skeleton DOM can paint before heavy work
+      // await new Promise((resolve) => setTimeout(resolve, 3000))
+
       await Promise.allSettled([
         fetchRealisasiBulan(),
         fetchRealisasiTahun(),
@@ -207,7 +217,9 @@ export function useDashboard() {
     } catch (err) {
       console.error('Error refreshing dashboard data:', err)
     } finally {
-      // Reset loading states after fetch completes
+      // Let each fetch* manage its own loading flag.
+      // Do NOT forcibly override loading.value.perbulan here,
+      // otherwise CardRealisasiPerbulanSection skeleton never becomes visible.
       loading.value.bulan = false
       loading.value.tahun = false
       loading.value.perbulan = false
@@ -250,11 +262,11 @@ export function useDashboard() {
       case 'tahun':
         await fetchRealisasiTahun()
         break
-      case 'articles':
-        await fetchArticles()
-        break
       case 'perbulan':
         await fetchRealisasiPerbulan()
+        break
+      case 'articles':
+        await fetchArticles()
         break
     }
   }

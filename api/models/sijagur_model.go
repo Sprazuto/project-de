@@ -5,6 +5,17 @@ import (
 	"sync"
 )
 
+// SijagurResponse represents the response structure matching articles
+type SijagurResponse struct {
+	Results []SijagurResult `json:"results"`
+}
+
+// SijagurResult represents each result item for sijagur
+type SijagurResult struct {
+	Data []RealisasiData `json:"data"`
+	Meta RealisasiMeta   `json:"meta"`
+}
+
 // RealisasiMonthlyItem represents monthly data for perbulan endpoint
 type RealisasiMonthlyItem struct {
 	Month              string  `json:"month"`

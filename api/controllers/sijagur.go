@@ -38,15 +38,21 @@ func (ctrl SijagurController) getRealisasiData(c *gin.Context, dataType string, 
 		return
 	}
 
-	response := models.RealisasiResponse{
-		Data: data,
-		Meta: models.RealisasiMeta{
-			Year:      tahunInt,
-			Month:     bulanInt,
-			MonthName: models.GetMonthName(bulanInt),
-			Idsatker:  idsatkerInt,
-			Type:      dataType,
+	results := []models.SijagurResult{
+		{
+			Data: data,
+			Meta: models.RealisasiMeta{
+				Year:      tahunInt,
+				Month:     bulanInt,
+				MonthName: models.GetMonthName(bulanInt),
+				Idsatker:  idsatkerInt,
+				Type:      dataType,
+			},
 		},
+	}
+
+	response := models.SijagurResponse{
+		Results: results,
 	}
 
 	c.JSON(http.StatusOK, response)
@@ -67,6 +73,9 @@ func (ctrl SijagurController) getRealisasiData(c *gin.Context, dataType string, 
 // @Failure      500  {object}  gin.H
 // @Router /realisasi-bulan [GET]
 func (ctrl SijagurController) GetRealisasiBulan(c *gin.Context) {
+	userID := getUserID(c)
+	_ = userID // Mark as used to avoid compiler warning
+
 	ctrl.getRealisasiData(c, "bulan", sijagurModel.GetRealisasiBulanWithParams)
 }
 
@@ -85,6 +94,9 @@ func (ctrl SijagurController) GetRealisasiBulan(c *gin.Context) {
 // @Failure      500  {object}  gin.H
 // @Router /realisasi-tahun [GET]
 func (ctrl SijagurController) GetRealisasiTahun(c *gin.Context) {
+	userID := getUserID(c)
+	_ = userID // Mark as used to avoid compiler warning
+
 	ctrl.getRealisasiData(c, "tahun", sijagurModel.GetRealisasiTahunWithParams)
 }
 
@@ -102,6 +114,9 @@ func (ctrl SijagurController) GetRealisasiTahun(c *gin.Context) {
 // @Failure 500 {object} gin.H
 // @Router /realisasi-perbulan [GET]
 func (ctrl SijagurController) GetRealisasiPerbulan(c *gin.Context) {
+	userID := getUserID(c)
+	_ = userID // Mark as used to avoid compiler warning
+
 	ctrl.getRealisasiData(c, "perbulan", func(year, month, idsatker int) ([]models.RealisasiData, error) {
 		return sijagurModel.GetRealisasiPerbulan(year, idsatker)
 	})
