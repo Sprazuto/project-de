@@ -7,12 +7,48 @@
 ######################
 *.log
 
-# SENSITVE DATA #
-.gitconfig
+# SENSITIVE DATA & SECRETS #
+############################
 .env
-.env*
+.env.*
 !.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+.env.save
+
+# SSL Certificates & Keys
 cert/
+certs/
+ssl/
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+
+# API Keys & Secrets
+secrets/
+config/secrets.*
+*.secret
+
+# Database files and backups
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+*.sql.bz2
+backups/
+*.dump
+*.backup
+*.sql.bak
+
+# Docker secrets (if using secrets files)
+docker/secrets/
 
 # BUILD #
 ./gin-boilerplate
@@ -72,10 +108,34 @@ public/mockServiceWorker.js
 # Dependency directories (uncomment the next line if you want to ignore dependencies)
 # vendor/
 
-# IDE files #
-.vscode/
-.idea/
-
 # Temporary files #
 *.tmp
 *.temp
+
+# Cache directories #
+.cache/
+.tmp/
+
+# Package managers #
+.npm/
+.pnpm/
+.yarn/cache
+.yarn/install-state.gz
+
+# Go binaries #
+bin/
+pkg/
+
+# OS additional #
+# macOS
+._*
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# Linux
+*~
+
+# Docker overrides #
+docker-compose.override.yml
+.env.override

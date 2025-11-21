@@ -3,17 +3,102 @@
 ######################
 .DS_Store
 .DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*~
 
 # Logs #
 ######################
 *.log
 
-# SENSITVE DATA #
-.gitconfig
+# SENSITIVE DATA & SECRETS #
+############################
 .env
+.env.*
+!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.backup
+.env.save
+.gitconfig
+
+# SSL Certificates & Keys #
+###########################
 cert/
+certs/
+ssl/
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
 
-# BUILD #
-./gin-boilerplate
+# API Keys & Secrets #
+######################
+secrets/
+config/secrets.*
+*.secret
 
+# Database files and backups #
+##############################
+*.db
+*.sqlite
+*.sqlite3
+*.sql.gz
+*.sql.bz2
+backups/
+*.dump
+*.backup
+*.sql.bak
 project_de.sql
+
+# BUILD & BINARIES #
+####################
+./gin-boilerplate
+main
+bin/
+pkg/
+
+# Go build artifacts #
+######################
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Temporary files #
+###################
+*.tmp
+*.temp
+.cache/
+.tmp/
+
+# IDE and Editor files #
+########################
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Generated docs #
+##################
+docs/swagger.json
+docs/swagger.yaml
+docs/docs.go
+
+# Travis CI #
+#############
+.travis.yml.cache/
