@@ -189,6 +189,12 @@ func main() {
 		log.Fatal("Failed to run migrations:", err)
 	}
 
+	// Create SPSE tables
+	err = models.CreateSPASETables()
+	if err != nil {
+		log.Printf("Warning: Failed to create SPSE tables: %v", err)
+	}
+
 	// Seed admin user if not exists
 	getDb := db.GetDB()
 	adminCount, err := getDb.SelectInt(`SELECT count(id) FROM public."user" WHERE LOWER(username)=LOWER($1)`, "admin")
@@ -278,6 +284,21 @@ func main() {
 		// Peringkat Kinerja (alias-based ranking, scoped by jenis_opd via ?scope=skpd|kecamatan)
 		// Uses models.SijagurData.GetPeringkatKinerja and returns models.RankingResponse
 		v1.GET("/sijagur/peringkat-kinerja", TokenAuthMiddleware(), sijagur.GetPeringkatKinerja)
+
+		/*** START SPSE Procurement Scraper ***/
+		spse := new(controllers.SPSEController)
+
+		// Scraping endpoints (public access for testing)
+		v1.POST("/spse/scraper/perencanaan", spse.ScrapePerencanaan)
+		v1.POST("/spse/scraper/persiapan", spse.ScrapePersiapan)
+		v1.POST("/spse/scraper/pemilihan", spse.ScrapePemilihan)
+		v1.POST("/spse/scraper/all", spse.ScrapeAll)
+
+		// Data retrieval endpoints (protected)
+		v1.GET("/spse/statistics", spse.GetStatistics)
+		v1.GET("/spse/data/perencanaan", spse.GetPerencanaan)
+		v1.GET("/spse/data/persiapan", spse.GetPersiapan)
+		v1.GET("/spse/data/pemilihan", spse.GetPemilihan)
 	}
 
 	// Swagger docs

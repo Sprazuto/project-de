@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"io/ioutil"
 	"log"
@@ -99,8 +98,6 @@ func TestIntDB(t *testing.T) {
 		log.Fatal("Error loading .env file, please create one in the root directory")
 	}
 
-	fmt.Println("DB_PASS", os.Getenv("DB_PASS"))
-
 	db.Init()
 	db.InitRedis(1)
 }
@@ -127,7 +124,7 @@ func TestRegister(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -157,7 +154,7 @@ func TestRegisterInvalidEmail(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -187,7 +184,7 @@ func TestLogin(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -241,7 +238,7 @@ func TestInvalidLogin(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -272,7 +269,7 @@ func TestCreateArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -314,7 +311,7 @@ func TestCreateInvalidArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -336,7 +333,7 @@ func TestGetArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -358,7 +355,7 @@ func TestGetInvalidArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -380,7 +377,7 @@ func TestGetArticleNotLoggedin(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -403,7 +400,7 @@ func TestGetArticleUnauthorized(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", "abc123"))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -435,7 +432,7 @@ func TestUpdateArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -459,7 +456,7 @@ func TestDeleteArticle(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -487,7 +484,7 @@ func TestRefreshToken(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -516,7 +513,7 @@ func TestInvalidRefreshToken(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
@@ -538,7 +535,7 @@ func TestUserLogout(t *testing.T) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer: %s", accessToken))
 
 	if err != nil {
-		fmt.Println(err)
+		t.Errorf("Failed to create request: %v", err)
 	}
 
 	resp := httptest.NewRecorder()
