@@ -6,7 +6,6 @@ import (
 
 	"github.com/Massad/gin-boilerplate/forms"
 	"github.com/Massad/gin-boilerplate/models"
-
 	"github.com/gin-gonic/gin"
 )
 

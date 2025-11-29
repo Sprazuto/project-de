@@ -6,7 +6,6 @@ import (
 
 	"github.com/Massad/gin-boilerplate/db"
 	"github.com/Massad/gin-boilerplate/forms"
-
 	"golang.org/x/crypto/bcrypt"
 )
 

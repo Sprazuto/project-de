@@ -93,6 +93,91 @@ func (s SPSEPemilihan) TableName() string {
 	return "spse_pemilihan"
 }
 
+// SPSEHasilPemilihan represents election results stage data
+type SPSEHasilPemilihan struct {
+	ID                    int64     `db:"id, primarykey, autoincrement" json:"id"`
+	KodeRUP               string    `db:"kode_rup" json:"kode_rup"`
+	SatuanKerja           string    `db:"satuan_kerja" json:"satuan_kerja"`
+	NamaPaket             string    `db:"nama_paket" json:"nama_paket"`
+	MetodePemilihan       string    `db:"metode_pemilihan" json:"metode_pemilihan"`
+	TanggalHasilPemilihan string    `db:"tanggal_hasil_pemilihan" json:"tanggal_hasil_pemilihan"`
+	NilaiHasilPemilihan   string    `db:"nilai_hasil_pemilihan" json:"nilai_hasil_pemilihan"`
+	StatusPaket           string    `db:"status_paket" json:"status_paket"`
+	KodeSatuanKerja       string    `db:"kode_satuan_kerja" json:"kode_satuan_kerja"`
+	CaraPengadaan         string    `db:"cara_pengadaan" json:"cara_pengadaan"`
+	JenisPengadaan        string    `db:"jenis_pengadaan" json:"jenis_pengadaan"`
+	PDN                   string    `db:"pdn" json:"pdn"`
+	UMK                   string    `db:"umk" json:"umk"`
+	SumberDana            string    `db:"sumber_dana" json:"sumber_dana"`
+	KodeRUPLokal          string    `db:"kode_rup_lokal" json:"kode_rup_lokal"`
+	MetodePengadaan       string    `db:"metode_pengadaan" json:"metode_pengadaan"`
+	PaguRUP               string    `db:"pagu_rup" json:"pagu_rup"`
+	TipeSwakelola         string    `db:"tipe_swakelola" json:"tipe_swakelola"`
+	CreatedAt             time.Time `db:"created_at" json:"created_at"`
+	LastUpdate            int64     `db:"last_update" json:"last_update"`
+}
+
+func (s SPSEHasilPemilihan) TableName() string {
+	return "spse_hasilpemilihan"
+}
+
+// SPSEKontrak represents contract stage data
+type SPSEKontrak struct {
+	ID              int64     `db:"id, primarykey, autoincrement" json:"id"`
+	KodeRUP         string    `db:"kode_rup" json:"kode_rup"`
+	SatuanKerja     string    `db:"satuan_kerja" json:"satuan_kerja"`
+	NamaPaket       string    `db:"nama_paket" json:"nama_paket"`
+	MetodePemilihan string    `db:"metode_pemilihan" json:"metode_pemilihan"`
+	TanggalKontrak  string    `db:"tanggal_kontrak" json:"tanggal_kontrak"`
+	NilaiKontrak    string    `db:"nilai_kontrak" json:"nilai_kontrak"`
+	StatusPaket     string    `db:"status_paket" json:"status_paket"`
+	MulaiKontrak    string    `db:"mulai_kontrak" json:"mulai_kontrak"`
+	NilaiBAP        string    `db:"nilai_bap" json:"nilai_bap"`
+	SelesaiKontrak  string    `db:"selesai_kontrak" json:"selesai_kontrak"`
+	KodeSatuanKerja string    `db:"kode_satuan_kerja" json:"kode_satuan_kerja"`
+	CaraPengadaan   string    `db:"cara_pengadaan" json:"cara_pengadaan"`
+	JenisPengadaan  string    `db:"jenis_pengadaan" json:"jenis_pengadaan"`
+	PDN             string    `db:"pdn" json:"pdn"`
+	UMK             string    `db:"umk" json:"umk"`
+	SumberDana      string    `db:"sumber_dana" json:"sumber_dana"`
+	KodeRUPLokal    string    `db:"kode_rup_lokal" json:"kode_rup_lokal"`
+	MetodePengadaan string    `db:"metode_pengadaan" json:"metode_pengadaan"`
+	TipeSwakelola   string    `db:"tipe_swakelola" json:"tipe_swakelola"`
+	CreatedAt       time.Time `db:"created_at" json:"created_at"`
+	LastUpdate      int64     `db:"last_update" json:"last_update"`
+}
+
+func (s SPSEKontrak) TableName() string {
+	return "spse_kontrak"
+}
+
+// SPSESerahTerima represents handover stage data
+type SPSESerahTerima struct {
+	ID                 int64     `db:"id, primarykey, autoincrement" json:"id"`
+	KodeRUP            string    `db:"kode_rup" json:"kode_rup"`
+	SatuanKerja        string    `db:"satuan_kerja" json:"satuan_kerja"`
+	NamaPaket          string    `db:"nama_paket" json:"nama_paket"`
+	MetodePemilihan    string    `db:"metode_pemilihan" json:"metode_pemilihan"`
+	TanggalSerahTerima string    `db:"tanggal_serah_terima" json:"tanggal_serah_terima"`
+	NilaiBAP           string    `db:"nilai_bap" json:"nilai_bap"`
+	StatusPaket        string    `db:"status_paket" json:"status_paket"`
+	KodeSatuanKerja    string    `db:"kode_satuan_kerja" json:"kode_satuan_kerja"`
+	CaraPengadaan      string    `db:"cara_pengadaan" json:"cara_pengadaan"`
+	JenisPengadaan     string    `db:"jenis_pengadaan" json:"jenis_pengadaan"`
+	PDN                string    `db:"pdn" json:"pdn"`
+	UMK                string    `db:"umk" json:"umk"`
+	SumberDana         string    `db:"sumber_dana" json:"sumber_dana"`
+	KodeRUPLokal       string    `db:"kode_rup_lokal" json:"kode_rup_lokal"`
+	MetodePengadaan    string    `db:"metode_pengadaan" json:"metode_pengadaan"`
+	TipeSwakelola      string    `db:"tipe_swakelola" json:"tipe_swakelola"`
+	CreatedAt          time.Time `db:"created_at" json:"created_at"`
+	LastUpdate         int64     `db:"last_update" json:"last_update"`
+}
+
+func (s SPSESerahTerima) TableName() string {
+	return "spse_serahterima"
+}
+
 // RunSPESEMigrations runs SPSE-specific database migrations
 func RunSPESEMigrations() error {
 	log.Println("Running SPSE database migrations...")
@@ -102,6 +187,9 @@ func RunSPESEMigrations() error {
 	dbMap.AddTableWithName(SPSEPerencanaan{}, "spse_perencanaan").SetKeys(true, "id")
 	dbMap.AddTableWithName(SPSEPersiapan{}, "spse_persiapan").SetKeys(true, "id")
 	dbMap.AddTableWithName(SPSEPemilihan{}, "spse_pemilihan").SetKeys(true, "id")
+	dbMap.AddTableWithName(SPSEHasilPemilihan{}, "spse_hasilpemilihan").SetKeys(true, "id")
+	dbMap.AddTableWithName(SPSEKontrak{}, "spse_kontrak").SetKeys(true, "id")
+	dbMap.AddTableWithName(SPSESerahTerima{}, "spse_serahterima").SetKeys(true, "id")
 
 	// Create tables using gorp
 	err := dbMap.CreateTablesIfNotExists()
@@ -124,6 +212,18 @@ func RunSPESEMigrations() error {
 		},
 		{
 			name:   "spse_pemilihan",
+			fields: []string{"kode_rup", "nama_paket"},
+		},
+		{
+			name:   "spse_hasilpemilihan",
+			fields: []string{"kode_rup", "nama_paket"},
+		},
+		{
+			name:   "spse_kontrak",
+			fields: []string{"kode_rup", "nama_paket"},
+		},
+		{
+			name:   "spse_serahterima",
 			fields: []string{"kode_rup", "nama_paket"},
 		},
 	}

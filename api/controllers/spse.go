@@ -91,6 +91,79 @@ type PemilihanData struct {
 	LastUpdate       int64     `json:"last_update"`
 }
 
+// HasilPemilihanData represents election results stage data (matches SPSEHasilPemilihan model)
+type HasilPemilihanData struct {
+	ID                    int64     `json:"id"`
+	KodeRUP               string    `json:"kode_rup"`
+	SatuanKerja           string    `json:"satuan_kerja"`
+	NamaPaket             string    `json:"nama_paket"`
+	MetodePemilihan       string    `json:"metode_pemilihan"`
+	TanggalHasilPemilihan string    `json:"tanggal_hasil_pemilihan"`
+	NilaiHasilPemilihan   string    `json:"nilai_hasil_pemilihan"`
+	StatusPaket           string    `json:"status_paket"`
+	KodeSatuanKerja       string    `json:"kode_satuan_kerja"`
+	CaraPengadaan         string    `json:"cara_pengadaan"`
+	JenisPengadaan        string    `json:"jenis_pengadaan"`
+	PDN                   string    `json:"pdn"`
+	UMK                   string    `json:"umk"`
+	SumberDana            string    `json:"sumber_dana"`
+	KodeRUPLokal          string    `json:"kode_rup_lokal"`
+	MetodePengadaan       string    `json:"metode_pengadaan"`
+	PaguRUP               string    `json:"pagu_rup"`
+	TipeSwakelola         string    `json:"tipe_swakelola"`
+	CreatedAt             time.Time `json:"created_at"`
+	LastUpdate            int64     `json:"last_update"`
+}
+
+// KontrakData represents contract stage data (matches SPSEKontrak model)
+type KontrakData struct {
+	ID              int64     `json:"id"`
+	KodeRUP         string    `json:"kode_rup"`
+	SatuanKerja     string    `json:"satuan_kerja"`
+	NamaPaket       string    `json:"nama_paket"`
+	MetodePemilihan string    `json:"metode_pemilihan"`
+	TanggalKontrak  string    `json:"tanggal_kontrak"`
+	NilaiKontrak    string    `json:"nilai_kontrak"`
+	StatusPaket     string    `json:"status_paket"`
+	MulaiKontrak    string    `json:"mulai_kontrak"`
+	NilaiBAP        string    `json:"nilai_bap"`
+	SelesaiKontrak  string    `json:"selesai_kontrak"`
+	KodeSatuanKerja string    `json:"kode_satuan_kerja"`
+	CaraPengadaan   string    `json:"cara_pengadaan"`
+	JenisPengadaan  string    `json:"jenis_pengadaan"`
+	PDN             string    `json:"pdn"`
+	UMK             string    `json:"umk"`
+	SumberDana      string    `json:"sumber_dana"`
+	KodeRUPLokal    string    `json:"kode_rup_lokal"`
+	MetodePengadaan string    `json:"metode_pengadaan"`
+	TipeSwakelola   string    `json:"tipe_swakelola"`
+	CreatedAt       time.Time `json:"created_at"`
+	LastUpdate      int64     `json:"last_update"`
+}
+
+// SerahTerimaData represents handover stage data (matches SPSESerahTerima model)
+type SerahTerimaData struct {
+	ID                 int64     `json:"id"`
+	KodeRUP            string    `json:"kode_rup"`
+	SatuanKerja        string    `json:"satuan_kerja"`
+	NamaPaket          string    `json:"nama_paket"`
+	MetodePemilihan    string    `json:"metode_pemilihan"`
+	TanggalSerahTerima string    `json:"tanggal_serah_terima"`
+	NilaiBAP           string    `json:"nilai_bap"`
+	StatusPaket        string    `json:"status_paket"`
+	KodeSatuanKerja    string    `json:"kode_satuan_kerja"`
+	CaraPengadaan      string    `json:"cara_pengadaan"`
+	JenisPengadaan     string    `json:"jenis_pengadaan"`
+	PDN                string    `json:"pdn"`
+	UMK                string    `json:"umk"`
+	SumberDana         string    `json:"sumber_dana"`
+	KodeRUPLokal       string    `json:"kode_rup_lokal"`
+	MetodePengadaan    string    `json:"metode_pengadaan"`
+	TipeSwakelola      string    `json:"tipe_swakelola"`
+	CreatedAt          time.Time `json:"created_at"`
+	LastUpdate         int64     `json:"last_update"`
+}
+
 // ScrapingResult represents the result of scraping operations
 type ScrapingResult struct {
 	Success      bool   `json:"success"`
@@ -196,14 +269,6 @@ func (ctrl SPSEController) getAuthenticityToken() (string, error) {
 	}
 
 	return "", fmt.Errorf("authenticity token not found")
-}
-
-// Helper function to get minimum of two integers
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // scrapeEndpoint scrapes a specific endpoint
@@ -375,39 +440,53 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 	recordsFailed := 0
 
 	for _, item := range dataArray {
-		var itemMap map[string]interface{}
+		var orderedDataset *OrderedDataSet
 
-		// Handle different data formats
+		// Handle different data formats with ordered dataset approach
 		switch v := item.(type) {
 		case map[string]interface{}:
-			// Already a map, use directly
-			itemMap = v
+			// Convert map to ordered dataset
+			orderedDataset = ctrl.convertMapToOrderedDataset(tableName, v)
 		case []interface{}:
-			// Array format - convert to map based on table-specific field mapping
-			itemMap = ctrl.mapArrayToFields(tableName, v)
+			// Array format - convert to ordered dataset with precise field mapping
+			orderedDataset = ctrl.mapArrayToOrderedDataset(tableName, v)
 		case string:
 			// String format - try to parse as delimited data
-			itemMap = ctrl.parseStringData(v)
+			itemMap := ctrl.parseStringData(v)
+			orderedDataset = ctrl.convertMapToOrderedDataset(tableName, itemMap)
 		default:
 			recordsFailed++
 			continue
 		}
 
-		// Store based on table type
+		// Log mapping quality for debugging
+		if orderedDataset.MappingStatus.MappedFields < orderedDataset.MappingStatus.TotalFields/2 {
+			log.Printf("Warning: Poor field mapping for table %s - only %d/%d fields mapped",
+				tableName, orderedDataset.MappingStatus.MappedFields, orderedDataset.MappingStatus.TotalFields)
+		}
+
+		// Store based on table type using ordered dataset
 		var insertQuery string
 		switch tableName {
 		case "perencanaan":
-			insertQuery = ctrl.buildPerencanaanInsert(itemMap)
+			insertQuery = ctrl.buildPerencanaanInsertFromDataset(orderedDataset)
 		case "persiapan":
-			insertQuery = ctrl.buildPersiapanInsert(itemMap)
+			insertQuery = ctrl.buildPersiapanInsertFromDataset(orderedDataset)
 		case "pemilihan":
-			insertQuery = ctrl.buildPemilihanInsert(itemMap)
+			insertQuery = ctrl.buildPemilihanInsertFromDataset(orderedDataset)
+		case "hasilpemilihan":
+			insertQuery = ctrl.buildHasilPemilihanInsertFromDataset(orderedDataset)
+		case "kontrak":
+			insertQuery = ctrl.buildKontrakInsertFromDataset(orderedDataset)
+		case "serahterima":
+			insertQuery = ctrl.buildSerahTerimaInsertFromDataset(orderedDataset)
 		}
 
 		if insertQuery != "" {
 			_, err := database.Exec(insertQuery)
 			if err != nil {
 				recordsFailed++
+				log.Printf("Error inserting record: %v", err)
 				// Continue with next record instead of failing completely
 			} else {
 				recordsStored++
@@ -427,25 +506,29 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 	}, nil
 }
 
-// buildPerencanaanInsert builds INSERT query for perencanaan data
-func (ctrl SPSEController) buildPerencanaanInsert(data map[string]interface{}) string {
-	// Extract fields with proper escaping
-	kodeRUP := ctrl.escapeString(data["kode_rup"])
-	satuanKerja := ctrl.escapeString(data["satuan_kerja"])
-	namaPaket := ctrl.escapeString(data["nama_paket"])
-	metodePemilihan := ctrl.escapeString(data["metode_pemilihan"])
-	tanggalPengumuman := ctrl.escapeString(data["tanggal_pengumuman"])
-	rencanaPemilihan := ctrl.escapeString(data["rencana_pemilihan"])
-	paguRUP := ctrl.escapeString(data["pagu_rup"])
-	kodeSatuanKerja := ctrl.escapeString(data["kode_satuan_kerja"])
-	caraPengadaan := ctrl.escapeString(data["cara_pengadaan"])
-	jenisPengadaan := ctrl.escapeString(data["jenis_pengadaan"])
-	pdn := ctrl.escapeString(data["pdn"])
-	umk := ctrl.escapeString(data["umk"])
-	sumberDana := ctrl.escapeString(data["sumber_dana"])
-	kodeRUPLokal := ctrl.escapeString(data["kode_rup_lokal"])
-	akhirPemilihan := ctrl.escapeString(data["akhir_pemilihan"])
-	tipeSwakelola := ctrl.escapeString(data["tipe_swakelola"])
+// buildPerencanaanInsertFromDataset builds INSERT query for perencanaan data using ordered dataset
+func (ctrl SPSEController) buildPerencanaanInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	tanggalPengumuman := ctrl.escapeString(dataset.FieldValues["tanggal_pengumuman"])
+	rencanaPemilihan := ctrl.escapeString(dataset.FieldValues["rencana_pemilihan"])
+	paguRUP := ctrl.escapeString(dataset.FieldValues["pagu_rup"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	akhirPemilihan := ctrl.escapeString(dataset.FieldValues["akhir_pemilihan"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
 
 	return fmt.Sprintf(`INSERT INTO spse_perencanaan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_pengumuman, rencana_pemilihan, pagu_rup,
@@ -458,25 +541,29 @@ func (ctrl SPSEController) buildPerencanaanInsert(data map[string]interface{}) s
 		akhirPemilihan, tipeSwakelola, time.Now().Unix())
 }
 
-// buildPersiapanInsert builds INSERT query for persiapan data
-func (ctrl SPSEController) buildPersiapanInsert(data map[string]interface{}) string {
-	// Extract fields with proper escaping
-	kodeRUP := ctrl.escapeString(data["kode_rup"])
-	satuanKerja := ctrl.escapeString(data["satuan_kerja"])
-	namaPaket := ctrl.escapeString(data["nama_paket"])
-	metodePemilihan := ctrl.escapeString(data["metode_pemilihan"])
-	tanggalBuatPaket := ctrl.escapeString(data["tanggal_buat_paket"])
-	nilaiPaguRUP := ctrl.escapeString(data["nilai_pagu_rup"])
-	nilaiPaguPaket := ctrl.escapeString(data["nilai_pagu_paket"])
-	kodeSatuanKerja := ctrl.escapeString(data["kode_satuan_kerja"])
-	caraPengadaan := ctrl.escapeString(data["cara_pengadaan"])
-	jenisPengadaan := ctrl.escapeString(data["jenis_pengadaan"])
-	pdn := ctrl.escapeString(data["pdn"])
-	umk := ctrl.escapeString(data["umk"])
-	sumberDana := ctrl.escapeString(data["sumber_dana"])
-	kodeRUPLokal := ctrl.escapeString(data["kode_rup_lokal"])
-	metodePengadaan := ctrl.escapeString(data["metode_pengadaan"])
-	tipeSwakelola := ctrl.escapeString(data["tipe_swakelola"])
+// buildPersiapanInsertFromDataset builds INSERT query for persiapan data using ordered dataset
+func (ctrl SPSEController) buildPersiapanInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	tanggalBuatPaket := ctrl.escapeString(dataset.FieldValues["tanggal_buat_paket"])
+	nilaiPaguRUP := ctrl.escapeString(dataset.FieldValues["nilai_pagu_rup"])
+	nilaiPaguPaket := ctrl.escapeString(dataset.FieldValues["nilai_pagu_paket"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	metodePengadaan := ctrl.escapeString(dataset.FieldValues["metode_pengadaan"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
 
 	return fmt.Sprintf(`INSERT INTO spse_persiapan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_buat_paket, nilai_pagu_rup, nilai_pagu_paket,
@@ -489,28 +576,32 @@ func (ctrl SPSEController) buildPersiapanInsert(data map[string]interface{}) str
 		metodePengadaan, tipeSwakelola, time.Now().Unix())
 }
 
-// buildPemilihanInsert builds INSERT query for pemilihan data
-func (ctrl SPSEController) buildPemilihanInsert(data map[string]interface{}) string {
-	// Extract fields with proper escaping
-	kodeRUP := ctrl.escapeString(data["kode_rup"])
-	satuanKerja := ctrl.escapeString(data["satuan_kerja"])
-	namaPaket := ctrl.escapeString(data["nama_paket"])
-	metodePemilihan := ctrl.escapeString(data["metode_pemilihan"])
-	rencanaPemilihan := ctrl.escapeString(data["rencana_pemilihan"])
-	tanggalPemilihan := ctrl.escapeString(data["tanggal_pemilihan"])
-	nilaiHPS := ctrl.escapeString(data["nilai_hps"])
-	statusPaket := ctrl.escapeString(data["status_paket"])
-	kodeSatuanKerja := ctrl.escapeString(data["kode_satuan_kerja"])
-	caraPengadaan := ctrl.escapeString(data["cara_pengadaan"])
-	jenisPengadaan := ctrl.escapeString(data["jenis_pengadaan"])
-	pdn := ctrl.escapeString(data["pdn"])
-	umk := ctrl.escapeString(data["umk"])
-	sumberDana := ctrl.escapeString(data["sumber_dana"])
-	kodeRUPLokal := ctrl.escapeString(data["kode_rup_lokal"])
-	metodePengadaan := ctrl.escapeString(data["metode_pengadaan"])
-	paguRUP := ctrl.escapeString(data["pagu_rup"])
-	tipeSwakelola := ctrl.escapeString(data["tipe_swakelola"])
-	akhirPemilihan := ctrl.escapeString(data["akhir_pemilihan"])
+// buildPemilihanInsertFromDataset builds INSERT query for pemilihan data using ordered dataset
+func (ctrl SPSEController) buildPemilihanInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	rencanaPemilihan := ctrl.escapeString(dataset.FieldValues["rencana_pemilihan"])
+	tanggalPemilihan := ctrl.escapeString(dataset.FieldValues["tanggal_pemilihan"])
+	nilaiHPS := ctrl.escapeString(dataset.FieldValues["nilai_hps"])
+	statusPaket := ctrl.escapeString(dataset.FieldValues["status_paket"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	metodePengadaan := ctrl.escapeString(dataset.FieldValues["metode_pengadaan"])
+	paguRUP := ctrl.escapeString(dataset.FieldValues["pagu_rup"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
+	akhirPemilihan := ctrl.escapeString(dataset.FieldValues["akhir_pemilihan"])
 
 	return fmt.Sprintf(`INSERT INTO spse_pemilihan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, rencana_pemilihan, tanggal_pemilihan, nilai_hps, status_paket,
@@ -523,6 +614,115 @@ func (ctrl SPSEController) buildPemilihanInsert(data map[string]interface{}) str
 		metodePengadaan, paguRUP, tipeSwakelola, akhirPemilihan, time.Now().Unix())
 }
 
+// buildHasilPemilihanInsertFromDataset builds INSERT query for hasilpemilihan data using ordered dataset
+func (ctrl SPSEController) buildHasilPemilihanInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	tanggalHasilPemilihan := ctrl.escapeString(dataset.FieldValues["tanggal_hasil_pemilihan"])
+	nilaiHasilPemilihan := ctrl.escapeString(dataset.FieldValues["nilai_hasil_pemilihan"])
+	statusPaket := ctrl.escapeString(dataset.FieldValues["status_paket"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	metodePengadaan := ctrl.escapeString(dataset.FieldValues["metode_pengadaan"])
+	paguRUP := ctrl.escapeString(dataset.FieldValues["pagu_rup"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
+
+	return fmt.Sprintf(`INSERT INTO spse_hasilpemilihan
+		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_hasil_pemilihan, nilai_hasil_pemilihan, status_paket,
+		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
+		 metode_pengadaan, pagu_rup, tipe_swakelola, created_at, last_update)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
+		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalHasilPemilihan, nilaiHasilPemilihan, statusPaket,
+		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
+		metodePengadaan, paguRUP, tipeSwakelola, time.Now().Unix())
+}
+
+// buildKontrakInsertFromDataset builds INSERT query for kontrak data using ordered dataset
+func (ctrl SPSEController) buildKontrakInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	tanggalKontrak := ctrl.escapeString(dataset.FieldValues["tanggal_kontrak"])
+	nilaiKontrak := ctrl.escapeString(dataset.FieldValues["nilai_kontrak"])
+	statusPaket := ctrl.escapeString(dataset.FieldValues["status_paket"])
+	mulaiKontrak := ctrl.escapeString(dataset.FieldValues["mulai_kontrak"])
+	nilaiBAP := ctrl.escapeString(dataset.FieldValues["nilai_bap"])
+	selesaiKontrak := ctrl.escapeString(dataset.FieldValues["selesai_kontrak"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	metodePengadaan := ctrl.escapeString(dataset.FieldValues["metode_pengadaan"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
+
+	return fmt.Sprintf(`INSERT INTO spse_kontrak
+		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_kontrak, nilai_kontrak, status_paket,
+		 mulai_kontrak, nilai_bap, selesai_kontrak, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan,
+		 pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola, created_at, last_update)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
+		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalKontrak, nilaiKontrak, statusPaket,
+		mulaiKontrak, nilaiBAP, selesaiKontrak, kodeSatuanKerja, caraPengadaan, jenisPengadaan,
+		pdn, umk, sumberDana, kodeRUPLokal, metodePengadaan, tipeSwakelola, time.Now().Unix())
+}
+
+// buildSerahTerimaInsertFromDataset builds INSERT query for serahterima data using ordered dataset
+func (ctrl SPSEController) buildSerahTerimaInsertFromDataset(dataset *OrderedDataSet) string {
+	if dataset == nil || dataset.FieldValues == nil {
+		return ""
+	}
+
+	// Extract fields with proper escaping from ordered dataset
+	kodeRUP := ctrl.escapeString(dataset.FieldValues["kode_rup"])
+	satuanKerja := ctrl.escapeString(dataset.FieldValues["satuan_kerja"])
+	namaPaket := ctrl.escapeString(dataset.FieldValues["nama_paket"])
+	metodePemilihan := ctrl.escapeString(dataset.FieldValues["metode_pemilihan"])
+	tanggalSerahTerima := ctrl.escapeString(dataset.FieldValues["tanggal_serah_terima"])
+	nilaiBAP := ctrl.escapeString(dataset.FieldValues["nilai_bap"])
+	statusPaket := ctrl.escapeString(dataset.FieldValues["status_paket"])
+	kodeSatuanKerja := ctrl.escapeString(dataset.FieldValues["kode_satuan_kerja"])
+	caraPengadaan := ctrl.escapeString(dataset.FieldValues["cara_pengadaan"])
+	jenisPengadaan := ctrl.escapeString(dataset.FieldValues["jenis_pengadaan"])
+	pdn := ctrl.escapeString(dataset.FieldValues["pdn"])
+	umk := ctrl.escapeString(dataset.FieldValues["umk"])
+	sumberDana := ctrl.escapeString(dataset.FieldValues["sumber_dana"])
+	kodeRUPLokal := ctrl.escapeString(dataset.FieldValues["kode_rup_lokal"])
+	metodePengadaan := ctrl.escapeString(dataset.FieldValues["metode_pengadaan"])
+	tipeSwakelola := ctrl.escapeString(dataset.FieldValues["tipe_swakelola"])
+
+	return fmt.Sprintf(`INSERT INTO spse_serahterima
+		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_serah_terima, nilai_bap, status_paket,
+		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
+		 metode_pengadaan, tipe_swakelola, created_at, last_update)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
+		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalSerahTerima, nilaiBAP, statusPaket,
+		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
+		metodePengadaan, tipeSwakelola, time.Now().Unix())
+}
+
 // escapeString escapes single quotes for SQL
 func (ctrl SPSEController) escapeString(value interface{}) string {
 	if value == nil {
@@ -532,6 +732,62 @@ func (ctrl SPSEController) escapeString(value interface{}) string {
 	// Escape single quotes by doubling them
 	str = strings.ReplaceAll(str, "'", "''")
 	return str
+}
+
+// convertMapToOrderedDataset converts a map to ordered dataset format
+func (ctrl SPSEController) convertMapToOrderedDataset(tableName string, itemMap map[string]interface{}) *OrderedDataSet {
+	fieldMapping := ctrl.GetFieldMapping(tableName)
+	if fieldMapping == nil {
+		return &OrderedDataSet{
+			TableName:     tableName,
+			FieldOrder:    []string{},
+			FieldValues:   itemMap,
+			OriginalArray: nil,
+			MappingStatus: MappingStatus{TotalFields: 0, MappedFields: 0, MissingFields: 0, InvalidFields: 0},
+		}
+	}
+
+	dataset := &OrderedDataSet{
+		TableName:     fieldMapping.TableName,
+		FieldOrder:    fieldMapping.FieldOrder,
+		FieldValues:   make(map[string]interface{}),
+		OriginalArray: nil,
+		MappingStatus: MappingStatus{
+			TotalFields:   len(fieldMapping.FieldOrder),
+			MappedFields:  0,
+			MissingFields: len(fieldMapping.FieldOrder),
+			InvalidFields: 0,
+		},
+	}
+
+	// Copy values from map, validating as we go
+	for _, fieldName := range fieldMapping.FieldOrder {
+		if value, exists := itemMap[fieldName]; exists {
+			strValue := fmt.Sprintf("%v", value)
+
+			// Validate field if validator exists
+			if validator, exists := fieldMapping.FieldValidators[fieldName]; exists {
+				if !validator(strValue) {
+					dataset.MappingStatus.InvalidFields++
+					continue
+				}
+			}
+
+			dataset.FieldValues[fieldName] = strValue
+			dataset.MappingStatus.MappedFields++
+			dataset.MappingStatus.MissingFields--
+		}
+	}
+
+	// Fill missing fields with defaults
+	for fieldName, defaultValue := range fieldMapping.RequiredFields {
+		if _, exists := dataset.FieldValues[fieldName]; !exists {
+			dataset.FieldValues[fieldName] = defaultValue
+		}
+	}
+
+	dataset.MappingStatus.SequencePreserved = dataset.MappingStatus.MappedFields == len(fieldMapping.FieldOrder)
+	return dataset
 }
 
 // parseStringData parses string data that might be delimited or formatted
@@ -570,11 +826,195 @@ func (ctrl SPSEController) parseStringData(data string) map[string]interface{} {
 	return itemMap
 }
 
-// mapArrayToFields maps array data to field names using smart field detection and validation
-func (ctrl SPSEController) mapArrayToFields(tableName string, arr []interface{}) map[string]interface{} {
-	itemMap := make(map[string]interface{})
+// SPSEFieldMapping defines the precise field mapping structure for database columns
+type SPSEFieldMapping struct {
+	TableName       string                       `json:"table_name"`
+	FieldOrder      []string                     `json:"field_order"`
+	RequiredFields  map[string]string            `json:"required_fields"`
+	FieldValidators map[string]func(string) bool `json:"-"`
+}
 
-	// Convert array to strings for easier processing
+// GetFieldMapping returns the precise field mapping for a specific table
+func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
+	mappings := map[string]*SPSEFieldMapping{
+		"perencanaan": {
+			TableName: "spse_perencanaan",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"tanggal_pengumuman", "rencana_pemilihan", "pagu_rup", "kode_satuan_kerja",
+				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
+				"kode_rup_lokal", "akhir_pemilihan", "tipe_swakelola",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "tanggal_pengumuman": "", "rencana_pemilihan": "",
+				"pagu_rup": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
+				"jenis_pengadaan": "", "pdn": "", "umk": "",
+				"sumber_dana": "", "kode_rup_lokal": "", "akhir_pemilihan": "",
+				"tipe_swakelola": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":           ctrl.isRupCode,
+				"tanggal_pengumuman": ctrl.isDate,
+				"pagu_rup":           ctrl.isCurrency,
+			},
+		},
+		"persiapan": {
+			TableName: "spse_persiapan",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"tanggal_buat_paket", "nilai_pagu_rup", "nilai_pagu_paket", "kode_satuan_kerja",
+				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
+				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "tanggal_buat_paket": "", "nilai_pagu_rup": "",
+				"nilai_pagu_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
+				"jenis_pengadaan": "", "pdn": "", "umk": "",
+				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
+				"tipe_swakelola": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":           ctrl.isRupCode,
+				"tanggal_buat_paket": ctrl.isDate,
+				"nilai_pagu_rup":     ctrl.isCurrency,
+				"nilai_pagu_paket":   ctrl.isCurrency,
+			},
+		},
+		"pemilihan": {
+			TableName: "spse_pemilihan",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"rencana_pemilihan", "tanggal_pemilihan", "nilai_hps", "status_paket",
+				"kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk",
+				"sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup",
+				"tipe_swakelola", "akhir_pemilihan",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "rencana_pemilihan": "", "tanggal_pemilihan": "",
+				"nilai_hps": "", "status_paket": "", "kode_satuan_kerja": "",
+				"cara_pengadaan": "", "jenis_pengadaan": "", "pdn": "",
+				"umk": "", "sumber_dana": "", "kode_rup_lokal": "",
+				"metode_pengadaan": "", "pagu_rup": "", "tipe_swakelola": "",
+				"akhir_pemilihan": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":          ctrl.isRupCode,
+				"tanggal_pemilihan": ctrl.isDate,
+				"nilai_hps":         ctrl.isCurrency,
+				"pagu_rup":          ctrl.isCurrency,
+			},
+		},
+		"hasilpemilihan": {
+			TableName: "spse_hasilpemilihan",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"tanggal_hasil_pemilihan", "nilai_hasil_pemilihan", "status_paket",
+				"kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk",
+				"sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup",
+				"tipe_swakelola",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "tanggal_hasil_pemilihan": "", "nilai_hasil_pemilihan": "",
+				"status_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
+				"jenis_pengadaan": "", "pdn": "", "umk": "",
+				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
+				"pagu_rup": "", "tipe_swakelola": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":                ctrl.isRupCode,
+				"tanggal_hasil_pemilihan": ctrl.isDate,
+				"nilai_hasil_pemilihan":   ctrl.isCurrency,
+				"pagu_rup":                ctrl.isCurrency,
+			},
+		},
+		"kontrak": {
+			TableName: "spse_kontrak",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"tanggal_kontrak", "nilai_kontrak", "status_paket", "mulai_kontrak",
+				"nilai_bap", "selesai_kontrak", "kode_satuan_kerja", "cara_pengadaan",
+				"jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal",
+				"metode_pengadaan", "tipe_swakelola",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "tanggal_kontrak": "", "nilai_kontrak": "",
+				"status_paket": "", "mulai_kontrak": "", "nilai_bap": "",
+				"selesai_kontrak": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
+				"jenis_pengadaan": "", "pdn": "", "umk": "",
+				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
+				"tipe_swakelola": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":        ctrl.isRupCode,
+				"tanggal_kontrak": ctrl.isDate,
+				"nilai_kontrak":   ctrl.isCurrency,
+				"nilai_bap":       ctrl.isCurrency,
+			},
+		},
+		"serahterima": {
+			TableName: "spse_serahterima",
+			FieldOrder: []string{
+				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
+				"tanggal_serah_terima", "nilai_bap", "status_paket", "kode_satuan_kerja",
+				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
+				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola",
+			},
+			RequiredFields: map[string]string{
+				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
+				"metode_pemilihan": "", "tanggal_serah_terima": "", "nilai_bap": "",
+				"status_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
+				"jenis_pengadaan": "", "pdn": "", "umk": "",
+				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
+				"tipe_swakelola": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_rup":             ctrl.isRupCode,
+				"tanggal_serah_terima": ctrl.isDate,
+				"nilai_bap":            ctrl.isCurrency,
+			},
+		},
+	}
+
+	return mappings[tableName]
+}
+
+// OrderedDataSet represents an ordered dataset with proper field mapping
+type OrderedDataSet struct {
+	TableName     string                 `json:"table_name"`
+	FieldOrder    []string               `json:"field_order"`
+	FieldValues   map[string]interface{} `json:"field_values"`
+	OriginalArray []interface{}          `json:"original_array"`
+	MappingStatus MappingStatus          `json:"mapping_status"`
+}
+
+// MappingStatus tracks the quality of the field mapping
+type MappingStatus struct {
+	TotalFields       int  `json:"total_fields"`
+	MappedFields      int  `json:"mapped_fields"`
+	MissingFields     int  `json:"missing_fields"`
+	InvalidFields     int  `json:"invalid_fields"`
+	SequencePreserved bool `json:"sequence_preserved"`
+}
+
+// mapArrayToOrderedDataset converts unkeyed array to ordered dataset with precise field mapping
+func (ctrl SPSEController) mapArrayToOrderedDataset(tableName string, arr []interface{}) *OrderedDataSet {
+	fieldMapping := ctrl.GetFieldMapping(tableName)
+	if fieldMapping == nil {
+		return &OrderedDataSet{
+			TableName:     tableName,
+			FieldOrder:    []string{},
+			FieldValues:   make(map[string]interface{}),
+			OriginalArray: arr,
+			MappingStatus: MappingStatus{TotalFields: 0, MappedFields: 0, MissingFields: 0, InvalidFields: 0},
+		}
+	}
+
+	// Convert array to strings for processing
 	arrStr := make([]string, len(arr))
 	for i, v := range arr {
 		if v != nil {
@@ -584,298 +1024,50 @@ func (ctrl SPSEController) mapArrayToFields(tableName string, arr []interface{})
 		}
 	}
 
-	// Apply table-specific smart mapping logic
-	switch tableName {
-	case "perencanaan":
-		itemMap = ctrl.mapPerencanaanFields(arrStr)
-	case "persiapan":
-		itemMap = ctrl.mapPersiapanFields(arrStr)
-	case "pemilihan":
-		itemMap = ctrl.mapPemilihanFields(arrStr)
-	default:
-		// Fallback: try to map first few elements to common fields
-		if len(arrStr) >= 1 {
-			itemMap["kode_rup"] = arrStr[0]
-		}
-		if len(arrStr) >= 2 {
-			itemMap["nama_paket"] = arrStr[1]
-		}
-		if len(arrStr) >= 3 {
-			itemMap["satuan_kerja"] = arrStr[2]
-		}
+	// Create ordered dataset with precise field mapping
+	dataset := &OrderedDataSet{
+		TableName:     fieldMapping.TableName,
+		FieldOrder:    fieldMapping.FieldOrder,
+		FieldValues:   make(map[string]interface{}),
+		OriginalArray: arr,
+		MappingStatus: MappingStatus{
+			TotalFields:   len(fieldMapping.FieldOrder),
+			MappedFields:  0,
+			MissingFields: len(fieldMapping.FieldOrder),
+			InvalidFields: 0,
+		},
 	}
 
-	// Validate and fill missing fields with appropriate defaults
-	itemMap = ctrl.validateAndFillFields(tableName, itemMap)
+	// Map array elements to database fields based on precise field order
+	for i, fieldName := range fieldMapping.FieldOrder {
+		if i < len(arrStr) && arrStr[i] != "" {
+			value := strings.TrimSpace(arrStr[i])
 
-	return itemMap
-}
-
-// mapPerencanaanFields maps fields for perencanaan table with smart detection
-func (ctrl SPSEController) mapPerencanaanFields(arr []string) map[string]interface{} {
-	itemMap := make(map[string]interface{})
-
-	// Perencanaan specific mapping - more flexible approach
-	// Try to identify fields by content patterns rather than fixed positions
-
-	for i, val := range arr {
-		trimmedVal := strings.TrimSpace(val)
-		if trimmedVal == "" {
-			continue
-		}
-
-		// Pattern-based field detection
-		switch {
-		case i == 0 || ctrl.isRupCode(trimmedVal):
-			if itemMap["kode_rup"] == "" {
-				itemMap["kode_rup"] = trimmedVal
+			// Validate field if validator exists
+			if validator, exists := fieldMapping.FieldValidators[fieldName]; exists {
+				if !validator(value) {
+					dataset.MappingStatus.InvalidFields++
+					continue // Skip invalid values
+				}
 			}
-		case i == 1 || ctrl.isSatuanKerja(trimmedVal):
-			if itemMap["satuan_kerja"] == "" {
-				itemMap["satuan_kerja"] = trimmedVal
-			}
-		case i == 2 || ctrl.isPackageName(trimmedVal):
-			if itemMap["nama_paket"] == "" {
-				itemMap["nama_paket"] = trimmedVal
-			}
-		case ctrl.isDate(trimmedVal) && itemMap["tanggal_pengumuman"] == "":
-			itemMap["tanggal_pengumuman"] = trimmedVal
-		case ctrl.isCurrency(trimmedVal) && itemMap["pagu_rup"] == "":
-			itemMap["pagu_rup"] = trimmedVal
-		case ctrl.isSelectionMethod(trimmedVal) && itemMap["metode_pemilihan"] == "":
-			itemMap["metode_pemilihan"] = trimmedVal
-		default:
-			// For unidentified fields, assign to next available slot
-			ctrl.assignToNextAvailableField(itemMap, trimmedVal, "perencanaan")
-		}
-	}
 
-	// Fill remaining fields from array positions (backup method)
-	ctrl.assignRemainingPerencanaanFields(arr, itemMap)
-
-	return itemMap
-}
-
-// mapPersiapanFields maps fields for persiapan table with direct positional mapping
-func (ctrl SPSEController) mapPersiapanFields(arr []string) map[string]interface{} {
-	itemMap := make(map[string]interface{})
-
-	// Direct positional mapping based on the observed array structure
-	// Array structure: [0]=kode_rup, [1]=satuan_kerja, [2]=nama_paket, [3]=metode_pemilihan, etc.
-	if len(arr) >= 1 && arr[0] != "" {
-		itemMap["kode_rup"] = strings.TrimSpace(arr[0])
-	}
-	if len(arr) >= 2 && arr[1] != "" {
-		itemMap["satuan_kerja"] = strings.TrimSpace(arr[1])
-	}
-	if len(arr) >= 3 && arr[2] != "" {
-		itemMap["nama_paket"] = strings.TrimSpace(arr[2])
-	}
-	if len(arr) >= 4 && arr[3] != "" {
-		itemMap["metode_pemilihan"] = strings.TrimSpace(arr[3])
-	}
-	if len(arr) >= 5 && arr[4] != "" {
-		itemMap["rencana_pemilihan"] = strings.TrimSpace(arr[4])
-	}
-	if len(arr) >= 6 && arr[5] != "" {
-		itemMap["tanggal_pemilihan"] = strings.TrimSpace(arr[5])
-	}
-	if len(arr) >= 7 && arr[6] != "" {
-		itemMap["nilai_hps"] = strings.TrimSpace(arr[6])
-	}
-	if len(arr) >= 8 && arr[7] != "" {
-		itemMap["status_paket"] = strings.TrimSpace(arr[7])
-	}
-	if len(arr) >= 9 && arr[8] != "" {
-		itemMap["kode_satuan_kerja"] = strings.TrimSpace(arr[8])
-	}
-	if len(arr) >= 10 && arr[9] != "" {
-		itemMap["jenis_pengadaan"] = strings.TrimSpace(arr[9])
-	}
-	if len(arr) >= 11 && arr[10] != "" {
-		itemMap["cara_pengadaan"] = strings.TrimSpace(arr[10])
-	}
-	if len(arr) >= 12 && arr[11] != "" {
-		itemMap["pdn"] = strings.TrimSpace(arr[11])
-	}
-	if len(arr) >= 13 && arr[12] != "" {
-		itemMap["umk"] = strings.TrimSpace(arr[12])
-	}
-	if len(arr) >= 14 && arr[13] != "" {
-		itemMap["sumber_dana"] = strings.TrimSpace(arr[13])
-	}
-	if len(arr) >= 15 && arr[14] != "" {
-		itemMap["kode_rup_lokal"] = strings.TrimSpace(arr[14])
-	}
-	if len(arr) >= 16 && arr[15] != "" {
-		itemMap["tipe_swakelola"] = strings.TrimSpace(arr[15])
-	}
-	if len(arr) >= 17 && arr[16] != "" {
-		itemMap["pagu_rup"] = strings.TrimSpace(arr[16])
-	}
-	if len(arr) >= 19 && arr[18] != "" {
-		itemMap["akhir_pemilihan"] = strings.TrimSpace(arr[18])
-	}
-
-	// Fill any missing fields using the backup positional method
-	ctrl.assignRemainingPersiapanFields(arr, itemMap)
-
-	return itemMap
-}
-
-// mapPemilihanFields maps fields for pemilihan table with direct positional mapping
-func (ctrl SPSEController) mapPemilihanFields(arr []string) map[string]interface{} {
-	itemMap := make(map[string]interface{})
-
-	// Direct positional mapping based on the observed array structure
-	// Array structure: [0]=kode_rup, [1]=satuan_kerja, [2]=nama_paket, [3]=metode_pemilihan, [4]=rencana_pemilihan, [5]=tanggal_pemilihan, [6]=nilai_hps, [7]=status_paket, etc.
-	if len(arr) >= 1 && arr[0] != "" {
-		itemMap["kode_rup"] = strings.TrimSpace(arr[0])
-	}
-	if len(arr) >= 2 && arr[1] != "" {
-		itemMap["satuan_kerja"] = strings.TrimSpace(arr[1])
-	}
-	if len(arr) >= 3 && arr[2] != "" {
-		itemMap["nama_paket"] = strings.TrimSpace(arr[2])
-	}
-	if len(arr) >= 4 && arr[3] != "" {
-		itemMap["metode_pemilihan"] = strings.TrimSpace(arr[3])
-	}
-	if len(arr) >= 5 && arr[4] != "" {
-		itemMap["rencana_pemilihan"] = strings.TrimSpace(arr[4])
-	}
-	if len(arr) >= 6 && arr[5] != "" {
-		itemMap["tanggal_pemilihan"] = strings.TrimSpace(arr[5])
-	}
-	if len(arr) >= 7 && arr[6] != "" {
-		itemMap["nilai_hps"] = strings.TrimSpace(arr[6])
-	}
-	if len(arr) >= 8 && arr[7] != "" {
-		itemMap["status_paket"] = strings.TrimSpace(arr[7])
-	}
-	if len(arr) >= 9 && arr[8] != "" {
-		itemMap["kode_satuan_kerja"] = strings.TrimSpace(arr[8])
-	}
-	if len(arr) >= 10 && arr[9] != "" {
-		itemMap["jenis_pengadaan"] = strings.TrimSpace(arr[9])
-	}
-	if len(arr) >= 11 && arr[10] != "" {
-		itemMap["cara_pengadaan"] = strings.TrimSpace(arr[10])
-	}
-	if len(arr) >= 12 && arr[11] != "" {
-		itemMap["pdn"] = strings.TrimSpace(arr[11])
-	}
-	if len(arr) >= 13 && arr[12] != "" {
-		itemMap["umk"] = strings.TrimSpace(arr[12])
-	}
-	if len(arr) >= 14 && arr[13] != "" {
-		itemMap["sumber_dana"] = strings.TrimSpace(arr[13])
-	}
-	if len(arr) >= 15 && arr[14] != "" {
-		itemMap["kode_rup_lokal"] = strings.TrimSpace(arr[14])
-	}
-	if len(arr) >= 16 && arr[15] != "" {
-		itemMap["tipe_swakelola"] = strings.TrimSpace(arr[15])
-	}
-	if len(arr) >= 17 && arr[16] != "" {
-		itemMap["pagu_rup"] = strings.TrimSpace(arr[16])
-	}
-	if len(arr) >= 19 && arr[18] != "" {
-		itemMap["akhir_pemilihan"] = strings.TrimSpace(arr[18])
-	}
-
-	// Fill any missing fields using the backup positional method
-	ctrl.assignRemainingPemilihanFields(arr, itemMap)
-
-	return itemMap
-}
-
-// assignRemainingPerencanaanFields fills remaining fields using positional mapping as backup
-func (ctrl SPSEController) assignRemainingPerencanaanFields(arr []string, itemMap map[string]interface{}) {
-	// Standard Perencanaan field order: kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_pengumuman, rencana_pemilihan, pagu_rup, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal, akhir_pemilihan, tipe_swakelola
-	fields := []string{"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan", "tanggal_pengumuman", "rencana_pemilihan", "pagu_rup", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "akhir_pemilihan", "tipe_swakelola"}
-
-	for i, field := range fields {
-		if itemMap[field] == "" && i < len(arr) {
-			itemMap[field] = strings.TrimSpace(arr[i])
-		}
-	}
-}
-
-// assignRemainingPersiapanFields fills remaining fields using positional mapping as backup
-func (ctrl SPSEController) assignRemainingPersiapanFields(arr []string, itemMap map[string]interface{}) {
-	// Standard Persiapan field order: kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_buat_paket, nilai_pagu_rup, nilai_pagu_paket, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola
-	fields := []string{"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan", "tanggal_buat_paket", "nilai_pagu_rup", "nilai_pagu_paket", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "metode_pengadaan", "tipe_swakelola"}
-
-	for i, field := range fields {
-		// Check for nil or empty string
-		if itemMap[field] == nil || itemMap[field] == "" {
-			if i < len(arr) && arr[i] != "" {
-				itemMap[field] = strings.TrimSpace(arr[i])
-			}
-		}
-	}
-}
-
-// assignRemainingPemilihanFields fills remaining fields using positional mapping as backup
-func (ctrl SPSEController) assignRemainingPemilihanFields(arr []string, itemMap map[string]interface{}) {
-	// Standard Pemilihan field order: kode_rup, satuan_kerja, nama_paket, metode_pemilihan, rencana_pemilihan, tanggal_pemilihan, nilai_hps, status_paket, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup, tipe_swakelola, akhir_pemilihan
-	fields := []string{"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan", "rencana_pemilihan", "tanggal_pemilihan", "nilai_hps", "status_paket", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup", "tipe_swakelola", "akhir_pemilihan"}
-
-	for i, field := range fields {
-		// Check for nil or empty string
-		if itemMap[field] == nil || itemMap[field] == "" {
-			if i < len(arr) && arr[i] != "" {
-				itemMap[field] = strings.TrimSpace(arr[i])
-			}
-		}
-	}
-}
-
-// validateAndFillFields ensures all required database fields are populated with appropriate defaults
-func (ctrl SPSEController) validateAndFillFields(tableName string, itemMap map[string]interface{}) map[string]interface{} {
-	// Define required fields for each table with their default values
-	requiredFields := make(map[string]string)
-
-	switch tableName {
-	case "perencanaan":
-		requiredFields = map[string]string{
-			"kode_rup": "UNKNOWN", "satuan_kerja": "N/A", "nama_paket": "N/A",
-			"metode_pemilihan": "N/A", "tanggal_pengumuman": "N/A", "rencana_pemilihan": "N/A",
-			"pagu_rup": "N/A", "kode_satuan_kerja": "N/A", "cara_pengadaan": "N/A",
-			"jenis_pengadaan": "N/A", "pdn": "N/A", "umk": "N/A",
-			"sumber_dana": "N/A", "kode_rup_lokal": "N/A", "akhir_pemilihan": "N/A",
-			"tipe_swakelola": "N/A",
-		}
-	case "persiapan":
-		requiredFields = map[string]string{
-			"kode_rup": "UNKNOWN", "satuan_kerja": "N/A", "nama_paket": "N/A",
-			"metode_pemilihan": "N/A", "tanggal_buat_paket": "N/A", "nilai_pagu_rup": "N/A",
-			"nilai_pagu_paket": "N/A", "kode_satuan_kerja": "N/A", "cara_pengadaan": "N/A",
-			"jenis_pengadaan": "N/A", "pdn": "N/A", "umk": "N/A",
-			"sumber_dana": "N/A", "kode_rup_lokal": "N/A", "metode_pengadaan": "N/A",
-			"tipe_swakelola": "N/A",
-		}
-	case "pemilihan":
-		requiredFields = map[string]string{
-			"kode_rup": "UNKNOWN", "satuan_kerja": "N/A", "nama_paket": "N/A",
-			"metode_pemilihan": "N/A", "rencana_pemilihan": "N/A", "tanggal_pemilihan": "N/A",
-			"nilai_hps": "N/A", "status_paket": "N/A", "kode_satuan_kerja": "N/A",
-			"cara_pengadaan": "N/A", "jenis_pengadaan": "N/A", "pdn": "N/A",
-			"umk": "N/A", "sumber_dana": "N/A", "kode_rup_lokal": "N/A",
-			"metode_pengadaan": "N/A", "pagu_rup": "N/A", "tipe_swakelola": "N/A",
-			"akhir_pemilihan": "N/A",
+			dataset.FieldValues[fieldName] = value
+			dataset.MappingStatus.MappedFields++
+			dataset.MappingStatus.MissingFields--
 		}
 	}
 
 	// Fill missing fields with defaults
-	for field, defaultValue := range requiredFields {
-		if itemMap[field] == "" || itemMap[field] == nil {
-			itemMap[field] = defaultValue
+	for fieldName, defaultValue := range fieldMapping.RequiredFields {
+		if _, exists := dataset.FieldValues[fieldName]; !exists {
+			dataset.FieldValues[fieldName] = defaultValue
 		}
 	}
 
-	return itemMap
+	// Check if sequence is preserved (all expected fields mapped)
+	dataset.MappingStatus.SequencePreserved = dataset.MappingStatus.MappedFields == len(fieldMapping.FieldOrder)
+
+	return dataset
 }
 
 // Helper functions for pattern recognition
@@ -885,33 +1077,6 @@ func (ctrl SPSEController) isRupCode(value string) bool {
 	// RUP codes are typically numeric and 8+ digits
 	_, err := strconv.ParseInt(value, 10, 64)
 	return err == nil && len(value) >= 8
-}
-
-// isSatuanKerja checks if a string looks like a work unit name
-func (ctrl SPSEController) isSatuanKerja(value string) bool {
-	// Typically contains department/institution keywords
-	keywords := []string{"dinas", "kecamatan", "kelurahan", "rsud", "rs", "kantor", "badan", "dinas"}
-	lowerValue := strings.ToLower(value)
-	for _, keyword := range keywords {
-		if strings.Contains(lowerValue, keyword) {
-			return true
-		}
-	}
-	return false
-}
-
-// isPackageName checks if a string looks like a package name
-func (ctrl SPSEController) isPackageName(value string) bool {
-	// Package names typically contain procurement-related keywords
-	keywords := []string{"pembangunan", "pengadaan", "jasa", "konsultasi", "konstruksi", "maintenance"}
-	lowerValue := strings.ToLower(value)
-	for _, keyword := range keywords {
-		if strings.Contains(lowerValue, keyword) {
-			return true
-		}
-	}
-	// Also check if it's a reasonable length for a package name
-	return len(value) > 10 && len(value) < 200
 }
 
 // isDate checks if a string looks like a date
@@ -972,28 +1137,6 @@ func (ctrl SPSEController) isSelectionMethod(value string) bool {
 		}
 	}
 	return false
-}
-
-// assignToNextAvailableField assigns a value to the next unfilled field for a specific table
-func (ctrl SPSEController) assignToNextAvailableField(itemMap map[string]interface{}, value, tableName string) {
-	var fields []string
-
-	switch tableName {
-	case "perencanaan":
-		fields = []string{"rencana_pemilihan", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "akhir_pemilihan", "tipe_swakelola"}
-	case "persiapan":
-		fields = []string{"tanggal_buat_paket", "nilai_pagu_paket", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "metode_pengadaan", "tipe_swakelola"}
-	case "pemilihan":
-		fields = []string{"rencana_pemilihan", "status_paket", "kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup", "tipe_swakelola", "akhir_pemilihan"}
-	}
-
-	// Find the first empty field and assign the value
-	for _, field := range fields {
-		if itemMap[field] == "" {
-			itemMap[field] = value
-			break
-		}
-	}
 }
 
 // ScrapePerencanaan godoc
@@ -1077,6 +1220,87 @@ func (ctrl SPSEController) ScrapePemilihan(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+// ScrapeHasilPemilihan godoc
+// @Summary Scrape Hasil Pemilihan (Election Results) data from SPSE API
+// @Schemes
+// @Description Scrapes election results data from SPSE API endpoint
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Success 200 {object} ScrapingResult
+// @Failure 500 {object} gin.H
+// @Router /spse/scraper/hasilpemilihan [POST]
+func (ctrl SPSEController) ScrapeHasilPemilihan(c *gin.Context) {
+	log.Println("Starting Hasil Pemilihan scraping...")
+
+	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailhasilpemilihan2", "hasilpemilihan")
+	if err != nil {
+		log.Printf("Error scraping Hasil Pemilihan: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   err.Error(),
+			"message": "Failed to scrape Hasil Pemilihan data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// ScrapeKontrak godoc
+// @Summary Scrape Kontrak (Contract) data from SPSE API
+// @Schemes
+// @Description Scrapes kontrak contract data from SPSE API endpoint
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Success 200 {object} ScrapingResult
+// @Failure 500 {object} gin.H
+// @Router /spse/scraper/kontrak [POST]
+func (ctrl SPSEController) ScrapeKontrak(c *gin.Context) {
+	log.Println("Starting Kontrak scraping...")
+
+	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailkontrak2", "kontrak")
+	if err != nil {
+		log.Printf("Error scraping Kontrak: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   err.Error(),
+			"message": "Failed to scrape Kontrak data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// ScrapeSerahTerima godoc
+// @Summary Scrape Serah Terima (Handover) data from SPSE API
+// @Schemes
+// @Description Scrapes serah terima handover data from SPSE API endpoint
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Success 200 {object} ScrapingResult
+// @Failure 500 {object} gin.H
+// @Router /spse/scraper/serahterima [POST]
+func (ctrl SPSEController) ScrapeSerahTerima(c *gin.Context) {
+	log.Println("Starting Serah Terima scraping...")
+
+	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailserahterima2", "serahterima")
+	if err != nil {
+		log.Printf("Error scraping Serah Terima: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   err.Error(),
+			"message": "Failed to scrape Serah Terima data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // ScrapeAll godoc
 // @Summary Scrape all SPSE perencanaan data endpoints
 // @Schemes
@@ -1098,6 +1322,9 @@ func (ctrl SPSEController) ScrapeAll(c *gin.Context) {
 		{"/sumedangkab/amel/dt/detailperencanaan2", "perencanaan", "Perencanaan"},
 		{"/sumedangkab/amel/dt/detailpersiapan2", "persiapan", "Persiapan"},
 		{"/sumedangkab/amel/dt/detailpemilihan2", "pemilihan", "Pemilihan"},
+		{"/sumedangkab/amel/dt/detailhasilpemilihan2", "hasilpemilihan", "Hasil Pemilihan"},
+		{"/sumedangkab/amel/dt/detailkontrak2", "kontrak", "Kontrak"},
+		{"/sumedangkab/amel/dt/detailserahterima2", "serahterima", "Serah Terima"},
 	}
 
 	results := make(map[string]ScrapingResult)
@@ -1143,6 +1370,9 @@ func (ctrl SPSEController) GetStatistics(c *gin.Context) {
 	var perencanaanCount int
 	var persiapanCount int
 	var pemilihanCount int
+	var hasilPemilihanCount int
+	var kontrakCount int
+	var serahTerimaCount int
 
 	// Get counts from each table
 	err := database.QueryRow("SELECT COUNT(*) FROM spse_perencanaan").Scan(&perencanaanCount)
@@ -1163,14 +1393,35 @@ func (ctrl SPSEController) GetStatistics(c *gin.Context) {
 		pemilihanCount = 0
 	}
 
-	total := perencanaanCount + persiapanCount + pemilihanCount
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_hasilpemilihan").Scan(&hasilPemilihanCount)
+	if err != nil {
+		log.Printf("Error getting hasil pemilihan count: %v", err)
+		hasilPemilihanCount = 0
+	}
+
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_kontrak").Scan(&kontrakCount)
+	if err != nil {
+		log.Printf("Error getting kontrak count: %v", err)
+		kontrakCount = 0
+	}
+
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_serahterima").Scan(&serahTerimaCount)
+	if err != nil {
+		log.Printf("Error getting serah terima count: %v", err)
+		serahTerimaCount = 0
+	}
+
+	total := perencanaanCount + persiapanCount + pemilihanCount + hasilPemilihanCount + kontrakCount + serahTerimaCount
 
 	c.JSON(http.StatusOK, gin.H{
 		"statistics": gin.H{
-			"perencanaan": perencanaanCount,
-			"persiapan":   persiapanCount,
-			"pemilihan":   pemilihanCount,
-			"total":       total,
+			"perencanaan":     perencanaanCount,
+			"persiapan":       persiapanCount,
+			"pemilihan":       pemilihanCount,
+			"hasil_pemilihan": hasilPemilihanCount,
+			"kontrak":         kontrakCount,
+			"serah_terima":    serahTerimaCount,
+			"total":           total,
 		},
 		"last_updated": time.Now().Format(time.RFC3339),
 	})
@@ -1221,6 +1472,135 @@ func (ctrl SPSEController) GetPerencanaan(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalPengumuman, &item.RencanaPemilihan,
 			&item.PaguRUP, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
 			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.AkhirPemilihan,
+			&item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+		if err != nil {
+			log.Printf("Error scanning row: %v", err)
+			continue
+		}
+		data = append(data, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    data,
+		"pagination": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(data),
+		},
+	})
+}
+
+// GetKontrak godoc
+// @Summary Get Kontrak data from database
+// @Schemes
+// @Description Retrieve stored kontrak contract data with pagination
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit results (default: 100)"
+// @Param offset query int false "Offset for pagination (default: 0)"
+// @Success 200 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /spse/data/kontrak [GET]
+func (ctrl SPSEController) GetKontrak(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	database := db.GetDB()
+
+	rows, err := database.Query(`
+		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
+			   tanggal_kontrak, nilai_kontrak, status_paket, mulai_kontrak,
+			   nilai_bap, selesai_kontrak, kode_satuan_kerja, cara_pengadaan,
+			   jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
+			   metode_pengadaan, tipe_swakelola, created_at, last_update
+		FROM spse_kontrak
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
+
+	if err != nil {
+		log.Printf("Error querying kontrak data: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve data",
+		})
+		return
+	}
+	defer rows.Close()
+
+	var data []KontrakData
+	for rows.Next() {
+		var item KontrakData
+		err := rows.Scan(&item.ID, &item.KodeRUP, &item.SatuanKerja, &item.NamaPaket,
+			&item.MetodePemilihan, &item.TanggalKontrak, &item.NilaiKontrak, &item.StatusPaket,
+			&item.MulaiKontrak, &item.NilaiBAP, &item.SelesaiKontrak, &item.KodeSatuanKerja,
+			&item.CaraPengadaan, &item.JenisPengadaan, &item.PDN, &item.UMK, &item.SumberDana,
+			&item.KodeRUPLokal, &item.MetodePengadaan, &item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+		if err != nil {
+			log.Printf("Error scanning row: %v", err)
+			continue
+		}
+		data = append(data, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    data,
+		"pagination": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(data),
+		},
+	})
+}
+
+// GetSerahTerima godoc
+// @Summary Get Serah Terima data from database
+// @Schemes
+// @Description Retrieve stored serah terima handover data with pagination
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit results (default: 100)"
+// @Param offset query int false "Offset for pagination (default: 0)"
+// @Success 200 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /spse/data/serahterima [GET]
+func (ctrl SPSEController) GetSerahTerima(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	database := db.GetDB()
+
+	rows, err := database.Query(`
+		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
+			   tanggal_serah_terima, nilai_bap, status_paket, kode_satuan_kerja,
+			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
+			   metode_pengadaan, tipe_swakelola, created_at, last_update
+		FROM spse_serahterima
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
+
+	if err != nil {
+		log.Printf("Error querying serah terima data: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve data",
+		})
+		return
+	}
+	defer rows.Close()
+
+	var data []SerahTerimaData
+	for rows.Next() {
+		var item SerahTerimaData
+		err := rows.Scan(&item.ID, &item.KodeRUP, &item.SatuanKerja, &item.NamaPaket,
+			&item.MetodePemilihan, &item.TanggalSerahTerima, &item.NilaiBAP, &item.StatusPaket,
+			&item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan, &item.PDN,
+			&item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.MetodePengadaan,
 			&item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			log.Printf("Error scanning row: %v", err)
@@ -1352,6 +1732,71 @@ func (ctrl SPSEController) GetPemilihan(c *gin.Context) {
 			&item.JenisPengadaan, &item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal,
 			&item.MetodePengadaan, &item.PaguRUP, &item.TipeSwakelola, &item.AkhirPemilihan,
 			&item.CreatedAt, &item.LastUpdate)
+		if err != nil {
+			log.Printf("Error scanning row: %v", err)
+			continue
+		}
+		data = append(data, item)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    data,
+		"pagination": gin.H{
+			"limit":  limit,
+			"offset": offset,
+			"count":  len(data),
+		},
+	})
+}
+
+// GetHasilPemilihan godoc
+// @Summary Get Hasil Pemilihan data from database
+// @Schemes
+// @Description Retrieve stored hasil pemilihan election results data with pagination
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit results (default: 100)"
+// @Param offset query int false "Offset for pagination (default: 0)"
+// @Success 200 {object} gin.H
+// @Failure 500 {object} gin.H
+// @Router /spse/data/hasilpemilihan [GET]
+func (ctrl SPSEController) GetHasilPemilihan(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "100"))
+	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+
+	database := db.GetDB()
+
+	rows, err := database.Query(`
+		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
+			   tanggal_hasil_pemilihan, nilai_hasil_pemilihan, status_paket,
+			   kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk,
+			   sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup,
+			   tipe_swakelola, created_at, last_update
+		FROM spse_hasilpemilihan
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`, limit, offset)
+
+	if err != nil {
+		log.Printf("Error querying hasil pemilihan data: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   "Failed to retrieve data",
+		})
+		return
+	}
+	defer rows.Close()
+
+	var data []HasilPemilihanData
+	for rows.Next() {
+		var item HasilPemilihanData
+		err := rows.Scan(&item.ID, &item.KodeRUP, &item.SatuanKerja, &item.NamaPaket,
+			&item.MetodePemilihan, &item.TanggalHasilPemilihan, &item.NilaiHasilPemilihan,
+			&item.StatusPaket, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
+			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.MetodePengadaan,
+			&item.PaguRUP, &item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue

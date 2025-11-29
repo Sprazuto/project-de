@@ -7,8 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -191,7 +190,7 @@ func TestLogin(t *testing.T) {
 
 	testRouter.ServeHTTP(resp, req)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -275,7 +274,7 @@ func TestCreateArticle(t *testing.T) {
 	resp := httptest.NewRecorder()
 	testRouter.ServeHTTP(resp, req)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}

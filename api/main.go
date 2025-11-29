@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,81 +14,12 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	uuid "github.com/google/uuid"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger" // gin-swagger middleware
 	"golang.org/x/crypto/bcrypt"
 )
-
-// CORSMiddleware ...
-// CORS (Cross-Origin Resource Sharing) - Secure Configuration
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		origin := c.Request.Header.Get("Origin")
-
-		// Get environment
-		env := os.Getenv("ENV")
-
-		// Define allowed origins based on environment
-		var allowedOrigins []string
-
-		if env == "PRODUCTION" {
-			// Production: only allow specific domains
-			productionDomain := os.Getenv("FRONTEND_DOMAIN")
-			if productionDomain != "" {
-				allowedOrigins = []string{
-					"https://" + productionDomain,
-					"http://" + productionDomain,
-				}
-			} else {
-				// If no specific domain set, restrict to none in production
-				allowedOrigins = []string{}
-			}
-		} else {
-			// Development: allow localhost development servers
-			allowedOrigins = []string{
-				"http://localhost:5173", // Vite development server
-				"http://localhost:8000", // Original allowed origin
-				"http://localhost:3000", // Common React dev server
-				"http://127.0.0.1:5173", // Vite alternative
-				"http://127.0.0.1:3000", // React alternative
-			}
-		}
-
-		// Strict origin validation
-		allowOrigin := ""
-		for _, allowed := range allowedOrigins {
-			if origin == allowed {
-				allowOrigin = allowed
-				break
-			}
-		}
-
-		// Only set CORS headers if origin is explicitly allowed
-		if allowOrigin != "" {
-			c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
-		}
-
-		// Set other CORS headers
-		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
-
-		// Only allow credentials for same-origin or explicitly allowed origins
-		if allowOrigin != "" {
-			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		}
-
-		if c.Request.Method == "OPTIONS" {
-			fmt.Printf("OPTIONS request from: %s (allowed: %v)\n", origin, allowOrigin != "")
-			c.AbortWithStatus(200)
-		} else {
-			c.Next()
-		}
-	}
-}
 
 // RequestIDMiddleware ...
 // Generate a unique ID and attach it to each request for future reference or use
@@ -97,32 +27,6 @@ func RequestIDMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		uuid := uuid.New()
 		c.Writer.Header().Set("X-Request-Id", uuid.String())
-		c.Next()
-	}
-}
-
-// ProtectedRouteMiddleware ...
-// Enhanced middleware that validates JWT tokens and provides detailed error responses for frontend
-func ProtectedRouteMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		auth := new(controllers.AuthController)
-
-		// Validate the token
-		auth.TokenValid(c)
-
-		if c.IsAborted() {
-			// Token is invalid or expired
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"success":  false,
-				"message":  "Unauthorized: Please login to access this resource",
-				"error":    "AUTHENTICATION_REQUIRED",
-				"redirect": "/login",
-			})
-			c.Abort()
-			return
-		}
-
-		// Token is valid, continue to the protected route
 		c.Next()
 	}
 }
@@ -158,6 +62,63 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
+
+// setupCORS configures CORS middleware with proper security
+func setupCORS() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		origin := c.Request.Header.Get("Origin")
+		env := os.Getenv("ENV")
+
+		var allowedOrigins []string
+		if env == "PRODUCTION" {
+			productionDomain := os.Getenv("FRONTEND_DOMAIN")
+			if productionDomain != "" {
+				allowedOrigins = []string{
+					"https://" + productionDomain,
+					"http://" + productionDomain,
+				}
+			} else {
+				allowedOrigins = []string{}
+			}
+		} else {
+			allowedOrigins = []string{
+				"http://localhost:5173",
+				"http://localhost:8000",
+				"http://localhost:3000",
+				"http://127.0.0.1:5173",
+				"http://127.0.0.1:3000",
+			}
+		}
+
+		allowOrigin := ""
+		for _, allowed := range allowedOrigins {
+			if origin == allowed {
+				allowOrigin = allowed
+				break
+			}
+		}
+
+		if allowOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", allowOrigin)
+		}
+
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Origin, Authorization, Accept, Client-Security-Token, Accept-Encoding, x-access-token")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+
+		if allowOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
+	}
+}
+
 func main() {
 	//Load the .env file
 	err := godotenv.Load(".env")
@@ -175,7 +136,7 @@ func main() {
 	//Custom form validator
 	binding.Validator = new(forms.DefaultValidator)
 
-	r.Use(CORSMiddleware())
+	r.Use(setupCORS())
 	r.Use(RequestIDMiddleware())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
@@ -292,6 +253,9 @@ func main() {
 		v1.POST("/spse/scraper/perencanaan", spse.ScrapePerencanaan)
 		v1.POST("/spse/scraper/persiapan", spse.ScrapePersiapan)
 		v1.POST("/spse/scraper/pemilihan", spse.ScrapePemilihan)
+		v1.POST("/spse/scraper/hasilpemilihan", spse.ScrapeHasilPemilihan)
+		v1.POST("/spse/scraper/kontrak", spse.ScrapeKontrak)
+		v1.POST("/spse/scraper/serahterima", spse.ScrapeSerahTerima)
 		v1.POST("/spse/scraper/all", spse.ScrapeAll)
 
 		// Data retrieval endpoints (protected)
@@ -299,6 +263,9 @@ func main() {
 		v1.GET("/spse/data/perencanaan", spse.GetPerencanaan)
 		v1.GET("/spse/data/persiapan", spse.GetPersiapan)
 		v1.GET("/spse/data/pemilihan", spse.GetPemilihan)
+		v1.GET("/spse/data/hasilpemilihan", spse.GetHasilPemilihan)
+		v1.GET("/spse/data/kontrak", spse.GetKontrak)
+		v1.GET("/spse/data/serahterima", spse.GetSerahTerima)
 	}
 
 	// Swagger docs

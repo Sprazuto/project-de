@@ -322,21 +322,3 @@ func RunMigrations() error {
 	log.Println("Sijagur database migrations completed successfully")
 	return nil
 }
-
-// tableExists checks if a table exists in the database
-func tableExists(tableName string) bool {
-	var exists bool
-	err := db.GetDB().Db.QueryRow(`
-		SELECT EXISTS (
-			SELECT 1
-			FROM information_schema.tables
-			WHERE table_schema = 'public'
-			AND table_name = $1
-		)
-	`, tableName).Scan(&exists)
-	if err != nil {
-		log.Printf("Error checking if table %s exists: %v", tableName, err)
-		return false
-	}
-	return exists
-}

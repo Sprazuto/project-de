@@ -38,31 +38,61 @@ echo "POST ${BASE_URL}/scraper/pemilihan"
 curl -s -X POST "${BASE_URL}/scraper/pemilihan" | jq '.' || curl -s -X POST "${BASE_URL}/scraper/pemilihan"
 echo ""
 
-# Test 6: Test comprehensive scraping
-echo "6. Testing comprehensive scraping (all endpoints)..."
+echo "6. Testing Hasil Pemilihan scraping..."
+echo "POST ${BASE_URL}/scraper/hasilpemilihan"
+curl -s -X POST "${BASE_URL}/scraper/hasilpemilihan" | jq '.' || curl -s -X POST "${BASE_URL}/scraper/hasilpemilihan"
+echo ""
+
+echo "7. Testing Kontrak scraping..."
+echo "POST ${BASE_URL}/scraper/kontrak"
+curl -s -X POST "${BASE_URL}/scraper/kontrak" | jq '.' || curl -s -X POST "${BASE_URL}/scraper/kontrak"
+echo ""
+
+echo "8. Testing Serah Terima scraping..."
+echo "POST ${BASE_URL}/scraper/serahterima"
+curl -s -X POST "${BASE_URL}/scraper/serahterima" | jq '.' || curl -s -X POST "${BASE_URL}/scraper/serahterima"
+echo ""
+
+# Test 9: Test comprehensive scraping
+echo "9. Testing comprehensive scraping (all endpoints)..."
 echo "POST ${BASE_URL}/scraper/all"
 curl -s -X POST "${BASE_URL}/scraper/all" | jq '.' || curl -s -X POST "${BASE_URL}/scraper/all"
 echo ""
 
-# Test 7: Get updated statistics
-echo "7. Getting updated statistics after scraping..."
+# Test 10: Get updated statistics
+echo "10. Getting updated statistics after scraping..."
 curl -s -X GET "${BASE_URL}/statistics" | jq '.' || curl -s -X GET "${BASE_URL}/statistics"
 echo ""
 
-# Test 8: Test data retrieval with pagination
-echo "8. Testing data retrieval with pagination..."
+# Test 11: Test data retrieval with pagination
+echo "11. Testing data retrieval with pagination..."
 echo "GET ${BASE_URL}/data/perencanaan?limit=5&offset=0"
 curl -s -X GET "${BASE_URL}/data/perencanaan?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/perencanaan?limit=5&offset=0"
 echo ""
 
-echo "9. Testing Persiapan data retrieval..."
+echo "12. Testing Persiapan data retrieval..."
 echo "GET ${BASE_URL}/data/persiapan?limit=5&offset=0"
 curl -s -X GET "${BASE_URL}/data/persiapan?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/persiapan?limit=5&offset=0"
 echo ""
 
-echo "10. Testing Pemilihan data retrieval..."
+echo "13. Testing Pemilihan data retrieval..."
 echo "GET ${BASE_URL}/data/pemilihan?limit=5&offset=0"
 curl -s -X GET "${BASE_URL}/data/pemilihan?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/pemilihan?limit=5&offset=0"
+echo ""
+
+echo "14. Testing Hasil Pemilihan data retrieval..."
+echo "GET ${BASE_URL}/data/hasilpemilihan?limit=5&offset=0"
+curl -s -X GET "${BASE_URL}/data/hasilpemilihan?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/hasilpemilihan?limit=5&offset=0"
+echo ""
+
+echo "15. Testing Kontrak data retrieval..."
+echo "GET ${BASE_URL}/data/kontrak?limit=5&offset=0"
+curl -s -X GET "${BASE_URL}/data/kontrak?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/kontrak?limit=5&offset=0"
+echo ""
+
+echo "16. Testing Serah Terima data retrieval..."
+echo "GET ${BASE_URL}/data/serahterima?limit=5&offset=0"
+curl -s -X GET "${BASE_URL}/data/serahterima?limit=5&offset=0" | jq '.' || curl -s -X GET "${BASE_URL}/data/serahterima?limit=5&offset=0"
 echo ""
 
 echo "✅ Test suite completed!"
