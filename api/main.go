@@ -266,6 +266,9 @@ func main() {
 		v1.GET("/spse/data/hasilpemilihan", spse.GetHasilPemilihan)
 		v1.GET("/spse/data/kontrak", spse.GetKontrak)
 		v1.GET("/spse/data/serahterima", spse.GetSerahTerima)
+
+		// Cleanup endpoint
+		v1.POST("/spse/cleanup", spse.CleanupOutdatedRecords)
 	}
 
 	// Swagger docs

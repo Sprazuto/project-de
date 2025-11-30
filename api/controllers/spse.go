@@ -21,25 +21,26 @@ import (
 
 // PerencanaanData represents planning stage data (matches SPSEPerencanaan model)
 type PerencanaanData struct {
-	ID                int64     `json:"id"`
-	KodeRUP           string    `json:"kode_rup"`
-	SatuanKerja       string    `json:"satuan_kerja"`
-	NamaPaket         string    `json:"nama_paket"`
-	MetodePemilihan   string    `json:"metode_pemilihan"`
-	TanggalPengumuman string    `json:"tanggal_pengumuman"`
-	RencanaPemilihan  string    `json:"rencana_pemilihan"`
-	PaguRUP           string    `json:"pagu_rup"`
-	KodeSatuanKerja   string    `json:"kode_satuan_kerja"`
-	CaraPengadaan     string    `json:"cara_pengadaan"`
-	JenisPengadaan    string    `json:"jenis_pengadaan"`
-	PDN               string    `json:"pdn"`
-	UMK               string    `json:"umk"`
-	SumberDana        string    `json:"sumber_dana"`
-	KodeRUPLokal      string    `json:"kode_rup_lokal"`
-	AkhirPemilihan    string    `json:"akhir_pemilihan"`
-	TipeSwakelola     string    `json:"tipe_swakelola"`
-	CreatedAt         time.Time `json:"created_at"`
-	LastUpdate        int64     `json:"last_update"`
+	ID                int64      `json:"id"`
+	KodeRUP           string     `json:"kode_rup"`
+	SatuanKerja       string     `json:"satuan_kerja"`
+	NamaPaket         string     `json:"nama_paket"`
+	MetodePemilihan   string     `json:"metode_pemilihan"`
+	TanggalPengumuman string     `json:"tanggal_pengumuman"`
+	RencanaPemilihan  string     `json:"rencana_pemilihan"`
+	PaguRUP           string     `json:"pagu_rup"`
+	KodeSatuanKerja   string     `json:"kode_satuan_kerja"`
+	CaraPengadaan     string     `json:"cara_pengadaan"`
+	JenisPengadaan    string     `json:"jenis_pengadaan"`
+	PDN               string     `json:"pdn"`
+	UMK               string     `json:"umk"`
+	SumberDana        string     `json:"sumber_dana"`
+	KodeRUPLokal      string     `json:"kode_rup_lokal"`
+	AkhirPemilihan    string     `json:"akhir_pemilihan"`
+	TipeSwakelola     string     `json:"tipe_swakelola"`
+	CreatedAt         time.Time  `json:"created_at"`
+	LastUpdate        int64      `json:"last_update"`
+	DeletedAt         *time.Time `json:"deleted_at"`
 }
 
 // PersiapanData represents preparation stage data (matches SPSEPersiapan model)
@@ -436,8 +437,56 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 	}
 
 	log.Printf("Database connection OK, table spse_%s exists", tableName)
+
+	// Collect existing kode_rup values before scraping for soft deletion logic
+	existingKodeRUPs := make(map[string]bool)
+	fullTableName := fmt.Sprintf("spse_%s", tableName)
+	existingQuery := fmt.Sprintf("SELECT kode_rup FROM %s WHERE deleted_at IS NULL", fullTableName)
+	rows, err := database.Query(existingQuery)
+	if err != nil {
+		log.Printf("ERROR: Failed to query existing records: %v", err)
+		return ScrapingResult{
+			Success:      false,
+			Message:      fmt.Sprintf("Failed to query existing records: %v", err),
+			RecordsFound: 0,
+			Endpoint:     endpoint,
+		}, fmt.Errorf("existing records query failed: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var kodeRUP string
+		if err := rows.Scan(&kodeRUP); err != nil {
+			log.Printf("ERROR: Failed to scan existing kode_rup: %v", err)
+			continue
+		}
+		existingKodeRUPs[kodeRUP] = true
+	}
+
+	// Start transaction for robust error handling
+	tx, err := database.Db.Begin()
+	if err != nil {
+		log.Printf("ERROR: Failed to start transaction: %v", err)
+		return ScrapingResult{
+			Success:      false,
+			Message:      fmt.Sprintf("Failed to start transaction: %v", err),
+			RecordsFound: 0,
+			Endpoint:     endpoint,
+		}, fmt.Errorf("transaction start failed: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Printf("ERROR: Failed to rollback transaction: %v", rollbackErr)
+			} else {
+				log.Printf("Transaction rolled back due to error")
+			}
+		}
+	}()
+
 	recordsStored := 0
 	recordsFailed := 0
+	currentKodeRUPs := make(map[string]bool) // Track kode_rup values in current API response
 
 	for _, item := range dataArray {
 		var orderedDataset *OrderedDataSet
@@ -465,6 +514,13 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 				tableName, orderedDataset.MappingStatus.MappedFields, orderedDataset.MappingStatus.TotalFields)
 		}
 
+		// Track kode_rup from current API response
+		if kodeRUP, exists := orderedDataset.FieldValues["kode_rup"]; exists && kodeRUP != "" {
+			if kodeRUPStr, ok := kodeRUP.(string); ok && kodeRUPStr != "" {
+				currentKodeRUPs[kodeRUPStr] = true
+			}
+		}
+
 		// Store based on table type using ordered dataset
 		var insertQuery string
 		switch tableName {
@@ -483,7 +539,7 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 		}
 
 		if insertQuery != "" {
-			_, err := database.Exec(insertQuery)
+			_, err := tx.Exec(insertQuery)
 			if err != nil {
 				recordsFailed++
 				log.Printf("Error inserting record: %v", err)
@@ -496,11 +552,63 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 		}
 	}
 
+	// Commit transaction if no errors occurred
+	if err == nil {
+		err = tx.Commit()
+		if err != nil {
+			log.Printf("ERROR: Failed to commit transaction: %v", err)
+			return ScrapingResult{
+				Success:      false,
+				Message:      fmt.Sprintf("Failed to commit transaction: %v", err),
+				RecordsFound: recordsStored,
+				Endpoint:     endpoint,
+			}, fmt.Errorf("transaction commit failed: %v", err)
+		}
+		log.Printf("Transaction committed successfully")
+	}
+
 	log.Printf("Stored %d records out of %d fetched (Failed: %d)", recordsStored, len(dataArray), recordsFailed)
+
+	// Soft delete records that are no longer present in the API response
+	recordsSoftDeleted := 0
+	if len(existingKodeRUPs) > 0 {
+		// Find kode_rup values that exist in DB but not in current API response
+		var toDelete []string
+		for existingKode := range existingKodeRUPs {
+			if !currentKodeRUPs[existingKode] {
+				toDelete = append(toDelete, existingKode)
+			}
+		}
+
+		if len(toDelete) > 0 {
+			// Build IN clause for soft deletion
+			placeholders := make([]string, len(toDelete))
+			args := make([]interface{}, len(toDelete))
+			for i, kode := range toDelete {
+				placeholders[i] = fmt.Sprintf("$%d", i+1)
+				args[i] = kode
+			}
+
+			softDeleteQuery := fmt.Sprintf(
+				"UPDATE %s SET deleted_at = NOW() WHERE kode_rup IN (%s) AND deleted_at IS NULL",
+				fullTableName,
+				strings.Join(placeholders, ","),
+			)
+
+			result, err := database.Exec(softDeleteQuery, args...)
+			if err != nil {
+				log.Printf("Warning: Failed to soft delete outdated records: %v", err)
+			} else {
+				rowsAffected, _ := result.RowsAffected()
+				recordsSoftDeleted = int(rowsAffected)
+				log.Printf("Soft deleted %d records that are no longer in API response", recordsSoftDeleted)
+			}
+		}
+	}
 
 	return ScrapingResult{
 		Success:      true,
-		Message:      fmt.Sprintf("Successfully stored %d records", recordsStored),
+		Message:      fmt.Sprintf("Successfully stored %d records, soft deleted %d outdated records", recordsStored, recordsSoftDeleted),
 		RecordsFound: recordsStored,
 		Endpoint:     endpoint,
 	}, nil
@@ -533,9 +641,25 @@ func (ctrl SPSEController) buildPerencanaanInsertFromDataset(dataset *OrderedDat
 	return fmt.Sprintf(`INSERT INTO spse_perencanaan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_pengumuman, rencana_pemilihan, pagu_rup,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 akhir_pemilihan, tipe_swakelola, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 akhir_pemilihan, tipe_swakelola, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			tanggal_pengumuman = EXCLUDED.tanggal_pengumuman,
+			rencana_pemilihan = EXCLUDED.rencana_pemilihan,
+			pagu_rup = EXCLUDED.pagu_rup,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			akhir_pemilihan = EXCLUDED.akhir_pemilihan,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalPengumuman, rencanaPemilihan, paguRUP,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		akhirPemilihan, tipeSwakelola, time.Now().Unix())
@@ -568,9 +692,25 @@ func (ctrl SPSEController) buildPersiapanInsertFromDataset(dataset *OrderedDataS
 	return fmt.Sprintf(`INSERT INTO spse_persiapan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_buat_paket, nilai_pagu_rup, nilai_pagu_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, tipe_swakelola, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			tanggal_buat_paket = EXCLUDED.tanggal_buat_paket,
+			nilai_pagu_rup = EXCLUDED.nilai_pagu_rup,
+			nilai_pagu_paket = EXCLUDED.nilai_pagu_paket,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			metode_pengadaan = EXCLUDED.metode_pengadaan,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalBuatPaket, nilaiPaguRUP, nilaiPaguPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		metodePengadaan, tipeSwakelola, time.Now().Unix())
@@ -606,9 +746,28 @@ func (ctrl SPSEController) buildPemilihanInsertFromDataset(dataset *OrderedDataS
 	return fmt.Sprintf(`INSERT INTO spse_pemilihan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, rencana_pemilihan, tanggal_pemilihan, nilai_hps, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, pagu_rup, tipe_swakelola, akhir_pemilihan, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 metode_pengadaan, pagu_rup, tipe_swakelola, akhir_pemilihan, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			rencana_pemilihan = EXCLUDED.rencana_pemilihan,
+			tanggal_pemilihan = EXCLUDED.tanggal_pemilihan,
+			nilai_hps = EXCLUDED.nilai_hps,
+			status_paket = EXCLUDED.status_paket,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			metode_pengadaan = EXCLUDED.metode_pengadaan,
+			pagu_rup = EXCLUDED.pagu_rup,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			akhir_pemilihan = EXCLUDED.akhir_pemilihan,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, rencanaPemilihan, tanggalPemilihan, nilaiHPS, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		metodePengadaan, paguRUP, tipeSwakelola, akhirPemilihan, time.Now().Unix())
@@ -642,9 +801,26 @@ func (ctrl SPSEController) buildHasilPemilihanInsertFromDataset(dataset *Ordered
 	return fmt.Sprintf(`INSERT INTO spse_hasilpemilihan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_hasil_pemilihan, nilai_hasil_pemilihan, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, pagu_rup, tipe_swakelola, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 metode_pengadaan, pagu_rup, tipe_swakelola, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			tanggal_hasil_pemilihan = EXCLUDED.tanggal_hasil_pemilihan,
+			nilai_hasil_pemilihan = EXCLUDED.nilai_hasil_pemilihan,
+			status_paket = EXCLUDED.status_paket,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			metode_pengadaan = EXCLUDED.metode_pengadaan,
+			pagu_rup = EXCLUDED.pagu_rup,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalHasilPemilihan, nilaiHasilPemilihan, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		metodePengadaan, paguRUP, tipeSwakelola, time.Now().Unix())
@@ -680,9 +856,28 @@ func (ctrl SPSEController) buildKontrakInsertFromDataset(dataset *OrderedDataSet
 	return fmt.Sprintf(`INSERT INTO spse_kontrak
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_kontrak, nilai_kontrak, status_paket,
 		 mulai_kontrak, nilai_bap, selesai_kontrak, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan,
-		 pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			tanggal_kontrak = EXCLUDED.tanggal_kontrak,
+			nilai_kontrak = EXCLUDED.nilai_kontrak,
+			status_paket = EXCLUDED.status_paket,
+			mulai_kontrak = EXCLUDED.mulai_kontrak,
+			nilai_bap = EXCLUDED.nilai_bap,
+			selesai_kontrak = EXCLUDED.selesai_kontrak,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			metode_pengadaan = EXCLUDED.metode_pengadaan,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalKontrak, nilaiKontrak, statusPaket,
 		mulaiKontrak, nilaiBAP, selesaiKontrak, kodeSatuanKerja, caraPengadaan, jenisPengadaan,
 		pdn, umk, sumberDana, kodeRUPLokal, metodePengadaan, tipeSwakelola, time.Now().Unix())
@@ -715,9 +910,25 @@ func (ctrl SPSEController) buildSerahTerimaInsertFromDataset(dataset *OrderedDat
 	return fmt.Sprintf(`INSERT INTO spse_serahterima
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_serah_terima, nilai_bap, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, tipe_swakelola, created_at, last_update)
-		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d)
-		ON CONFLICT (kode_rup, nama_paket) DO NOTHING`,
+		 metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
+		VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), %d, NULL)
+		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			metode_pemilihan = EXCLUDED.metode_pemilihan,
+			tanggal_serah_terima = EXCLUDED.tanggal_serah_terima,
+			nilai_bap = EXCLUDED.nilai_bap,
+			status_paket = EXCLUDED.status_paket,
+			kode_satuan_kerja = EXCLUDED.kode_satuan_kerja,
+			cara_pengadaan = EXCLUDED.cara_pengadaan,
+			jenis_pengadaan = EXCLUDED.jenis_pengadaan,
+			pdn = EXCLUDED.pdn,
+			umk = EXCLUDED.umk,
+			sumber_dana = EXCLUDED.sumber_dana,
+			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
+			metode_pengadaan = EXCLUDED.metode_pengadaan,
+			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`,
 		kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalSerahTerima, nilaiBAP, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		metodePengadaan, tipeSwakelola, time.Now().Unix())
@@ -1374,38 +1585,38 @@ func (ctrl SPSEController) GetStatistics(c *gin.Context) {
 	var kontrakCount int
 	var serahTerimaCount int
 
-	// Get counts from each table
-	err := database.QueryRow("SELECT COUNT(*) FROM spse_perencanaan").Scan(&perencanaanCount)
+	// Get counts from each table (excluding soft deleted records)
+	err := database.QueryRow("SELECT COUNT(*) FROM spse_perencanaan WHERE deleted_at IS NULL").Scan(&perencanaanCount)
 	if err != nil {
 		log.Printf("Error getting perencanaan count: %v", err)
 		perencanaanCount = 0
 	}
 
-	err = database.QueryRow("SELECT COUNT(*) FROM spse_persiapan").Scan(&persiapanCount)
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_persiapan WHERE deleted_at IS NULL").Scan(&persiapanCount)
 	if err != nil {
 		log.Printf("Error getting persiapan count: %v", err)
 		persiapanCount = 0
 	}
 
-	err = database.QueryRow("SELECT COUNT(*) FROM spse_pemilihan").Scan(&pemilihanCount)
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_pemilihan WHERE deleted_at IS NULL").Scan(&pemilihanCount)
 	if err != nil {
 		log.Printf("Error getting pemilihan count: %v", err)
 		pemilihanCount = 0
 	}
 
-	err = database.QueryRow("SELECT COUNT(*) FROM spse_hasilpemilihan").Scan(&hasilPemilihanCount)
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_hasilpemilihan WHERE deleted_at IS NULL").Scan(&hasilPemilihanCount)
 	if err != nil {
 		log.Printf("Error getting hasil pemilihan count: %v", err)
 		hasilPemilihanCount = 0
 	}
 
-	err = database.QueryRow("SELECT COUNT(*) FROM spse_kontrak").Scan(&kontrakCount)
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_kontrak WHERE deleted_at IS NULL").Scan(&kontrakCount)
 	if err != nil {
 		log.Printf("Error getting kontrak count: %v", err)
 		kontrakCount = 0
 	}
 
-	err = database.QueryRow("SELECT COUNT(*) FROM spse_serahterima").Scan(&serahTerimaCount)
+	err = database.QueryRow("SELECT COUNT(*) FROM spse_serahterima WHERE deleted_at IS NULL").Scan(&serahTerimaCount)
 	if err != nil {
 		log.Printf("Error getting serah terima count: %v", err)
 		serahTerimaCount = 0
@@ -1451,6 +1662,7 @@ func (ctrl SPSEController) GetPerencanaan(c *gin.Context) {
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
 			   akhir_pemilihan, tipe_swakelola, created_at, last_update
 		FROM spse_perencanaan
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
@@ -1491,6 +1703,170 @@ func (ctrl SPSEController) GetPerencanaan(c *gin.Context) {
 	})
 }
 
+// CleanupResult represents the result of cleanup operations
+type CleanupResult struct {
+	Success         bool           `json:"success"`
+	Message         string         `json:"message"`
+	RecordsDeleted  map[string]int `json:"records_deleted"`
+	TablesProcessed int            `json:"tables_processed"`
+	TotalDeleted    int            `json:"total_deleted"`
+}
+
+// CleanOutdatedRecords removes records older than the specified number of days from SPSE tables
+func (ctrl SPSEController) CleanOutdatedRecords(daysOld int, tables []string) (CleanupResult, error) {
+	database := db.GetDB()
+	if database == nil {
+		log.Printf("ERROR: Database connection is nil!")
+		return CleanupResult{Success: false, Message: "Database connection is nil"}, fmt.Errorf("database connection is nil")
+	}
+
+	// Test database connection
+	err := database.Db.Ping()
+	if err != nil {
+		log.Printf("ERROR: Cannot ping database: %v", err)
+		return CleanupResult{Success: false, Message: fmt.Sprintf("Database ping failed: %v", err)}, fmt.Errorf("database ping failed: %v", err)
+	}
+
+	// Default to all tables if none specified
+	if len(tables) == 0 {
+		tables = []string{"perencanaan", "persiapan", "pemilihan", "hasilpemilihan", "kontrak", "serahterima"}
+	}
+
+	log.Printf("Starting cleanup of records older than %d days from tables: %v", daysOld, tables)
+
+	// Start transaction for atomic cleanup
+	tx, err := database.Db.Begin()
+	if err != nil {
+		log.Printf("ERROR: Failed to start cleanup transaction: %v", err)
+		return CleanupResult{Success: false, Message: fmt.Sprintf("Failed to start transaction: %v", err)}, fmt.Errorf("transaction start failed: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				log.Printf("ERROR: Failed to rollback cleanup transaction: %v", rollbackErr)
+			} else {
+				log.Printf("Cleanup transaction rolled back due to error")
+			}
+		}
+	}()
+
+	recordsDeleted := make(map[string]int)
+	totalDeleted := 0
+	tablesProcessed := 0
+
+	// Calculate cutoff date
+	cutoffDate := time.Now().AddDate(0, 0, -daysOld)
+	log.Printf("Soft deleting records older than: %v", cutoffDate)
+
+	for _, tableName := range tables {
+		tableFullName := fmt.Sprintf("spse_%s", tableName)
+
+		// Check if table exists
+		var tableExists int
+		tableCheckQuery := fmt.Sprintf("SELECT 1 FROM information_schema.tables WHERE table_name = '%s'", tableFullName)
+		err = tx.QueryRow(tableCheckQuery).Scan(&tableExists)
+		if err != nil || tableExists != 1 {
+			log.Printf("Warning: Table %s does not exist, skipping", tableFullName)
+			continue
+		}
+
+		// Soft delete old records
+		softDeleteQuery := fmt.Sprintf("UPDATE %s SET deleted_at = NOW() WHERE created_at < $1 AND deleted_at IS NULL", tableFullName)
+		result, err := tx.Exec(softDeleteQuery)
+		if err != nil {
+			log.Printf("ERROR: Failed to soft delete old records from %s: %v", tableFullName, err)
+			return CleanupResult{
+				Success:         false,
+				Message:         fmt.Sprintf("Failed to soft delete from %s: %v", tableFullName, err),
+				RecordsDeleted:  recordsDeleted,
+				TablesProcessed: tablesProcessed,
+				TotalDeleted:    totalDeleted,
+			}, fmt.Errorf("soft delete failed for table %s: %v", tableFullName, err)
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		recordsDeleted[tableName] = int(rowsAffected)
+		totalDeleted += int(rowsAffected)
+		tablesProcessed++
+
+		log.Printf("Soft deleted %d old records from %s", rowsAffected, tableFullName)
+	}
+
+	// Commit transaction
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("ERROR: Failed to commit cleanup transaction: %v", err)
+		return CleanupResult{
+			Success:         false,
+			Message:         fmt.Sprintf("Failed to commit transaction: %v", err),
+			RecordsDeleted:  recordsDeleted,
+			TablesProcessed: tablesProcessed,
+			TotalDeleted:    totalDeleted,
+		}, fmt.Errorf("transaction commit failed: %v", err)
+	}
+
+	log.Printf("Soft delete cleanup completed successfully: %d total records soft deleted from %d tables", totalDeleted, tablesProcessed)
+
+	return CleanupResult{
+		Success:         true,
+		Message:         fmt.Sprintf("Successfully soft deleted %d outdated records from %d tables", totalDeleted, tablesProcessed),
+		RecordsDeleted:  recordsDeleted,
+		TablesProcessed: tablesProcessed,
+		TotalDeleted:    totalDeleted,
+	}, nil
+}
+
+// CleanupOutdatedRecords godoc
+// @Summary Clean up outdated records from SPSE tables
+// @Schemes
+// @Description Remove records older than specified days from SPSE database tables
+// @Tags SPSE
+// @Accept json
+// @Produce json
+// @Param days_old query int false "Number of days old (default: 90)"
+// @Param tables query string false "Comma-separated list of tables to clean (default: all)"
+// @Success 200 {object} CleanupResult
+// @Failure 500 {object} gin.H
+// @Router /spse/cleanup [POST]
+func (ctrl SPSEController) CleanupOutdatedRecords(c *gin.Context) {
+	daysOldStr := c.DefaultQuery("days_old", "90")
+	daysOld, err := strconv.Atoi(daysOldStr)
+	if err != nil || daysOld <= 0 {
+		log.Printf("Invalid days_old parameter: %s", daysOldStr)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"error":   "Invalid days_old parameter. Must be a positive integer.",
+		})
+		return
+	}
+
+	// Parse tables parameter
+	tablesParam := c.Query("tables")
+	var tables []string
+	if tablesParam != "" {
+		tables = strings.Split(tablesParam, ",")
+		// Trim spaces
+		for i, table := range tables {
+			tables[i] = strings.TrimSpace(table)
+		}
+	}
+
+	log.Printf("Starting cleanup request: days_old=%d, tables=%v", daysOld, tables)
+
+	result, err := ctrl.CleanOutdatedRecords(daysOld, tables)
+	if err != nil {
+		log.Printf("Error during cleanup: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"error":   err.Error(),
+			"message": "Failed to clean outdated records",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // GetKontrak godoc
 // @Summary Get Kontrak data from database
 // @Schemes
@@ -1516,6 +1892,7 @@ func (ctrl SPSEController) GetKontrak(c *gin.Context) {
 			   jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
 			   metode_pengadaan, tipe_swakelola, created_at, last_update
 		FROM spse_kontrak
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
@@ -1580,6 +1957,7 @@ func (ctrl SPSEController) GetSerahTerima(c *gin.Context) {
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
 			   metode_pengadaan, tipe_swakelola, created_at, last_update
 		FROM spse_serahterima
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
@@ -1644,6 +2022,7 @@ func (ctrl SPSEController) GetPersiapan(c *gin.Context) {
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
 			   metode_pengadaan, tipe_swakelola, created_at, last_update
 		FROM spse_persiapan
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
@@ -1709,6 +2088,7 @@ func (ctrl SPSEController) GetPemilihan(c *gin.Context) {
 			   sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup,
 			   tipe_swakelola, akhir_pemilihan, created_at, last_update
 		FROM spse_pemilihan
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
@@ -1775,6 +2155,7 @@ func (ctrl SPSEController) GetHasilPemilihan(c *gin.Context) {
 			   sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup,
 			   tipe_swakelola, created_at, last_update
 		FROM spse_hasilpemilihan
+		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`, limit, offset)
