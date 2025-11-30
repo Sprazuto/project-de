@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/Massad/gin-boilerplate/controllers"
+	"github.com/Massad/gin-boilerplate/controllers/spse"
 	"github.com/Massad/gin-boilerplate/db"
 	_ "github.com/Massad/gin-boilerplate/docs"
 	"github.com/Massad/gin-boilerplate/forms"
@@ -247,7 +248,7 @@ func main() {
 		v1.GET("/sijagur/peringkat-kinerja", TokenAuthMiddleware(), sijagur.GetPeringkatKinerja)
 
 		/*** START SPSE Procurement Scraper ***/
-		spse := new(controllers.SPSEController)
+		spse := new(spse.SPSEController)
 
 		// Scraping endpoints (public access for testing)
 		v1.POST("/spse/scraper/perencanaan", spse.ScrapePerencanaan)
@@ -267,8 +268,6 @@ func main() {
 		v1.GET("/spse/data/kontrak", spse.GetKontrak)
 		v1.GET("/spse/data/serahterima", spse.GetSerahTerima)
 
-		// Cleanup endpoint
-		v1.POST("/spse/cleanup", spse.CleanupOutdatedRecords)
 	}
 
 	// Swagger docs
