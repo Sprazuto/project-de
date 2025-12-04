@@ -417,9 +417,12 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 		// Store based on table type using ordered dataset
 		var insertQuery string
 		var args []interface{}
+		var satkerQuery string
+		var satkerArgs []interface{}
 		switch tableName {
 		case "perencanaan":
 			insertQuery, args = ctrl.buildPerencanaanInsertFromDataset(orderedDataset)
+			satkerQuery, satkerArgs = ctrl.buildSatuanKerjaInsertFromDataset(orderedDataset)
 		case "persiapan":
 			insertQuery, args = ctrl.buildPersiapanInsertFromDataset(orderedDataset)
 		case "pemilihan":
@@ -443,6 +446,15 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 			}
 		} else {
 			recordsFailed++
+		}
+
+		// Execute satker insert for perencanaan data if kode_satuan_kerja is present
+		if satkerQuery != "" && len(satkerArgs) > 0 && satkerArgs[0] != nil && satkerArgs[0] != "" {
+			_, err := tx.Exec(satkerQuery, satkerArgs...)
+			if err != nil {
+				log.Printf("Warning: Error inserting satker record: %v", err)
+				// Don't count as failed since satker is secondary data
+			}
 		}
 	}
 

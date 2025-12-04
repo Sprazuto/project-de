@@ -178,6 +178,18 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"nilai_bap":            ctrl.isCurrency,
 			},
 		},
+		"satker": {
+			TableName: "spse_satker",
+			FieldOrder: []string{
+				"kode_satuan_kerja", "satuan_kerja", "instansi", "jenis_satuan_kerja",
+			},
+			RequiredFields: map[string]string{
+				"kode_satuan_kerja": "", "satuan_kerja": "", "instansi": "", "jenis_satuan_kerja": "",
+			},
+			FieldValidators: map[string]func(string) bool{
+				"kode_satuan_kerja": ctrl.isSatkerCode,
+			},
+		},
 	}
 
 	return mappings[tableName]
@@ -411,6 +423,91 @@ func (ctrl SPSEController) isSelectionMethod(value string) bool {
 		}
 	}
 	return false
+}
+
+// isSatkerCode checks if a string looks like a satuan kerja code
+func (ctrl SPSEController) isSatkerCode(value string) bool {
+	// Satker codes are typically alphanumeric and may contain dots or dashes
+	if len(value) < 2 || len(value) > 20 {
+		return false
+	}
+
+	// Check for common patterns in satker codes
+	satkerPatterns := []string{
+		`^[A-Z]{1,5}\.\d{1,4}$`, // Like D118.1
+		`^[A-Z]{1,5}\d{1,4}$`,   // Like D1181
+		`^\d{1,5}$`,             // Numeric codes
+		`^[A-Z]{1,5}-\d{1,4}$`,  // Like D118-1
+	}
+
+	for _, pattern := range satkerPatterns {
+		matched, _ := regexp.MatchString(pattern, value)
+		if matched {
+			return true
+		}
+	}
+
+	return false
+}
+
+// determineJenisSatuanKerja determines the type of work unit based on the satuan kerja name
+func (ctrl SPSEController) determineJenisSatuanKerja(satuanKerja string) string {
+	lower := strings.ToLower(satuanKerja)
+
+	// Check for Kecamatan (District)
+	if strings.Contains(lower, "kecamatan") {
+		return "Kecamatan"
+	}
+
+	// Check for UPTD (Unit Pelaksana Teknis Daerah)
+	if strings.Contains(lower, "uptd") {
+		return "UPTD"
+	}
+
+	// Check for OPD (Organisasi Perangkat Daerah) - government departments
+	if strings.Contains(lower, "opd") ||
+		strings.Contains(lower, "dinas") ||
+		strings.Contains(lower, "badan") ||
+		strings.Contains(lower, "sekretariat") ||
+		strings.Contains(lower, "inspektorat") ||
+		strings.Contains(lower, "kepala daerah") ||
+		strings.Contains(lower, "bappeda") ||
+		strings.Contains(lower, "bkpsdm") ||
+		strings.Contains(lower, "bapenda") ||
+		strings.Contains(lower, "dpmptsp") ||
+		strings.Contains(lower, "dpupr") ||
+		strings.Contains(lower, "disdik") ||
+		strings.Contains(lower, "dinkes") ||
+		strings.Contains(lower, "distan") ||
+		strings.Contains(lower, "dlh") ||
+		strings.Contains(lower, "disperkimtan") ||
+		strings.Contains(lower, "disperindagkop") ||
+		strings.Contains(lower, "dispora") ||
+		strings.Contains(lower, "kesbangpol") ||
+		strings.Contains(lower, "satpol pp") ||
+		strings.Contains(lower, "damkar") {
+		return "OPD"
+	}
+
+	// Check for other common types
+	if strings.Contains(lower, "kelurahan") {
+		return "Kelurahan"
+	}
+
+	if strings.Contains(lower, "desa") {
+		return "Desa"
+	}
+
+	if strings.Contains(lower, "puskesmas") {
+		return "Puskesmas"
+	}
+
+	if strings.Contains(lower, "sekolah") || strings.Contains(lower, "smp") || strings.Contains(lower, "sma") || strings.Contains(lower, "smk") {
+		return "Sekolah"
+	}
+
+	// Default category
+	return "Lainnya"
 }
 
 // buildPerencanaanInsertFromDataset builds INSERT query for perencanaan data using ordered dataset
@@ -747,6 +844,40 @@ func (ctrl SPSEController) buildSerahTerimaInsertFromDataset(dataset *OrderedDat
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalSerahTerima, nilaiBAP, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
 		metodePengadaan, tipeSwakelola, time.Now().Unix()}
+
+	return query, args
+}
+
+// buildSatuanKerjaInsertFromDataset builds INSERT query for satuan_kerja data using ordered dataset
+func (ctrl SPSEController) buildSatuanKerjaInsertFromDataset(dataset *OrderedDataSet) (string, []interface{}) {
+	if dataset == nil || dataset.FieldValues == nil {
+		return "", nil
+	}
+
+	// Extract fields from ordered dataset
+	kodeSatuanKerja := dataset.FieldValues["kode_satuan_kerja"]
+	satuanKerja := dataset.FieldValues["satuan_kerja"]
+	instansi := dataset.FieldValues["instansi"]
+
+	// Set default instansi if not provided
+	if instansi == nil || instansi == "" {
+		instansi = "Pemerintah Kabupaten Sumedang"
+	}
+
+	// Determine jenis satuan kerja based on the name
+	jenisSatuanKerja := ctrl.determineJenisSatuanKerja(fmt.Sprintf("%v", satuanKerja))
+
+	query := `INSERT INTO spse_satker
+		(kode_satuan_kerja, satuan_kerja, instansi, jenis_satuan_kerja, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, NOW(), $5, NULL)
+		ON CONFLICT (kode_satuan_kerja) DO UPDATE SET
+			satuan_kerja = EXCLUDED.satuan_kerja,
+			instansi = EXCLUDED.instansi,
+			jenis_satuan_kerja = EXCLUDED.jenis_satuan_kerja,
+			last_update = EXCLUDED.last_update,
+			deleted_at = NULL`
+
+	args := []interface{}{kodeSatuanKerja, satuanKerja, instansi, jenisSatuanKerja, time.Now().Unix()}
 
 	return query, args
 }

@@ -184,6 +184,22 @@ func (s SPSESerahTerima) TableName() string {
 	return "spse_serahterima"
 }
 
+// SPSESatuanKerja represents satuan kerja (work unit) master data
+type SPSESatuanKerja struct {
+	ID               int64      `db:"id, primarykey, autoincrement" json:"id"`
+	KodeSatuanKerja  string     `db:"kode_satuan_kerja" json:"kode_satuan_kerja"`
+	SatuanKerja      string     `db:"satuan_kerja" json:"satuan_kerja"`
+	Instansi         string     `db:"instansi" json:"instansi"`
+	JenisSatuanKerja string     `db:"jenis_satuan_kerja" json:"jenis_satuan_kerja"`
+	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
+	LastUpdate       int64      `db:"last_update" json:"last_update"`
+	DeletedAt        *time.Time `db:"deleted_at" json:"deleted_at"`
+}
+
+func (s SPSESatuanKerja) TableName() string {
+	return "spse_satker"
+}
+
 // RunSPESEMigrations runs SPSE-specific database migrations
 func RunSPESEMigrations() error {
 	log.Println("Running SPSE database migrations...")
@@ -191,6 +207,7 @@ func RunSPESEMigrations() error {
 	// Register SPSE models with gorp
 	dbMap := db.GetDB()
 	dbMap.AddTableWithName(SPSEPerencanaan{}, "spse_perencanaan").SetKeys(true, "id")
+	dbMap.AddTableWithName(SPSESatuanKerja{}, "spse_satker").SetKeys(true, "id")
 	dbMap.AddTableWithName(SPSEPersiapan{}, "spse_persiapan").SetKeys(true, "id")
 	dbMap.AddTableWithName(SPSEPemilihan{}, "spse_pemilihan").SetKeys(true, "id")
 	dbMap.AddTableWithName(SPSEHasilPemilihan{}, "spse_hasilpemilihan").SetKeys(true, "id")
@@ -211,6 +228,10 @@ func RunSPESEMigrations() error {
 		{
 			name:   "spse_perencanaan",
 			fields: []string{"kode_rup", "nama_paket"},
+		},
+		{
+			name:   "spse_satker",
+			fields: []string{"kode_satuan_kerja"},
 		},
 		{
 			name:   "spse_persiapan",
