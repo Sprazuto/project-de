@@ -156,6 +156,11 @@ func main() {
 	if err != nil {
 		log.Printf("Warning: Failed to create SPSE tables: %v", err)
 	}
+	// Create SPSE tables
+	err = models.CreateSPSESirupTables()
+	if err != nil {
+		log.Printf("Warning: Failed to create SPSE SIRUP tables: %v", err)
+	}
 
 	// Seed admin user if not exists
 	getDb := db.GetDB()
@@ -267,6 +272,16 @@ func main() {
 		v1.GET("/spse/data/hasilpemilihan", spse.GetHasilPemilihan)
 		v1.GET("/spse/data/kontrak", spse.GetKontrak)
 		v1.GET("/spse/data/serahterima", spse.GetSerahTerima)
+
+		// SIRUP scraping endpoints (public access for testing)
+		v1.POST("/spse/sirup/scrape", spse.ScrapeSIRUP)
+		v1.POST("/spse/sirup/scrape/single", spse.ScrapeSIRUPSingle)
+
+		// SIRUP data retrieval endpoints (protected)
+		v1.GET("/spse/sirup/statistics", spse.GetSIRUPStatistics)
+		v1.GET("/spse/sirup/data/perencanaan", spse.GetSIRUPPerencanaan)
+		v1.GET("/spse/sirup/data/:kodeRUP", spse.GetSIRUPByKodeRUP)
+		v1.GET("/spse/sirup/comparison", spse.GetSIRUPComparison)
 
 	}
 
