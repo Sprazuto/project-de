@@ -1,6 +1,7 @@
 package spse
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -57,11 +58,11 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 	database := db.GetDB()
 
 	rows, err := database.Query(`
-		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
-			   tanggal_pengumuman, rencana_pemilihan, pagu_rup, kode_satuan_kerja,
-			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   akhir_pemilihan, tipe_swakelola, dates, sumber_dana_sirup, lokasi_pekerjaan,
-			   created_at, last_update
+		SELECT id, kode_rup, nama_paket, nama_klpd, satuan_kerja, tahun_anggaran,
+			   total_pagu, lokasi_pekerjaan, sumber_dana, jenis_pengadaan,
+			   metode_pemilihan, pemanfaatan_mulai, pemanfaatan_akhir,
+			   jadwal_kontrak_mulai, jadwal_kontrak_akhir, jadwal_pemilihan_mulai,
+			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, created_at, last_update
 		FROM spse_perencanaansirup
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -80,15 +81,36 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 	var data []models.SPSESirupPerencanaan
 	for rows.Next() {
 		var item models.SPSESirupPerencanaan
-		err := rows.Scan(&item.ID, &item.KodeRUP, &item.SatuanKerja, &item.NamaPaket,
-			&item.MetodePemilihan, &item.TanggalPengumuman, &item.RencanaPemilihan,
-			&item.PaguRUP, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
-			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.AkhirPemilihan,
-			&item.TipeSwakelola, &item.Dates, &item.SumberDanaSirup, &item.LokasiPekerjaan,
-			&item.CreatedAt, &item.LastUpdate)
+		var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir *string
+		var totalPagu *float64
+		var sirupScraped *bool
+		err := rows.Scan(&item.ID, &kodeRUPPtr, &namaPaket, &namaKLPD,
+			&satuanKerja, &tahunAnggaran, &totalPagu, &lokasiPekerjaan,
+			&sumberDana, &jenisPengadaan, &metodePemilihan,
+			&pemanfaatanMulai, &pemanfaatanAkhir, &jadwalKontrakMulai,
+			&jadwalKontrakAkhir, &jadwalPemilihanMulai, &jadwalPemilihanAkhir,
+			&item.TanggalUmumkanPaket, &sirupScraped, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
+			log.Printf("Error scanning row: %v", err)
 			continue
 		}
+		item.KodeRUP = kodeRUPPtr
+		item.NamaPaket = namaPaket
+		item.NamaKLPD = namaKLPD
+		item.SatuanKerja = satuanKerja
+		item.TahunAnggaran = tahunAnggaran
+		item.TotalPagu = totalPagu
+		item.LokasiPekerjaan = lokasiPekerjaan
+		item.SumberDana = sumberDana
+		item.JenisPengadaan = jenisPengadaan
+		item.MetodePemilihan = metodePemilihan
+		item.PemanfaatanMulai = pemanfaatanMulai
+		item.PemanfaatanAkhir = pemanfaatanAkhir
+		item.JadwalKontrakMulai = jadwalKontrakMulai
+		item.JadwalKontrakAkhir = jadwalKontrakAkhir
+		item.JadwalPemilihanMulai = jadwalPemilihanMulai
+		item.JadwalPemilihanAkhir = jadwalPemilihanAkhir
+		item.SirupScraped = sirupScraped
 		data = append(data, item)
 	}
 
@@ -121,22 +143,44 @@ func (ctrl SPSEController) GetSIRUPByKodeRUP(c *gin.Context) {
 	database := db.GetDB()
 
 	var item models.SPSESirupPerencanaan
+	var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir *string
+	var totalPagu *float64
+	var sirupScraped *bool
 	err := database.QueryRow(`
-		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
-			   tanggal_pengumuman, rencana_pemilihan, pagu_rup, kode_satuan_kerja,
-			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   akhir_pemilihan, tipe_swakelola, dates, sumber_dana_sirup, lokasi_pekerjaan,
-			   created_at, last_update
+		SELECT id, kode_rup, nama_paket, nama_klpd, satuan_kerja, tahun_anggaran,
+			   total_pagu, lokasi_pekerjaan, sumber_dana, jenis_pengadaan,
+			   metode_pemilihan, pemanfaatan_mulai, pemanfaatan_akhir,
+			   jadwal_kontrak_mulai, jadwal_kontrak_akhir, jadwal_pemilihan_mulai,
+			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, created_at, last_update
 		FROM spse_perencanaansirup
 		WHERE kode_rup = $1 AND deleted_at IS NULL
 		LIMIT 1
 	`, kodeRUP).Scan(
-		&item.ID, &item.KodeRUP, &item.SatuanKerja, &item.NamaPaket,
-		&item.MetodePemilihan, &item.TanggalPengumuman, &item.RencanaPemilihan,
-		&item.PaguRUP, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
-		&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.AkhirPemilihan,
-		&item.TipeSwakelola, &item.Dates, &item.SumberDanaSirup, &item.LokasiPekerjaan,
-		&item.CreatedAt, &item.LastUpdate)
+		&item.ID, &kodeRUPPtr, &namaPaket, &namaKLPD,
+		&satuanKerja, &tahunAnggaran, &totalPagu, &lokasiPekerjaan,
+		&sumberDana, &jenisPengadaan, &metodePemilihan,
+		&pemanfaatanMulai, &pemanfaatanAkhir, &jadwalKontrakMulai,
+		&jadwalKontrakAkhir, &jadwalPemilihanMulai, &jadwalPemilihanAkhir,
+		&item.TanggalUmumkanPaket, &sirupScraped, &item.CreatedAt, &item.LastUpdate)
+	if err == nil {
+		item.KodeRUP = kodeRUPPtr
+		item.NamaPaket = namaPaket
+		item.NamaKLPD = namaKLPD
+		item.SatuanKerja = satuanKerja
+		item.TahunAnggaran = tahunAnggaran
+		item.TotalPagu = totalPagu
+		item.LokasiPekerjaan = lokasiPekerjaan
+		item.SumberDana = sumberDana
+		item.JenisPengadaan = jenisPengadaan
+		item.MetodePemilihan = metodePemilihan
+		item.PemanfaatanMulai = pemanfaatanMulai
+		item.PemanfaatanAkhir = pemanfaatanAkhir
+		item.JadwalKontrakMulai = jadwalKontrakMulai
+		item.JadwalKontrakAkhir = jadwalKontrakAkhir
+		item.JadwalPemilihanMulai = jadwalPemilihanMulai
+		item.JadwalPemilihanAkhir = jadwalPemilihanAkhir
+		item.SirupScraped = sirupScraped
+	}
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -201,17 +245,17 @@ func (ctrl SPSEController) GetSIRUPComparison(c *gin.Context) {
 	defer rows.Close()
 
 	type ComparisonItem struct {
-		KodeRUP             string `json:"kode_rup"`
-		NamaPaket           string `json:"nama_paket"`
-		SatuanKerja         string `json:"satuan_kerja"`
-		PaguRUP             string `json:"pagu_rup"`
-		MetodePemilihan     string `json:"metode_pemilihan"`
-		Dates               string `json:"dates"`
-		SumberDanaSirup     string `json:"sumber_dana_sirup"`
-		LokasiPekerjaan     string `json:"lokasi_pekerjaan"`
-		PerencanaanCreated  string `json:"perencanaan_created"`
-		SirupCreated        string `json:"sirup_created"`
-		HasSirupData        bool   `json:"has_sirup_data"`
+		KodeRUP            string `json:"kode_rup"`
+		NamaPaket          string `json:"nama_paket"`
+		SatuanKerja        string `json:"satuan_kerja"`
+		PaguRUP            string `json:"pagu_rup"`
+		MetodePemilihan    string `json:"metode_pemilihan"`
+		Dates              string `json:"dates"`
+		SumberDanaSirup    string `json:"sumber_dana_sirup"`
+		LokasiPekerjaan    string `json:"lokasi_pekerjaan"`
+		PerencanaanCreated string `json:"perencanaan_created"`
+		SirupCreated       string `json:"sirup_created"`
+		HasSirupData       bool   `json:"has_sirup_data"`
 	}
 
 	var data []ComparisonItem

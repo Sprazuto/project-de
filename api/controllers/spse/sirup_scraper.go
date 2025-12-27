@@ -122,8 +122,8 @@ func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
 
 	spseCtrl := SPSEController{}
 
-	// Get all kodeRUP values from perencanaan table
-	kodeRUPs, err := spseCtrl.getExistingPerencanaanRecords()
+	// Get all kodeRUP values from SIRUP table
+	kodeRUPs, err := spseCtrl.getExistingSIRUPRecords()
 	if err != nil {
 		log.Printf("Error getting perencanaan records: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -197,8 +197,8 @@ func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
 			continue
 		}
 
-		// Enrich with perencanaan data
-		enrichedData, err := spseCtrl.enrichPerencanaanWithSIRUP(kodeRUP, sirupData)
+		// Prepare SIRUP data for insertion
+		enrichedData, err := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, sirupData)
 		if err != nil {
 			log.Printf("Error enriching data for kodeRUP %s: %v", kodeRUP, err)
 			recordsFailed++
@@ -299,8 +299,8 @@ func (ctrl SPSEController) ScrapeSIRUPSingle(c *gin.Context) {
 
 	spseCtrl := SPSEController{}
 
-	// Enrich with perencanaan data
-	enrichedData, err := spseCtrl.enrichPerencanaanWithSIRUP(kodeRUP, sirupData)
+	// Prepare SIRUP data for insertion
+	enrichedData, err := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, sirupData)
 	if err != nil {
 		log.Printf("Error enriching data for kodeRUP %s: %v", kodeRUP, err)
 		c.JSON(http.StatusInternalServerError, gin.H{

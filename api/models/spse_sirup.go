@@ -11,32 +11,28 @@ import (
 
 // SPSESirupPerencanaan represents enriched planning stage data with SIRUP fields
 type SPSESirupPerencanaan struct {
-	ID                int64      `db:"id, primarykey, autoincrement" json:"id"`
-	KodeRUP           string     `db:"kode_rup" json:"kode_rup"`
-	SatuanKerja       string     `db:"satuan_kerja" json:"satuan_kerja"`
-	NamaPaket         string     `db:"nama_paket" json:"nama_paket"`
-	MetodePemilihan   string     `db:"metode_pemilihan" json:"metode_pemilihan"`
-	TanggalPengumuman string     `db:"tanggal_pengumuman" json:"tanggal_pengumuman"`
-	RencanaPemilihan  string     `db:"rencana_pemilihan" json:"rencana_pemilihan"`
-	PaguRUP           string     `db:"pagu_rup" json:"pagu_rup"`
-	KodeSatuanKerja   string     `db:"kode_satuan_kerja" json:"kode_satuan_kerja"`
-	CaraPengadaan     string     `db:"cara_pengadaan" json:"cara_pengadaan"`
-	JenisPengadaan    string     `db:"jenis_pengadaan" json:"jenis_pengadaan"`
-	PDN               string     `db:"pdn" json:"pdn"`
-	UMK               string     `db:"umk" json:"umk"`
-	SumberDana        string     `db:"sumber_dana" json:"sumber_dana"`
-	KodeRUPLokal      string     `db:"kode_rup_lokal" json:"kode_rup_lokal"`
-	AkhirPemilihan    string     `db:"akhir_pemilihan" json:"akhir_pemilihan"`
-	TipeSwakelola     string     `db:"tipe_swakelola" json:"tipe_swakelola"`
-
-	// Additional SIRUP fields
-	Dates             string     `db:"dates" json:"dates"`                        // JSON string for SIRUP dates
-	SumberDanaSirup   string     `db:"sumber_dana_sirup" json:"sumber_dana_sirup"` // JSON string for SIRUP funding sources array
-	LokasiPekerjaan   string     `db:"lokasi_pekerjaan" json:"lokasi_pekerjaan"`   // JSON string for SIRUP work locations array
-
-	CreatedAt         time.Time  `db:"created_at" json:"created_at"`
-	LastUpdate        int64      `db:"last_update" json:"last_update"`
-	DeletedAt         *time.Time `db:"deleted_at" json:"deleted_at"`
+	ID                   int64      `db:"id, primarykey, autoincrement" json:"id"`
+	KodeRUP              *string    `db:"kode_rup" json:"kode_rup"`
+	NamaPaket            *string    `db:"nama_paket" json:"nama_paket"`
+	NamaKLPD             *string    `db:"nama_klpd" json:"nama_klpd"`
+	SatuanKerja          *string    `db:"satuan_kerja" json:"satuan_kerja"`
+	TahunAnggaran        *string    `db:"tahun_anggaran" json:"tahun_anggaran"`
+	TotalPagu            *float64   `db:"total_pagu" json:"total_pagu"`
+	LokasiPekerjaan      *string    `db:"lokasi_pekerjaan" json:"lokasi_pekerjaan"`
+	SumberDana           *string    `db:"sumber_dana" json:"sumber_dana"`
+	JenisPengadaan       *string    `db:"jenis_pengadaan" json:"jenis_pengadaan"`
+	MetodePemilihan      *string    `db:"metode_pemilihan" json:"metode_pemilihan"`
+	PemanfaatanMulai     *string    `db:"pemanfaatan_mulai" json:"pemanfaatan_mulai"`
+	PemanfaatanAkhir     *string    `db:"pemanfaatan_akhir" json:"pemanfaatan_akhir"`
+	JadwalKontrakMulai   *string    `db:"jadwal_kontrak_mulai" json:"jadwal_kontrak_mulai"`
+	JadwalKontrakAkhir   *string    `db:"jadwal_kontrak_akhir" json:"jadwal_kontrak_akhir"`
+	JadwalPemilihanMulai *string    `db:"jadwal_pemilihan_mulai" json:"jadwal_pemilihan_mulai"`
+	JadwalPemilihanAkhir *string    `db:"jadwal_pemilihan_akhir" json:"jadwal_pemilihan_akhir"`
+	TanggalUmumkanPaket  *time.Time `db:"tanggal_umumkan_paket" json:"tanggal_umumkan_paket"`
+	SirupScraped         *bool      `db:"sirup_scraped" json:"sirup_scraped"`
+	CreatedAt            time.Time  `db:"created_at" json:"created_at"`
+	LastUpdate           *int64     `db:"last_update" json:"last_update"`
+	DeletedAt            *time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 func (s SPSESirupPerencanaan) TableName() string {
