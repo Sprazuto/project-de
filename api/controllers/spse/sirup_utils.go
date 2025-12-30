@@ -3,6 +3,7 @@ package spse
 import (
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +51,7 @@ func parseDateToTime(dateStr string) *time.Time {
 			return &t
 		}
 	}
-	log.Printf("Warning: Could not parse date '%s' (translated: '%s')", dateStr, translatedStr)
+	log.Printf("WARNING: Could not parse date '%s' (translated: '%s')", dateStr, translatedStr)
 	return nil
 }
 
@@ -95,7 +96,7 @@ func (ctrl SPSEController) GetSIRUPFieldMapping() *SIRUPFieldMapping {
 			"total_pagu", "lokasi_pekerjaan", "sumber_dana", "jenis_pengadaan",
 			"metode_pemilihan", "pemanfaatan_mulai", "pemanfaatan_akhir",
 			"jadwal_kontrak_mulai", "jadwal_kontrak_akhir", "jadwal_pemilihan_mulai",
-			"jadwal_pemilihan_akhir", "tanggal_umumkan_paket", "sirup_scraped",
+			"jadwal_pemilihan_akhir", "tanggal_umumkan_paket", "sirup_scraped", "active_year",
 		},
 		RequiredFields: map[string]string{
 			"kode_rup": "", "nama_paket": "", "nama_klpd": "", "satuan_kerja": "",
@@ -188,13 +189,14 @@ func (ctrl SPSEController) buildSIRUPInsertFromDataset(dataset *OrderedDataSet) 
 	jadwalPemilihanMulai := dataset.FieldValues["jadwal_pemilihan_mulai"]
 	jadwalPemilihanAkhir := dataset.FieldValues["jadwal_pemilihan_akhir"]
 	tanggalUmumkanPaket := dataset.FieldValues["tanggal_umumkan_paket"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_perencanaansirup
 		(kode_rup, nama_paket, nama_klpd, satuan_kerja, tahun_anggaran, total_pagu,
 		 lokasi_pekerjaan, sumber_dana, jenis_pengadaan, metode_pemilihan,
 		 pemanfaatan_mulai, pemanfaatan_akhir, jadwal_kontrak_mulai, jadwal_kontrak_akhir,
-		 jadwal_pemilihan_mulai, jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), $19, NULL)
+		 jadwal_pemilihan_mulai, jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), $20, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			nama_klpd = EXCLUDED.nama_klpd,
 			satuan_kerja = EXCLUDED.satuan_kerja,
@@ -212,6 +214,7 @@ func (ctrl SPSEController) buildSIRUPInsertFromDataset(dataset *OrderedDataSet) 
 			jadwal_pemilihan_akhir = EXCLUDED.jadwal_pemilihan_akhir,
 			tanggal_umumkan_paket = EXCLUDED.tanggal_umumkan_paket,
 			sirup_scraped = EXCLUDED.sirup_scraped,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
@@ -220,7 +223,7 @@ func (ctrl SPSEController) buildSIRUPInsertFromDataset(dataset *OrderedDataSet) 
 	args := []interface{}{kodeRUP, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, totalPagu,
 		lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan,
 		pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir,
-		jadwalPemilihanMulai, jadwalPemilihanAkhir, tanggalUmumkanPaket, sirupScraped, time.Now().Unix()}
+		jadwalPemilihanMulai, jadwalPemilihanAkhir, tanggalUmumkanPaket, sirupScraped, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -252,7 +255,7 @@ func (ctrl SPSEController) parseSIRUPHTML(htmlContent string, kodeRUP string) (m
 	// Parse HTML with goquery
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(htmlContent))
 	if err != nil {
-		log.Printf("Failed to parse HTML for kodeRUP %s: %v", kodeRUP, err)
+		log.Printf("ERROR: Failed to parse HTML for kodeRUP %s: %v", kodeRUP, err)
 		return data, fmt.Errorf("failed to parse HTML: %v", err)
 	}
 
@@ -458,7 +461,7 @@ func (ctrl SPSEController) getExistingSIRUPRecords() ([]string, error) {
 	for rows.Next() {
 		var kodeRUP string
 		if err := rows.Scan(&kodeRUP); err != nil {
-			log.Printf("Error scanning kode_rup: %v", err)
+			log.Printf("ERROR: Failed to scan kode_rup: %v", err)
 			continue
 		}
 		kodeRUPs = append(kodeRUPs, kodeRUP)
@@ -488,7 +491,12 @@ func (ctrl SPSEController) prepareSIRUPDataForInsertion(kodeRUP string, sirupDat
 		"jadwal_pemilihan_mulai": "",         // string
 		"jadwal_pemilihan_akhir": "",         // string
 		"tanggal_umumkan_paket":  nil,        // *time.Time
-		"sirup_scraped":          true,       // bool
+		"sirup_scraped":          true,       // bool (default)
+	}
+
+	// Override sirup_scraped if provided in input data
+	if scraped, exists := sirupData["sirup_scraped"].(bool); exists {
+		enrichedData["sirup_scraped"] = scraped
 	}
 
 	// Override with SIRUP data where available and not empty
@@ -617,7 +625,7 @@ func (ctrl SPSEController) prepareSIRUPDataForInsertion(kodeRUP string, sirupDat
 			}
 		}
 		if enrichedData["tanggal_umumkan_paket"] == nil {
-			log.Printf("Warning: Could not parse tanggal_umumkan_paket '%s' (translated: '%s') in Jakarta timezone", tanggalUmumkanPaketStr, translatedStr)
+			log.Printf("WARNING: Could not parse tanggal_umumkan_paket '%s' (translated: '%s') in Jakarta timezone", tanggalUmumkanPaketStr, translatedStr)
 			if t := parseDateToTime(tanggalUmumkanPaketStr); t != nil {
 				enrichedData["tanggal_umumkan_paket"] = t // Fallback
 			}
@@ -625,4 +633,97 @@ func (ctrl SPSEController) prepareSIRUPDataForInsertion(kodeRUP string, sirupDat
 	}
 
 	return enrichedData, nil
+}
+
+// getFilteredPerencanaanRecords retrieves filtered kodeRUP values from spse_perencanaan table
+func (ctrl SPSEController) getFilteredPerencanaanRecords() ([]string, error) {
+	database := db.GetDB()
+	if database == nil {
+		return nil, fmt.Errorf("database connection is nil")
+	}
+
+	// Get filter parameters from environment
+	activeYear := os.Getenv("SPSE_ACTIVE_YEAR")
+	if activeYear == "" {
+		activeYear = "2025" // fallback
+	}
+
+	excludedMetodeStr := os.Getenv("SIRUP_EXCLUDED_METODE")
+	excludedMetode := strings.Split(excludedMetodeStr, ",")
+	for i, metode := range excludedMetode {
+		excludedMetode[i] = strings.TrimSpace(metode)
+	}
+
+	paguThresholdStr := os.Getenv("SIRUP_PAGU_THRESHOLD")
+	paguThreshold := float64(10000000) // default 10M
+	if paguThresholdStr != "" {
+		if parsed, err := strconv.ParseFloat(paguThresholdStr, 64); err == nil {
+			paguThreshold = parsed
+		}
+	}
+
+	excludeSameDayStr := os.Getenv("SIRUP_EXCLUDE_SAME_DAY_UPDATES")
+	excludeSameDay := strings.ToLower(excludeSameDayStr) == "true"
+
+	// Build query with filters
+	baseQuery := `
+		SELECT p.kode_rup
+		FROM spse_perencanaan p
+		WHERE p.deleted_at IS NULL
+		AND p.active_year = $1
+		AND p.kode_rup IS NOT NULL
+		AND p.kode_rup != ''`
+
+	args := []interface{}{activeYear}
+	argCount := 1
+
+	// Add excluded metode filter
+	if len(excludedMetode) > 0 {
+		placeholders := make([]string, len(excludedMetode))
+		for i := range excludedMetode {
+			argCount++
+			placeholders[i] = fmt.Sprintf("$%d", argCount)
+		}
+		baseQuery += " AND p.metode_pemilihan NOT IN (" + strings.Join(placeholders, ",") + ")"
+		for _, metode := range excludedMetode {
+			args = append(args, metode)
+		}
+	}
+
+	// Add pagu threshold filter
+	if paguThreshold > 0 {
+		argCount++
+		baseQuery += fmt.Sprintf(" AND CAST(REPLACE(REPLACE(p.pagu_rup, 'Rp.', ''), '.', '') AS DECIMAL) > $%d", argCount)
+		args = append(args, paguThreshold)
+	}
+
+	// Build final query
+	query := baseQuery
+
+	// Exclude records that were updated today if enabled
+	if excludeSameDay {
+		query = strings.Replace(baseQuery, "FROM spse_perencanaan p", "FROM spse_perencanaan p LEFT JOIN spse_perencanaansirup s ON p.kode_rup = s.kode_rup AND s.deleted_at IS NULL", 1)
+		query += " AND (s.kode_rup IS NULL OR s.last_update IS NULL OR date(to_timestamp(s.last_update)) != CURRENT_DATE)"
+	}
+
+	query += " ORDER BY p.kode_rup"
+
+	rows, err := database.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query filtered perencanaan records: %v", err)
+	}
+	defer rows.Close()
+
+	var kodeRUPs []string
+	for rows.Next() {
+		var kodeRUP string
+		if err := rows.Scan(&kodeRUP); err != nil {
+			log.Printf("Error scanning kode_rup: %v", err)
+			continue
+		}
+		kodeRUPs = append(kodeRUPs, kodeRUP)
+	}
+
+	log.Printf("Found %d filtered perencanaan records to process", len(kodeRUPs))
+	return kodeRUPs, nil
 }

@@ -28,6 +28,7 @@ type SPSEPerencanaan struct {
 	KodeRUPLokal      string     `db:"kode_rup_lokal" json:"kode_rup_lokal"`
 	AkhirPemilihan    string     `db:"akhir_pemilihan" json:"akhir_pemilihan"`
 	TipeSwakelola     string     `db:"tipe_swakelola" json:"tipe_swakelola"`
+	ActiveYear        string     `db:"active_year" json:"active_year"`
 	CreatedAt         time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate        int64      `db:"last_update" json:"last_update"`
 	DeletedAt         *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -56,6 +57,7 @@ type SPSEPersiapan struct {
 	KodeRUPLokal     string     `db:"kode_rup_lokal" json:"kode_rup_lokal"`
 	MetodePengadaan  string     `db:"metode_pengadaan" json:"metode_pengadaan"`
 	TipeSwakelola    string     `db:"tipe_swakelola" json:"tipe_swakelola"`
+	ActiveYear       string     `db:"active_year" json:"active_year"`
 	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate       int64      `db:"last_update" json:"last_update"`
 	DeletedAt        *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -87,6 +89,7 @@ type SPSEPemilihan struct {
 	PaguRUP          string     `db:"pagu_rup" json:"pagu_rup"`
 	TipeSwakelola    string     `db:"tipe_swakelola" json:"tipe_swakelola"`
 	AkhirPemilihan   string     `db:"akhir_pemilihan" json:"akhir_pemilihan"`
+	ActiveYear       string     `db:"active_year" json:"active_year"`
 	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate       int64      `db:"last_update" json:"last_update"`
 	DeletedAt        *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -116,6 +119,7 @@ type SPSEHasilPemilihan struct {
 	MetodePengadaan       string     `db:"metode_pengadaan" json:"metode_pengadaan"`
 	PaguRUP               string     `db:"pagu_rup" json:"pagu_rup"`
 	TipeSwakelola         string     `db:"tipe_swakelola" json:"tipe_swakelola"`
+	ActiveYear            string     `db:"active_year" json:"active_year"`
 	CreatedAt             time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate            int64      `db:"last_update" json:"last_update"`
 	DeletedAt             *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -147,6 +151,7 @@ type SPSEKontrak struct {
 	KodeRUPLokal    string     `db:"kode_rup_lokal" json:"kode_rup_lokal"`
 	MetodePengadaan string     `db:"metode_pengadaan" json:"metode_pengadaan"`
 	TipeSwakelola   string     `db:"tipe_swakelola" json:"tipe_swakelola"`
+	ActiveYear      string     `db:"active_year" json:"active_year"`
 	CreatedAt       time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate      int64      `db:"last_update" json:"last_update"`
 	DeletedAt       *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -175,6 +180,7 @@ type SPSESerahTerima struct {
 	KodeRUPLokal       string     `db:"kode_rup_lokal" json:"kode_rup_lokal"`
 	MetodePengadaan    string     `db:"metode_pengadaan" json:"metode_pengadaan"`
 	TipeSwakelola      string     `db:"tipe_swakelola" json:"tipe_swakelola"`
+	ActiveYear         string     `db:"active_year" json:"active_year"`
 	CreatedAt          time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate         int64      `db:"last_update" json:"last_update"`
 	DeletedAt          *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -191,6 +197,7 @@ type SPSESatuanKerja struct {
 	SatuanKerja      string     `db:"satuan_kerja" json:"satuan_kerja"`
 	Instansi         string     `db:"instansi" json:"instansi"`
 	JenisSatuanKerja string     `db:"jenis_satuan_kerja" json:"jenis_satuan_kerja"`
+	ActiveYear       string     `db:"active_year" json:"active_year"`
 	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate       int64      `db:"last_update" json:"last_update"`
 	DeletedAt        *time.Time `db:"deleted_at" json:"deleted_at"`

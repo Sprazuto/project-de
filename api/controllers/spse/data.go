@@ -99,7 +99,7 @@ func (ctrl SPSEController) GetPerencanaan(c *gin.Context) {
 		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
 			   tanggal_pengumuman, rencana_pemilihan, pagu_rup, kode_satuan_kerja,
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   akhir_pemilihan, tipe_swakelola, created_at, last_update
+			   akhir_pemilihan, tipe_swakelola, active_year, created_at, last_update
 		FROM spse_perencanaan
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -122,7 +122,7 @@ func (ctrl SPSEController) GetPerencanaan(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalPengumuman, &item.RencanaPemilihan,
 			&item.PaguRUP, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
 			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.AkhirPemilihan,
-			&item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+			&item.TipeSwakelola, &item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}
@@ -163,7 +163,7 @@ func (ctrl SPSEController) GetKontrak(c *gin.Context) {
 			   tanggal_kontrak, nilai_kontrak, status_paket, mulai_kontrak,
 			   nilai_bap, selesai_kontrak, kode_satuan_kerja, cara_pengadaan,
 			   jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   metode_pengadaan, tipe_swakelola, created_at, last_update
+			   metode_pengadaan, tipe_swakelola, active_year, created_at, last_update
 		FROM spse_kontrak
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -186,7 +186,7 @@ func (ctrl SPSEController) GetKontrak(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalKontrak, &item.NilaiKontrak, &item.StatusPaket,
 			&item.MulaiKontrak, &item.NilaiBAP, &item.SelesaiKontrak, &item.KodeSatuanKerja,
 			&item.CaraPengadaan, &item.JenisPengadaan, &item.PDN, &item.UMK, &item.SumberDana,
-			&item.KodeRUPLokal, &item.MetodePengadaan, &item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+			&item.KodeRUPLokal, &item.MetodePengadaan, &item.TipeSwakelola, &item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}
@@ -226,7 +226,7 @@ func (ctrl SPSEController) GetSerahTerima(c *gin.Context) {
 		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
 			   tanggal_serah_terima, nilai_bap, status_paket, kode_satuan_kerja,
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   metode_pengadaan, tipe_swakelola, created_at, last_update
+			   metode_pengadaan, tipe_swakelola, active_year, created_at, last_update
 		FROM spse_serahterima
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -249,7 +249,7 @@ func (ctrl SPSEController) GetSerahTerima(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalSerahTerima, &item.NilaiBAP, &item.StatusPaket,
 			&item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan, &item.PDN,
 			&item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.MetodePengadaan,
-			&item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+			&item.TipeSwakelola, &item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}
@@ -289,7 +289,7 @@ func (ctrl SPSEController) GetPersiapan(c *gin.Context) {
 		SELECT id, kode_rup, satuan_kerja, nama_paket, metode_pemilihan,
 			   tanggal_buat_paket, nilai_pagu_rup, nilai_pagu_paket, kode_satuan_kerja,
 			   cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-			   metode_pengadaan, tipe_swakelola, created_at, last_update
+			   metode_pengadaan, tipe_swakelola, active_year, created_at, last_update
 		FROM spse_persiapan
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -312,7 +312,7 @@ func (ctrl SPSEController) GetPersiapan(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalBuatPaket, &item.NilaiPaguRUP,
 			&item.NilaiPaguPaket, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
 			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.MetodePengadaan,
-			&item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+			&item.TipeSwakelola, &item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}
@@ -353,7 +353,7 @@ func (ctrl SPSEController) GetPemilihan(c *gin.Context) {
 			   rencana_pemilihan, tanggal_pemilihan, nilai_hps, status_paket,
 			   kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk,
 			   sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup,
-			   tipe_swakelola, akhir_pemilihan, created_at, last_update
+			   tipe_swakelola, akhir_pemilihan, active_year, created_at, last_update
 		FROM spse_pemilihan
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -377,7 +377,7 @@ func (ctrl SPSEController) GetPemilihan(c *gin.Context) {
 			&item.NilaiHPS, &item.StatusPaket, &item.KodeSatuanKerja, &item.CaraPengadaan,
 			&item.JenisPengadaan, &item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal,
 			&item.MetodePengadaan, &item.PaguRUP, &item.TipeSwakelola, &item.AkhirPemilihan,
-			&item.CreatedAt, &item.LastUpdate)
+			&item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}
@@ -418,7 +418,7 @@ func (ctrl SPSEController) GetHasilPemilihan(c *gin.Context) {
 			   tanggal_hasil_pemilihan, nilai_hasil_pemilihan, status_paket,
 			   kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk,
 			   sumber_dana, kode_rup_lokal, metode_pengadaan, pagu_rup,
-			   tipe_swakelola, created_at, last_update
+			   tipe_swakelola, active_year, created_at, last_update
 		FROM spse_hasilpemilihan
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -441,7 +441,7 @@ func (ctrl SPSEController) GetHasilPemilihan(c *gin.Context) {
 			&item.MetodePemilihan, &item.TanggalHasilPemilihan, &item.NilaiHasilPemilihan,
 			&item.StatusPaket, &item.KodeSatuanKerja, &item.CaraPengadaan, &item.JenisPengadaan,
 			&item.PDN, &item.UMK, &item.SumberDana, &item.KodeRUPLokal, &item.MetodePengadaan,
-			&item.PaguRUP, &item.TipeSwakelola, &item.CreatedAt, &item.LastUpdate)
+			&item.PaguRUP, &item.TipeSwakelola, &item.ActiveYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			continue
 		}

@@ -30,6 +30,7 @@ type SPSESirupPerencanaan struct {
 	JadwalPemilihanAkhir *string    `db:"jadwal_pemilihan_akhir" json:"jadwal_pemilihan_akhir"`
 	TanggalUmumkanPaket  *time.Time `db:"tanggal_umumkan_paket" json:"tanggal_umumkan_paket"`
 	SirupScraped         *bool      `db:"sirup_scraped" json:"sirup_scraped"`
+	ActiveYear           *string    `db:"active_year" json:"active_year"`
 	CreatedAt            time.Time  `db:"created_at" json:"created_at"`
 	LastUpdate           *int64     `db:"last_update" json:"last_update"`
 	DeletedAt            *time.Time `db:"deleted_at" json:"deleted_at"`
@@ -94,7 +95,6 @@ func RunSPSESirupMigrations() error {
 		fields []string
 	}{
 		{"idx_sirup_perencanaan_kode_rup", "spse_perencanaansirup", []string{"kode_rup"}},
-		{"idx_sirup_perencanaan_kode_satker", "spse_perencanaansirup", []string{"kode_satuan_kerja"}},
 		{"idx_sirup_perencanaan_deleted_at", "spse_perencanaansirup", []string{"deleted_at"}},
 	}
 

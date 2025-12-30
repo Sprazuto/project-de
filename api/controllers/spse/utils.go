@@ -43,7 +43,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
 				"tanggal_pengumuman", "rencana_pemilihan", "pagu_rup", "kode_satuan_kerja",
 				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
-				"kode_rup_lokal", "akhir_pemilihan", "tipe_swakelola",
+				"kode_rup_lokal", "akhir_pemilihan", "tipe_swakelola", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -51,7 +51,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"pagu_rup": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
 				"jenis_pengadaan": "", "pdn": "", "umk": "",
 				"sumber_dana": "", "kode_rup_lokal": "", "akhir_pemilihan": "",
-				"tipe_swakelola": "",
+				"tipe_swakelola": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":           ctrl.isRupCode,
@@ -65,7 +65,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
 				"tanggal_buat_paket", "nilai_pagu_rup", "nilai_pagu_paket", "kode_satuan_kerja",
 				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
-				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola",
+				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -73,7 +73,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"nilai_pagu_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
 				"jenis_pengadaan": "", "pdn": "", "umk": "",
 				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
-				"tipe_swakelola": "",
+				"tipe_swakelola": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":           ctrl.isRupCode,
@@ -89,7 +89,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"rencana_pemilihan", "tanggal_pemilihan", "nilai_hps", "status_paket",
 				"kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk",
 				"sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup",
-				"tipe_swakelola", "akhir_pemilihan",
+				"tipe_swakelola", "akhir_pemilihan", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -98,7 +98,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"cara_pengadaan": "", "jenis_pengadaan": "", "pdn": "",
 				"umk": "", "sumber_dana": "", "kode_rup_lokal": "",
 				"metode_pengadaan": "", "pagu_rup": "", "tipe_swakelola": "",
-				"akhir_pemilihan": "",
+				"akhir_pemilihan": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":          ctrl.isRupCode,
@@ -114,7 +114,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"tanggal_hasil_pemilihan", "nilai_hasil_pemilihan", "status_paket",
 				"kode_satuan_kerja", "cara_pengadaan", "jenis_pengadaan", "pdn", "umk",
 				"sumber_dana", "kode_rup_lokal", "metode_pengadaan", "pagu_rup",
-				"tipe_swakelola",
+				"tipe_swakelola", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -122,7 +122,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"status_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
 				"jenis_pengadaan": "", "pdn": "", "umk": "",
 				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
-				"pagu_rup": "", "tipe_swakelola": "",
+				"pagu_rup": "", "tipe_swakelola": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":                ctrl.isRupCode,
@@ -138,7 +138,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"tanggal_kontrak", "nilai_kontrak", "status_paket", "mulai_kontrak",
 				"nilai_bap", "selesai_kontrak", "kode_satuan_kerja", "cara_pengadaan",
 				"jenis_pengadaan", "pdn", "umk", "sumber_dana", "kode_rup_lokal",
-				"metode_pengadaan", "tipe_swakelola",
+				"metode_pengadaan", "tipe_swakelola", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -147,7 +147,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"selesai_kontrak": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
 				"jenis_pengadaan": "", "pdn": "", "umk": "",
 				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
-				"tipe_swakelola": "",
+				"tipe_swakelola": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":        ctrl.isRupCode,
@@ -162,7 +162,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"kode_rup", "satuan_kerja", "nama_paket", "metode_pemilihan",
 				"tanggal_serah_terima", "nilai_bap", "status_paket", "kode_satuan_kerja",
 				"cara_pengadaan", "jenis_pengadaan", "pdn", "umk", "sumber_dana",
-				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola",
+				"kode_rup_lokal", "metode_pengadaan", "tipe_swakelola", "active_year",
 			},
 			RequiredFields: map[string]string{
 				"kode_rup": "", "satuan_kerja": "", "nama_paket": "",
@@ -170,7 +170,7 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 				"status_paket": "", "kode_satuan_kerja": "", "cara_pengadaan": "",
 				"jenis_pengadaan": "", "pdn": "", "umk": "",
 				"sumber_dana": "", "kode_rup_lokal": "", "metode_pengadaan": "",
-				"tipe_swakelola": "",
+				"tipe_swakelola": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_rup":             ctrl.isRupCode,
@@ -181,10 +181,10 @@ func (ctrl SPSEController) GetFieldMapping(tableName string) *SPSEFieldMapping {
 		"satker": {
 			TableName: "spse_satker",
 			FieldOrder: []string{
-				"kode_satuan_kerja", "satuan_kerja", "instansi", "jenis_satuan_kerja",
+				"kode_satuan_kerja", "satuan_kerja", "instansi", "jenis_satuan_kerja", "active_year",
 			},
 			RequiredFields: map[string]string{
-				"kode_satuan_kerja": "", "satuan_kerja": "", "instansi": "", "jenis_satuan_kerja": "",
+				"kode_satuan_kerja": "", "satuan_kerja": "", "instansi": "", "jenis_satuan_kerja": "", "active_year": "",
 			},
 			FieldValidators: map[string]func(string) bool{
 				"kode_satuan_kerja": ctrl.isSatkerCode,
@@ -533,12 +533,13 @@ func (ctrl SPSEController) buildPerencanaanInsertFromDataset(dataset *OrderedDat
 	kodeRUPLokal := dataset.FieldValues["kode_rup_lokal"]
 	akhirPemilihan := dataset.FieldValues["akhir_pemilihan"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_perencanaan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_pengumuman, rencana_pemilihan, pagu_rup,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 akhir_pemilihan, tipe_swakelola, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), $17, NULL)
+		 akhir_pemilihan, tipe_swakelola, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), $18, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -554,12 +555,13 @@ func (ctrl SPSEController) buildPerencanaanInsertFromDataset(dataset *OrderedDat
 			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
 			akhir_pemilihan = EXCLUDED.akhir_pemilihan,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalPengumuman, rencanaPemilihan, paguRUP,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
-		akhirPemilihan, tipeSwakelola, time.Now().Unix()}
+		akhirPemilihan, tipeSwakelola, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -587,12 +589,13 @@ func (ctrl SPSEController) buildPersiapanInsertFromDataset(dataset *OrderedDataS
 	kodeRUPLokal := dataset.FieldValues["kode_rup_lokal"]
 	metodePengadaan := dataset.FieldValues["metode_pengadaan"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_persiapan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_buat_paket, nilai_pagu_rup, nilai_pagu_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), $17, NULL)
+		 metode_pengadaan, tipe_swakelola, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), $18, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -608,12 +611,13 @@ func (ctrl SPSEController) buildPersiapanInsertFromDataset(dataset *OrderedDataS
 			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
 			metode_pengadaan = EXCLUDED.metode_pengadaan,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalBuatPaket, nilaiPaguRUP, nilaiPaguPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
-		metodePengadaan, tipeSwakelola, time.Now().Unix()}
+		metodePengadaan, tipeSwakelola, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -644,12 +648,13 @@ func (ctrl SPSEController) buildPemilihanInsertFromDataset(dataset *OrderedDataS
 	paguRUP := dataset.FieldValues["pagu_rup"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
 	akhirPemilihan := dataset.FieldValues["akhir_pemilihan"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_pemilihan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, rencana_pemilihan, tanggal_pemilihan, nilai_hps, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, pagu_rup, tipe_swakelola, akhir_pemilihan, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), $20, NULL)
+		 metode_pengadaan, pagu_rup, tipe_swakelola, akhir_pemilihan, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), $21, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -668,12 +673,13 @@ func (ctrl SPSEController) buildPemilihanInsertFromDataset(dataset *OrderedDataS
 			pagu_rup = EXCLUDED.pagu_rup,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
 			akhir_pemilihan = EXCLUDED.akhir_pemilihan,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, rencanaPemilihan, tanggalPemilihan, nilaiHPS, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
-		metodePengadaan, paguRUP, tipeSwakelola, akhirPemilihan, time.Now().Unix()}
+		metodePengadaan, paguRUP, tipeSwakelola, akhirPemilihan, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -702,12 +708,13 @@ func (ctrl SPSEController) buildHasilPemilihanInsertFromDataset(dataset *Ordered
 	metodePengadaan := dataset.FieldValues["metode_pengadaan"]
 	paguRUP := dataset.FieldValues["pagu_rup"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_hasilpemilihan
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_hasil_pemilihan, nilai_hasil_pemilihan, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, pagu_rup, tipe_swakelola, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), $18, NULL)
+		 metode_pengadaan, pagu_rup, tipe_swakelola, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), $19, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -724,12 +731,13 @@ func (ctrl SPSEController) buildHasilPemilihanInsertFromDataset(dataset *Ordered
 			metode_pengadaan = EXCLUDED.metode_pengadaan,
 			pagu_rup = EXCLUDED.pagu_rup,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalHasilPemilihan, nilaiHasilPemilihan, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
-		metodePengadaan, paguRUP, tipeSwakelola, time.Now().Unix()}
+		metodePengadaan, paguRUP, tipeSwakelola, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -760,12 +768,13 @@ func (ctrl SPSEController) buildKontrakInsertFromDataset(dataset *OrderedDataSet
 	kodeRUPLokal := dataset.FieldValues["kode_rup_lokal"]
 	metodePengadaan := dataset.FieldValues["metode_pengadaan"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_kontrak
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_kontrak, nilai_kontrak, status_paket,
 		 mulai_kontrak, nilai_bap, selesai_kontrak, kode_satuan_kerja, cara_pengadaan, jenis_pengadaan,
-		 pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), $20, NULL)
+		 pdn, umk, sumber_dana, kode_rup_lokal, metode_pengadaan, tipe_swakelola, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW(), $21, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -784,12 +793,13 @@ func (ctrl SPSEController) buildKontrakInsertFromDataset(dataset *OrderedDataSet
 			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
 			metode_pengadaan = EXCLUDED.metode_pengadaan,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalKontrak, nilaiKontrak, statusPaket,
 		mulaiKontrak, nilaiBAP, selesaiKontrak, kodeSatuanKerja, caraPengadaan, jenisPengadaan,
-		pdn, umk, sumberDana, kodeRUPLokal, metodePengadaan, tipeSwakelola, time.Now().Unix()}
+		pdn, umk, sumberDana, kodeRUPLokal, metodePengadaan, tipeSwakelola, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -817,12 +827,13 @@ func (ctrl SPSEController) buildSerahTerimaInsertFromDataset(dataset *OrderedDat
 	kodeRUPLokal := dataset.FieldValues["kode_rup_lokal"]
 	metodePengadaan := dataset.FieldValues["metode_pengadaan"]
 	tipeSwakelola := dataset.FieldValues["tipe_swakelola"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	query := `INSERT INTO spse_serahterima
 		(kode_rup, satuan_kerja, nama_paket, metode_pemilihan, tanggal_serah_terima, nilai_bap, status_paket,
 		 kode_satuan_kerja, cara_pengadaan, jenis_pengadaan, pdn, umk, sumber_dana, kode_rup_lokal,
-		 metode_pengadaan, tipe_swakelola, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), $17, NULL)
+		 metode_pengadaan, tipe_swakelola, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), $18, NULL)
 		ON CONFLICT (kode_rup, nama_paket) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			metode_pemilihan = EXCLUDED.metode_pemilihan,
@@ -838,12 +849,13 @@ func (ctrl SPSEController) buildSerahTerimaInsertFromDataset(dataset *OrderedDat
 			kode_rup_lokal = EXCLUDED.kode_rup_lokal,
 			metode_pengadaan = EXCLUDED.metode_pengadaan,
 			tipe_swakelola = EXCLUDED.tipe_swakelola,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
 	args := []interface{}{kodeRUP, satuanKerja, namaPaket, metodePemilihan, tanggalSerahTerima, nilaiBAP, statusPaket,
 		kodeSatuanKerja, caraPengadaan, jenisPengadaan, pdn, umk, sumberDana, kodeRUPLokal,
-		metodePengadaan, tipeSwakelola, time.Now().Unix()}
+		metodePengadaan, tipeSwakelola, activeYear, time.Now().Unix()}
 
 	return query, args
 }
@@ -858,6 +870,7 @@ func (ctrl SPSEController) buildSatuanKerjaInsertFromDataset(dataset *OrderedDat
 	kodeSatuanKerja := dataset.FieldValues["kode_satuan_kerja"]
 	satuanKerja := dataset.FieldValues["satuan_kerja"]
 	instansi := dataset.FieldValues["instansi"]
+	activeYear := dataset.FieldValues["active_year"]
 
 	// Set default instansi if not provided
 	if instansi == nil || instansi == "" {
@@ -868,16 +881,17 @@ func (ctrl SPSEController) buildSatuanKerjaInsertFromDataset(dataset *OrderedDat
 	jenisSatuanKerja := ctrl.determineJenisSatuanKerja(fmt.Sprintf("%v", satuanKerja))
 
 	query := `INSERT INTO spse_satker
-		(kode_satuan_kerja, satuan_kerja, instansi, jenis_satuan_kerja, created_at, last_update, deleted_at)
-		VALUES ($1, $2, $3, $4, NOW(), $5, NULL)
+		(kode_satuan_kerja, satuan_kerja, instansi, jenis_satuan_kerja, active_year, created_at, last_update, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, NOW(), $6, NULL)
 		ON CONFLICT (kode_satuan_kerja) DO UPDATE SET
 			satuan_kerja = EXCLUDED.satuan_kerja,
 			instansi = EXCLUDED.instansi,
 			jenis_satuan_kerja = EXCLUDED.jenis_satuan_kerja,
+			active_year = EXCLUDED.active_year,
 			last_update = EXCLUDED.last_update,
 			deleted_at = NULL`
 
-	args := []interface{}{kodeSatuanKerja, satuanKerja, instansi, jenisSatuanKerja, time.Now().Unix()}
+	args := []interface{}{kodeSatuanKerja, satuanKerja, instansi, jenisSatuanKerja, activeYear, time.Now().Unix()}
 
 	return query, args
 }

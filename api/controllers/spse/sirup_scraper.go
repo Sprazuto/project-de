@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Massad/gin-boilerplate/db"
@@ -25,8 +26,6 @@ type SIRUPScrapingResult struct {
 func (ctrl SPSEController) scrapeSIRUPEndpoint(kodeRUP string) (map[string]interface{}, error) {
 	// Construct SIRUP URL
 	sirupURL := fmt.Sprintf("https://sirup.inaproc.id/sirup/rup/detailPaketPenyedia2020?idPaket=%s", kodeRUP)
-
-	log.Printf("Fetching SIRUP data from: %s", sirupURL)
 
 	// Create HTTP client with timeout
 	client := &http.Client{
@@ -62,7 +61,7 @@ func (ctrl SPSEController) scrapeSIRUPEndpoint(kodeRUP string) (map[string]inter
 
 		if attempt < maxRetries-1 {
 			delay := time.Duration(attempt+1) * baseDelay
-			log.Printf("SIRUP request failed (attempt %d/%d), retrying in %v: %v", attempt+1, maxRetries, delay, err)
+			log.Printf("WARNING: SIRUP request failed (attempt %d/%d), retrying in %v", attempt+1, maxRetries, delay)
 			time.Sleep(delay)
 		}
 	}
@@ -108,9 +107,9 @@ func (ctrl SPSEController) scrapeSIRUPEndpoint(kodeRUP string) (map[string]inter
 }
 
 // ScrapeSIRUP godoc
-// @Summary Scrape SIRUP data for all perencanaan records
+// @Summary Scrape SIRUP data for filtered perencanaan records
 // @Schemes
-// @Description Scrapes SIRUP data from sirup.inaproc.id for each kodeRUP in perencanaan table
+// @Description Scrapes SIRUP data from sirup.inaproc.id for filtered kodeRUP records from spse_perencanaan table
 // @Tags SIRUP
 // @Accept json
 // @Produce json
@@ -118,18 +117,18 @@ func (ctrl SPSEController) scrapeSIRUPEndpoint(kodeRUP string) (map[string]inter
 // @Failure 500 {object} gin.H
 // @Router /spse/sirup/scrape [POST]
 func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
-	log.Println("Starting SIRUP scraping...")
+	log.Println("Starting filtered SIRUP scraping from perencanaan table...")
 
 	spseCtrl := SPSEController{}
 
-	// Get all kodeRUP values from SIRUP table
-	kodeRUPs, err := spseCtrl.getExistingSIRUPRecords()
+	// Get filtered kodeRUP values from perencanaan table
+	kodeRUPs, err := spseCtrl.getFilteredPerencanaanRecords()
 	if err != nil {
-		log.Printf("Error getting perencanaan records: %v", err)
+		log.Printf("Error getting filtered perencanaan records: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"error":   err.Error(),
-			"message": "Failed to get perencanaan records",
+			"message": "Failed to get filtered perencanaan records",
 		})
 		return
 	}
@@ -145,8 +144,6 @@ func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
 		})
 		return
 	}
-
-	log.Printf("Found %d perencanaan records to process", len(kodeRUPs))
 
 	// Process each kodeRUP
 	database := db.GetDB()
@@ -184,47 +181,117 @@ func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
 	recordsProcessed := 0
 	recordsStored := 0
 	recordsFailed := 0
+	totalRecords := len(kodeRUPs)
+
+	// Log progress every 100 records or at start
+	log.Printf("SIRUP scraping started: %d records to process", totalRecords)
 
 	// Process each kodeRUP with rate limiting
 	for i, kodeRUP := range kodeRUPs {
-		log.Printf("Processing SIRUP data for kodeRUP %s (%d/%d)", kodeRUP, i+1, len(kodeRUPs))
-
 		// Scrape SIRUP data
 		sirupData, err := ctrl.scrapeSIRUPEndpoint(kodeRUP)
 		if err != nil {
-			log.Printf("Error scraping SIRUP for kodeRUP %s: %v", kodeRUP, err)
+			log.Printf("ERROR: Failed to scrape SIRUP for kodeRUP %s: %v", kodeRUP, err)
+			// Store failed record with minimal data
+			failedData := map[string]interface{}{
+				"kode_rup":      kodeRUP,
+				"sirup_scraped": false, // Mark as failed
+			}
+
+			// Prepare minimal data using existing function but override sirup_scraped
+			enrichedFailedData, _ := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, failedData)
+			enrichedFailedData["sirup_scraped"] = false // Ensure it's marked as failed
+
+			// Add active_year from environment
+			activeYear := os.Getenv("SPSE_ACTIVE_YEAR")
+			enrichedFailedData["active_year"] = activeYear
+
+			failedDataset := spseCtrl.convertMapToSIRUPDataset(enrichedFailedData)
+			failedQuery, failedArgs := spseCtrl.buildSIRUPInsertFromDataset(failedDataset)
+			if failedQuery != "" {
+				if _, insertErr := tx.Exec(failedQuery, failedArgs...); insertErr != nil {
+					log.Printf("ERROR: Failed to insert failed record for kodeRUP %s: %v", kodeRUP, insertErr)
+				} else {
+					recordsStored++ // Count as stored even though failed
+				}
+			}
 			recordsFailed++
-			continue
+			recordsProcessed++
+		} else {
+			// Check if we actually got meaningful data
+			isSuccessful := false
+			if namaPaket, exists := sirupData["nama_paket"].(string); exists && namaPaket != "" {
+				isSuccessful = true
+			}
+
+			if !isSuccessful {
+				// Data extraction failed - treat as failed scraping
+				log.Printf("WARNING: Data extraction failed for kodeRUP '%s' (empty nama_paket)", kodeRUP)
+				failedData := map[string]interface{}{
+					"kode_rup":      kodeRUP,
+					"sirup_scraped": false, // Mark as failed due to no data
+				}
+
+				enrichedFailedData, _ := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, failedData)
+				enrichedFailedData["sirup_scraped"] = false
+
+				activeYear := os.Getenv("SPSE_ACTIVE_YEAR")
+				enrichedFailedData["active_year"] = activeYear
+
+				failedDataset := spseCtrl.convertMapToSIRUPDataset(enrichedFailedData)
+				failedQuery, failedArgs := spseCtrl.buildSIRUPInsertFromDataset(failedDataset)
+				if failedQuery != "" {
+					if _, insertErr := tx.Exec(failedQuery, failedArgs...); insertErr != nil {
+						log.Printf("ERROR: Failed to insert failed record for kodeRUP %s: %v", kodeRUP, insertErr)
+					} else {
+						recordsStored++
+					}
+				}
+				recordsFailed++
+				recordsProcessed++
+			} else {
+				// Successful scraping - prepare and store full data
+				enrichedData, err := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, sirupData)
+				if err != nil {
+					log.Printf("ERROR: Failed to enrich data for kodeRUP %s: %v", kodeRUP, err)
+					recordsFailed++
+					recordsProcessed++
+					continue
+				}
+
+				// Add active_year from environment
+				activeYear := os.Getenv("SPSE_ACTIVE_YEAR")
+				enrichedData["active_year"] = activeYear
+
+				// Convert to ordered dataset
+				orderedDataset := spseCtrl.convertMapToSIRUPDataset(enrichedData)
+
+				// Build and execute insert query
+				insertQuery, args := spseCtrl.buildSIRUPInsertFromDataset(orderedDataset)
+				if insertQuery == "" {
+					log.Printf("ERROR: No insert query generated for kodeRUP %s", kodeRUP)
+					recordsFailed++
+					recordsProcessed++
+					continue
+				}
+
+				_, err = tx.Exec(insertQuery, args...)
+				if err != nil {
+					log.Printf("ERROR: Failed to insert SIRUP record for kodeRUP %s: %v", kodeRUP, err)
+					recordsFailed++
+					recordsProcessed++
+					continue
+				}
+
+				recordsStored++
+				recordsProcessed++
+			}
 		}
 
-		// Prepare SIRUP data for insertion
-		enrichedData, err := spseCtrl.prepareSIRUPDataForInsertion(kodeRUP, sirupData)
-		if err != nil {
-			log.Printf("Error enriching data for kodeRUP %s: %v", kodeRUP, err)
-			recordsFailed++
-			continue
+		// Log progress every 100 records
+		if (i+1)%100 == 0 || i == 0 {
+			log.Printf("SIRUP scraping progress: %d/%d records processed", i+1, totalRecords)
 		}
-
-		// Convert to ordered dataset
-		orderedDataset := spseCtrl.convertMapToSIRUPDataset(enrichedData)
-
-		// Build and execute insert query
-		insertQuery, args := spseCtrl.buildSIRUPInsertFromDataset(orderedDataset)
-		if insertQuery == "" {
-			log.Printf("No insert query generated for kodeRUP %s", kodeRUP)
-			recordsFailed++
-			continue
-		}
-
-		_, err = tx.Exec(insertQuery, args...)
-		if err != nil {
-			log.Printf("Error inserting SIRUP record for kodeRUP %s: %v", kodeRUP, err)
-			recordsFailed++
-			continue
-		}
-
-		recordsStored++
-		recordsProcessed++
 
 		// Rate limiting - add delay between requests
 		if i < len(kodeRUPs)-1 {
@@ -251,7 +318,7 @@ func (ctrl SPSEController) ScrapeSIRUP(c *gin.Context) {
 
 	result := SIRUPScrapingResult{
 		Success:       true,
-		Message:       fmt.Sprintf("Successfully processed %d records, stored %d, failed %d", recordsProcessed, recordsStored, recordsFailed),
+		Message:       fmt.Sprintf("Processed %d records: %d successful, %d failed (all stored)", recordsProcessed, recordsStored-recordsFailed, recordsFailed),
 		RecordsFound:  recordsProcessed,
 		RecordsStored: recordsStored,
 		Endpoint:      "sirup.inaproc.id",
@@ -310,6 +377,10 @@ func (ctrl SPSEController) ScrapeSIRUPSingle(c *gin.Context) {
 		})
 		return
 	}
+
+	// Add active_year from environment
+	activeYear := os.Getenv("SPSE_ACTIVE_YEAR")
+	enrichedData["active_year"] = activeYear
 
 	// Store in database
 	database := db.GetDB()

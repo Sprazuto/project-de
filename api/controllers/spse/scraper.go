@@ -47,9 +47,6 @@ var spseClient = &http.Client{
 // getAuthenticityToken retrieves the authenticity token from the main page
 func (ctrl SPSEController) getAuthenticityToken() (string, error) {
 	targetURL := os.Getenv("SPSE_BASE_URL") + os.Getenv("SPSE_AUTH_ENDPOINT")
-	if targetURL == "" {
-		targetURL = "https://spse.inaproc.id/sumedangkab/amel/perencanaan/detail"
-	}
 
 	log.Printf("Fetching authenticity token from: %s", targetURL)
 
@@ -401,6 +398,9 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 			continue
 		}
 
+		// Add active_year to the dataset
+		orderedDataset.FieldValues["active_year"] = activeYear
+
 		// Log mapping quality for debugging
 		if orderedDataset.MappingStatus.MappedFields < orderedDataset.MappingStatus.TotalFields/2 {
 			log.Printf("Warning: Poor field mapping for table %s - only %d/%d fields mapped",
@@ -533,7 +533,9 @@ func (ctrl SPSEController) scrapeEndpoint(endpoint string, tableName string) (Sc
 func (ctrl SPSEController) ScrapePerencanaan(c *gin.Context) {
 	log.Println("Starting Perencanaan scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailperencanaan2", "perencanaan")
+	endpoint := os.Getenv("SPSE_PERENCANAAN_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "perencanaan")
 	if err != nil {
 		log.Printf("Error scraping Perencanaan: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -560,7 +562,9 @@ func (ctrl SPSEController) ScrapePerencanaan(c *gin.Context) {
 func (ctrl SPSEController) ScrapePersiapan(c *gin.Context) {
 	log.Println("Starting Persiapan scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailpersiapan2", "persiapan")
+	endpoint := os.Getenv("SPSE_PERSIAPAN_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "persiapan")
 	if err != nil {
 		log.Printf("Error scraping Persiapan: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -587,7 +591,9 @@ func (ctrl SPSEController) ScrapePersiapan(c *gin.Context) {
 func (ctrl SPSEController) ScrapePemilihan(c *gin.Context) {
 	log.Println("Starting Pemilihan scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailpemilihan2", "pemilihan")
+	endpoint := os.Getenv("SPSE_PEMILIHAN_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "pemilihan")
 	if err != nil {
 		log.Printf("Error scraping Pemilihan: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -614,7 +620,9 @@ func (ctrl SPSEController) ScrapePemilihan(c *gin.Context) {
 func (ctrl SPSEController) ScrapeHasilPemilihan(c *gin.Context) {
 	log.Println("Starting Hasil Pemilihan scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailhasilpemilihan2", "hasilpemilihan")
+	endpoint := os.Getenv("SPSE_HASIL_PEMILIHAN_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "hasilpemilihan")
 	if err != nil {
 		log.Printf("Error scraping Hasil Pemilihan: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -641,7 +649,9 @@ func (ctrl SPSEController) ScrapeHasilPemilihan(c *gin.Context) {
 func (ctrl SPSEController) ScrapeKontrak(c *gin.Context) {
 	log.Println("Starting Kontrak scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailkontrak2", "kontrak")
+	endpoint := os.Getenv("SPSE_KONTRAK_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "kontrak")
 	if err != nil {
 		log.Printf("Error scraping Kontrak: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -668,7 +678,9 @@ func (ctrl SPSEController) ScrapeKontrak(c *gin.Context) {
 func (ctrl SPSEController) ScrapeSerahTerima(c *gin.Context) {
 	log.Println("Starting Serah Terima scraping...")
 
-	result, err := ctrl.scrapeEndpoint("/sumedangkab/amel/dt/detailserahterima2", "serahterima")
+	endpoint := os.Getenv("SPSE_SERAH_TERIMA_ENDPOINT")
+
+	result, err := ctrl.scrapeEndpoint(endpoint, "serahterima")
 	if err != nil {
 		log.Printf("Error scraping Serah Terima: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -700,12 +712,12 @@ func (ctrl SPSEController) ScrapeAll(c *gin.Context) {
 		table string
 		name  string
 	}{
-		{"/sumedangkab/amel/dt/detailperencanaan2", "perencanaan", "Perencanaan"},
-		{"/sumedangkab/amel/dt/detailpersiapan2", "persiapan", "Persiapan"},
-		{"/sumedangkab/amel/dt/detailpemilihan2", "pemilihan", "Pemilihan"},
-		{"/sumedangkab/amel/dt/detailhasilpemilihan2", "hasilpemilihan", "Hasil Pemilihan"},
-		{"/sumedangkab/amel/dt/detailkontrak2", "kontrak", "Kontrak"},
-		{"/sumedangkab/amel/dt/detailserahterima2", "serahterima", "Serah Terima"},
+		{os.Getenv("SPSE_PERENCANAAN_ENDPOINT"), "perencanaan", "Perencanaan"},
+		{os.Getenv("SPSE_PERSIAPAN_ENDPOINT"), "persiapan", "Persiapan"},
+		{os.Getenv("SPSE_PEMILIHAN_ENDPOINT"), "pemilihan", "Pemilihan"},
+		{os.Getenv("SPSE_HASIL_PEMILIHAN_ENDPOINT"), "hasilpemilihan", "Hasil Pemilihan"},
+		{os.Getenv("SPSE_KONTRAK_ENDPOINT"), "kontrak", "Kontrak"},
+		{os.Getenv("SPSE_SERAH_TERIMA_ENDPOINT"), "serahterima", "Serah Terima"},
 	}
 
 	results := make(map[string]ScrapingResult)

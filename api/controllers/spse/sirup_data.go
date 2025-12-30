@@ -62,7 +62,7 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 			   total_pagu, lokasi_pekerjaan, sumber_dana, jenis_pengadaan,
 			   metode_pemilihan, pemanfaatan_mulai, pemanfaatan_akhir,
 			   jadwal_kontrak_mulai, jadwal_kontrak_akhir, jadwal_pemilihan_mulai,
-			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, created_at, last_update
+			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, active_year, created_at, last_update
 		FROM spse_perencanaansirup
 		WHERE deleted_at IS NULL
 		ORDER BY created_at DESC
@@ -81,7 +81,7 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 	var data []models.SPSESirupPerencanaan
 	for rows.Next() {
 		var item models.SPSESirupPerencanaan
-		var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir *string
+		var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir, activeYear *string
 		var totalPagu *float64
 		var sirupScraped *bool
 		err := rows.Scan(&item.ID, &kodeRUPPtr, &namaPaket, &namaKLPD,
@@ -89,7 +89,7 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 			&sumberDana, &jenisPengadaan, &metodePemilihan,
 			&pemanfaatanMulai, &pemanfaatanAkhir, &jadwalKontrakMulai,
 			&jadwalKontrakAkhir, &jadwalPemilihanMulai, &jadwalPemilihanAkhir,
-			&item.TanggalUmumkanPaket, &sirupScraped, &item.CreatedAt, &item.LastUpdate)
+			&item.TanggalUmumkanPaket, &sirupScraped, &activeYear, &item.CreatedAt, &item.LastUpdate)
 		if err != nil {
 			log.Printf("Error scanning row: %v", err)
 			continue
@@ -111,6 +111,7 @@ func (ctrl SPSEController) GetSIRUPPerencanaan(c *gin.Context) {
 		item.JadwalPemilihanMulai = jadwalPemilihanMulai
 		item.JadwalPemilihanAkhir = jadwalPemilihanAkhir
 		item.SirupScraped = sirupScraped
+		item.ActiveYear = activeYear
 		data = append(data, item)
 	}
 
@@ -143,7 +144,7 @@ func (ctrl SPSEController) GetSIRUPByKodeRUP(c *gin.Context) {
 	database := db.GetDB()
 
 	var item models.SPSESirupPerencanaan
-	var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir *string
+	var kodeRUPPtr, namaPaket, namaKLPD, satuanKerja, tahunAnggaran, lokasiPekerjaan, sumberDana, jenisPengadaan, metodePemilihan, pemanfaatanMulai, pemanfaatanAkhir, jadwalKontrakMulai, jadwalKontrakAkhir, jadwalPemilihanMulai, jadwalPemilihanAkhir, activeYear *string
 	var totalPagu *float64
 	var sirupScraped *bool
 	err := database.QueryRow(`
@@ -151,7 +152,7 @@ func (ctrl SPSEController) GetSIRUPByKodeRUP(c *gin.Context) {
 			   total_pagu, lokasi_pekerjaan, sumber_dana, jenis_pengadaan,
 			   metode_pemilihan, pemanfaatan_mulai, pemanfaatan_akhir,
 			   jadwal_kontrak_mulai, jadwal_kontrak_akhir, jadwal_pemilihan_mulai,
-			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, created_at, last_update
+			   jadwal_pemilihan_akhir, tanggal_umumkan_paket, sirup_scraped, active_year, created_at, last_update
 		FROM spse_perencanaansirup
 		WHERE kode_rup = $1 AND deleted_at IS NULL
 		LIMIT 1
@@ -161,7 +162,7 @@ func (ctrl SPSEController) GetSIRUPByKodeRUP(c *gin.Context) {
 		&sumberDana, &jenisPengadaan, &metodePemilihan,
 		&pemanfaatanMulai, &pemanfaatanAkhir, &jadwalKontrakMulai,
 		&jadwalKontrakAkhir, &jadwalPemilihanMulai, &jadwalPemilihanAkhir,
-		&item.TanggalUmumkanPaket, &sirupScraped, &item.CreatedAt, &item.LastUpdate)
+		&item.TanggalUmumkanPaket, &sirupScraped, &activeYear, &item.CreatedAt, &item.LastUpdate)
 	if err == nil {
 		item.KodeRUP = kodeRUPPtr
 		item.NamaPaket = namaPaket
@@ -180,6 +181,7 @@ func (ctrl SPSEController) GetSIRUPByKodeRUP(c *gin.Context) {
 		item.JadwalPemilihanMulai = jadwalPemilihanMulai
 		item.JadwalPemilihanAkhir = jadwalPemilihanAkhir
 		item.SirupScraped = sirupScraped
+		item.ActiveYear = activeYear
 	}
 
 	if err != nil {

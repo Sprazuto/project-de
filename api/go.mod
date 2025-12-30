@@ -4,6 +4,8 @@ go 1.24.0
 
 toolchain go1.24.1
 
+replace github.com/ugorji/go v1.1.4 => github.com/ugorji/go/codec v1.3.0
+
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/gin-contrib/gzip v1.2.3
